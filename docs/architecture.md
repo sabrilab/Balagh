@@ -1,0 +1,168 @@
+# Décisions techniques
+
+Le cahier des charges laisse ouverts le choix des API, la pile technique et
+l'architecture (section 7). Voici ce qui a été retenu, et pourquoi.
+
+## Pourquoi un prototype web plutôt que du Swift
+
+Le produit visé est une application iOS. Un projet Xcode aurait été le livrable
+naturel, mais rien ici ne permet de le compiler ni de l'exécuter : on aurait
+livré du code non vérifié, ce qui est le pire résultat possible pour une
+application dont la valeur tient à l'exactitude.
+
+Le choix retenu est une **application web à haute fidélité, réellement
+fonctionnelle** : micro, effets, rendu et export marchent pour de bon, et les
+27 vérifications automatisées s'exécutent dans un vrai navigateur. Elle sert de
+spécification exécutable pour le portage natif, et elle est utilisable telle
+quelle sur un téléphone.
+
+Ce qui se transpose directement en Swift :
+
+| Web | iOS |
+|---|---|
+| Web Audio `ConvolverNode` + réponses impulsionnelles générées | `AVAudioUnitReverb` ou `AVAudioUnitConvolution` |
+| `MediaRecorder` sur `getUserMedia` | `AVAudioEngine` + `AVAudioFile` |
+| Canvas 1080×1920 + `captureStream` | `AVAssetWriter` + `CALayer` |
+| Index inverse en mémoire | SQLite FTS5 embarqué |
+
+## Données
+
+Un corpus **embarqué** plutôt qu'une API appelée à l'exécution. Trois raisons :
+l'application doit fonctionner hors ligne (on récite là où on est) ; une
+dépendance réseau sur un texte sacré introduit un risque de contenu altéré ou
+indisponible ; et la page publiée s'exécute sous une politique de sécurité qui
+interdit les appels externes.
+
+Coût : 2,4 Mo de JSON. Bénéfice : aucun appel réseau, aucun risque d'altération,
+recherche instantanée.
+
+### Deux défauts de la source, détectés et traités
+
+`tools/build-data.mjs` vérifie avant d'écrire. Deux anomalies réelles ont été
+trouvées dans l'édition amont.
+
+**La basmala collée au verset 1.** L'édition `quran-uthmani` sert la basmala
+concaténée au premier verset de chaque sourate qui en porte une : 2:1 arrive
+comme « *basmala* الٓمٓ » alors que le verset 2:1 est « الٓمٓ » seul. La basmala
+d'ouverture n'est un verset numéroté que dans Al-Fatiha. Elle est donc détachée
+sur les 112 sourates concernées (1 et 9 exclues) et stockée à part, en
+s'appuyant sur le drapeau `bismillah_pre` de Quran.com.
+
+La chaîne de la basmala n'est jamais écrite en dur : elle est **dérivée de 1:1**,
+ce qui garantit une correspondance exacte octet pour octet avec la source.
+
+**Une shadda parasite en 95:1 et 97:1.** Dans ces deux sourates, la basmala
+préfixée porte une shadda sur le bāʾ initial (`U+0628 U+0651 U+0650` au lieu de
+`U+0628 U+0650`), soit « بِّسْمِ » au lieu de « بِسْمِ ». Le défaut est confiné
+au préfixe que l'on retire ; le verset lui-même n'est pas touché. Le
+rapprochement tolère donc un écart portant uniquement sur des shadda
+surnuméraires, et l'anomalie est journalisée dans les métadonnées du corpus.
+
+Ces deux cas illustrent le principe : **une vérification qui échoue vaut mieux
+qu'un corpus douteux qui passe.**
+
+## Moteur tajwid
+
+La coloration est une aide à la lecture, pas une autorité. Le principe retenu
+est la **prudence** : seules les règles déterministes à partir du texte
+othmanien vocalisé sont rendues ; en cas de doute, aucune couleur. Le mode
+« noir simple » est toujours à un geste.
+
+| Règle | Détection | Fiabilité |
+|---|---|---|
+| Madd | signe maddah `U+0653` explicite | totale, la marque est dans le texte |
+| Ghunna | nūn ou mīm portant une shadda | totale |
+| Qalqala | ق ط ب ج د portant un soukoun explicite | totale |
+| Lettre muette | rond `U+06DF` ou rectangle `U+06E0` suscrit | totale |
+| Ikhfa / idgham / iqlab | nūn quiescent ou tanwīn, selon la lettre suivante | règle déterministe |
+
+**Ce qui n'est pas coloré, volontairement.** Le nūn quiescent non marqué d'un
+soukoun — fréquent dans l'orthographe othmanienne, comme dans `أَنزَلَ` ou
+`مَن يَقُولُ` — ne déclenche aucune règle. Le colorer supposerait d'inférer une
+quiescence non écrite. On préfère le silence à l'erreur.
+
+### Deux bugs trouvés en vérifiant
+
+**Les sièges de prolongation.** L'alif nu, l'alif waṣla et l'alif maqṣūra ne
+portent aucun son propre. En les prenant pour « la lettre suivante », le moteur
+classait `هُدًۭى لِّلْمُتَّقِينَ` (2:2) en ikhfa au lieu d'idgham sans ghunna.
+Ils sont désormais traversés.
+
+**U+06E2 n'est pas un marqueur d'iqlab.** Le petit mīm suscrit isolé était
+traité comme la marque de l'iqlab. Le corpus le dément : sur ses 2 445
+occurrences, 409 seulement précèdent un bāʾ. Dans le texte de Tanzil il signale
+un tanwīn non prononcé clairement, quelle que soit la suite — bāʾ (iqlab), lām
+(idgham) ou qāf (ikhfa). Le raccourci colorait donc 2 036 lettres à tort. Il a
+été supprimé : la règle générale, fondée sur la lettre suivante, est la seule
+correcte. Les comptes sont passés de 2 525 iqlab à 290 — l'iqlab *est* rare.
+
+Une vérification tourne sur les 6 236 versets et confirme que le texte extrait
+du HTML coloré est **identique caractère pour caractère** au corpus. La
+coloration ne peut pas altérer le texte.
+
+## Recherche
+
+Index inverse construit dans le navigateur (environ 200 ms, hors du chemin
+critique) sur les traductions française et anglaise et sur l'arabe normalisé.
+Le score combine la rareté des termes et la **couverture** de la requête : un
+verset qui contient tous les mots demandés passe devant un verset qui en répète
+un seul.
+
+Les thèmes de l'écran de recherche sont des **requêtes pré-écrites**, pas des
+listes de références. Ils traversent le même moteur que ce qu'écrit
+l'utilisateur. Aucune référence n'est mémorisée dans le code, donc aucune ne
+peut être fausse.
+
+**Extension serveur.** Un agent LLM améliorerait le rappel sur les formulations
+indirectes (« que dire quand on a peur de mourir »). Sa contrainte ne change
+pas : il ne produit aucun texte religieux, il **désigne** des versets du corpus,
+et l'application affiche le texte vérifié qu'elle détient déjà. En pratique :
+l'agent renvoie une liste de références, l'application les résout localement, et
+toute référence inconnue est écartée silencieusement.
+
+## Audio
+
+Chaîne : coupe-bas 85 Hz → creux de chaleur → présence 3,2 kHz → compresseur
+doux → direct + convolution + écho optionnel.
+
+Les réponses impulsionnelles sont **générées** : bruit blanc passé au filtre
+d'un pôle, enveloppe exponentielle calée sur le RT60 demandé, quelques
+réflexions précoces décorrélées entre canaux pour donner sa taille au volume.
+Elles sont mises en cache par couple préréglage/fréquence d'échantillonnage.
+
+Le micro est demandé **sans** annulation d'écho, **sans** réduction de bruit et
+**sans** gain automatique : ces traitements sont réglés pour la parole
+téléphonique et abîment une récitation.
+
+## Export
+
+Rendu en **temps réel** : le tampon traité alimente un
+`MediaStreamAudioDestinationNode`, le canvas fournit sa piste vidéo via
+`captureStream`, et `MediaRecorder` encode les deux. Une passe hors ligne serait
+plus rapide pour l'audio seul, mais l'encodage reste temps réel de toute façon,
+et un seul chemin pour l'audio et la vidéo vaut mieux que deux.
+
+Le calage des versets est **réparti au prorata du nombre de signes**. C'est une
+estimation, annoncée comme telle. Un alignement forcé sur la voix — ou un
+pointage manuel pendant une écoute — reste à faire.
+
+La composition vidéo est entièrement exprimée en multiples de `k = largeur/1080`,
+de sorte que l'aperçu basse définition et l'export 1080×1920 donnent exactement
+la même image.
+
+## Publication
+
+Le fichier construit est un **fragment** : ni doctype, ni `<html>`, ni `<body>`.
+Les navigateurs l'ouvrent tel quel, et la plateforme Artifact l'enveloppe dans sa
+propre coquille.
+
+Une garde du build refuse d'écrire si `<meta charset="utf-8">` ne figure pas
+dans les 1 024 premiers octets. Ce n'est pas de la superstition : le bloc de
+polices en base64 remplit la fenêtre de détection d'encodage du navigateur, qui
+retombe alors sur du latin-1 et casse tous les littéraux arabes du moteur
+tajwid. Le bug s'est produit, le test l'a attrapé, la garde l'empêche de
+revenir.
+
+L'export de fichier passe par la capacité `downloads` de la plateforme quand
+elle est disponible — une page publiée ne peut pas déclencher un téléchargement
+elle-même — et retombe sur un lien classique en dehors de ce contexte.

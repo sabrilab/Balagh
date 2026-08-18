@@ -1,0 +1,89 @@
+# Talawa Studio
+
+Studio de récitation coranique personnelle pour iOS. L'utilisateur trouve un
+verset, le récite au télépromptage, sa voix est captée puis placée dans
+l'acoustique d'un lieu, et repart en audio ou en vidéo verticale.
+
+Ce dépôt contient un **prototype fonctionnel** : lecture du Coran avec tajwid
+et traductions, recherche par thème, captation micro, effets de voix, export
+audio et vidéo. Tout tourne réellement — ce n'est pas une maquette cliquable.
+
+- Livrable : [`dist/talawa-studio.html`](dist/talawa-studio.html), page autonome
+  de 3,5 Mo, sans dépendance réseau (corpus et polices embarqués).
+- Cahier des charges : [`docs/cahier-des-charges.md`](docs/cahier-des-charges.md)
+- Décisions techniques : [`docs/architecture.md`](docs/architecture.md)
+- Direction artistique : [`docs/direction-artistique.md`](docs/direction-artistique.md)
+
+## Démarrer
+
+```sh
+npm run all      # télécharge, vérifie, assemble
+npm test         # bancs de test Chromium (27 vérifications)
+```
+
+Puis ouvrir `dist/talawa-studio.html` dans un navigateur. Sur téléphone, le
+châssis iOS disparaît et l'application occupe tout l'écran.
+
+Le micro exige un contexte sécurisé : `file://` et `https://` conviennent, une
+page servie en `http://` sur un hôte distant non. Si le micro est indisponible,
+l'écran Passage propose d'importer un enregistrement existant, et toute la
+chaîne d'effets et d'export reste utilisable.
+
+## Chaîne de fabrication
+
+| Étape | Commande | Rôle |
+|---|---|---|
+| 1 | `npm run fetch` | Télécharge les éditions de référence dans `data/raw/` (non versionné) |
+| 2 | `npm run fonts` | Récupère les polices et les intègre en data: URI dans `data/fonts.css` |
+| 3 | `npm run data` | Normalise, **vérifie**, et écrit `data/quran.data.json` |
+| 4 | `npm run build` | Assemble `dist/talawa-studio.html` |
+
+L'étape 3 échoue plutôt que de produire un corpus douteux : elle contrôle le
+nombre de sourates et de versets, l'alignement des trois éditions, la
+numérotation, l'absence de verset vide et l'inventaire des points de code.
+
+## Les quatre contraintes non négociables, et comment elles sont tenues
+
+**1. Exactitude du texte coranique.** Le corpus est téléchargé depuis des
+éditions de référence, vérifié à la compilation, et embarqué. Aucun texte
+coranique n'est produit par un modèle, à aucun moment. Deux défauts de la
+source ont été détectés et traités — voir `docs/architecture.md`.
+
+**2. Fiabilité de l'IA.** La recherche est une **extraction** : un index
+inverse construit dans le navigateur sur les traductions vérifiées renvoie des
+versets existants avec leur référence exacte. Les thèmes proposés sont des
+requêtes, pas des listes de références mémorisées. Rien n'est rédigé.
+
+**3. Pas de musique.** Il n'existe dans le code ni oscillateur, ni nappe, ni
+échantillon musical. Les acoustiques sont des réponses impulsionnelles
+synthétisées à partir de bruit filtré : elles placent la voix dans un volume,
+elles n'ajoutent aucune note.
+
+**4. Respect du caractère sacré.** Les décors vidéo sont strictement
+géométriques, sans aucune représentation d'être animé. Les animations
+d'interface sont brèves et respectent `prefers-reduced-motion`.
+
+## État
+
+| Brique | État |
+|---|---|
+| Lecture, tajwid, traductions FR/EN | fonctionnel, corpus complet |
+| Recherche par thème | fonctionnel, local |
+| Télépromptage et captation micro | fonctionnel |
+| Effets de voix | fonctionnel (Web Audio) |
+| Export audio et vidéo 9:16 | fonctionnel (rendu temps réel) |
+| Calage verset par verset | réparti au prorata des signes ; un alignement forcé reste à faire |
+| Comptes, paiement, stockage | maquette — la bascule premium ne fait que montrer la différence |
+
+## Sources
+
+- Texte arabe othmanien (Hafs), édition `quran-uthmani` d'AlQuran.cloud, qui
+  redistribue le texte de Tanzil.net.
+- Traduction française : Muhammad Hamidullah.
+- Traduction anglaise : Saheeh International.
+- Métadonnées des sourates : Quran.com API v4.
+- Polices : Amiri Quran, Spectral, IBM Plex Sans — toutes sous licence SIL
+  Open Font, qui autorise l'incorporation.
+
+Les empreintes SHA-256 des fichiers sources sont conservées dans les
+métadonnées de `data/quran.data.json` et affichées dans l'écran Compte.

@@ -1,0 +1,181 @@
+<meta charset="utf-8">
+<title>Talawa Studio</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Studio de récitation coranique personnelle : lire, réciter au télépromptage, sublimer la voix, exporter en audio ou en vidéo.">
+<style>/*%%FONTS%%*/</style>
+<style>/*%%CSS%%*/</style>
+
+<main class="stage">
+  <header class="masthead">
+    <p class="masthead-eyebrow">Application iOS · prototype fonctionnel</p>
+    <h1>Talawa Studio — la récitation devient <em>une création</em>.</h1>
+    <p>
+      Trouvez un verset, récitez-le au télépromptage, votre voix est captée puis placée dans
+      l’acoustique d’un lieu, et repart en audio ou en vidéo verticale. Pas une énième
+      application de lecture : un studio de récitation personnelle.
+    </p>
+  </header>
+
+  <div class="layout">
+    <div class="device-col">
+      <div class="device">
+        <span class="device-btn vol-up"></span>
+        <span class="device-btn vol-dn"></span>
+        <span class="device-btn power"></span>
+        <span class="dynamic-island"></span>
+        <div class="device-screen">
+          <div class="statusbar">
+            <span id="clock">21:14</span>
+            <span class="statusbar-right" aria-hidden="true">
+              <svg viewBox="0 0 20 14" fill="currentColor"><rect x="0" y="9" width="3" height="5" rx="1"/><rect x="4.5" y="6.5" width="3" height="7.5" rx="1"/><rect x="9" y="3.5" width="3" height="10.5" rx="1"/><rect x="13.5" y="1" width="3" height="13" rx="1"/></svg>
+              <svg viewBox="0 0 22 14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M2 5.2a12 12 0 0 1 14 0M4.8 8.2a8 8 0 0 1 8.4 0"/><circle cx="9" cy="11.4" r="1.1" fill="currentColor" stroke="none"/></svg>
+              <svg viewBox="0 0 26 14" fill="none"><rect x="1" y="2" width="21" height="10" rx="3" stroke="currentColor" stroke-width="1.2" opacity=".45"/><rect x="3" y="4" width="15" height="6" rx="1.5" fill="currentColor"/><path d="M24 5.4v3.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" opacity=".45"/></svg>
+            </span>
+          </div>
+          <nav class="navbar" id="navbar"></nav>
+          <div class="screen" id="screen"></div>
+          <nav class="tabbar" id="tabbar" role="tablist" aria-label="Sections"></nav>
+          <div id="overlay"></div>
+        </div>
+      </div>
+      <p class="device-hint">
+        L’application fonctionne réellement : micro, effets, rendu et export.
+        Sur téléphone, le châssis disparaît et elle occupe tout l’écran.
+      </p>
+    </div>
+
+    <aside class="notes">
+      <section class="note">
+        <h2><b>01</b> Le parcours</h2>
+        <p>
+          Quatre étapes, une seule intention : passer du verset à un fichier partageable
+          sans jamais quitter le même fil.
+        </p>
+        <ul>
+          <li><strong>Passage</strong> — un ou plusieurs versets, choisis en lecture ou par recherche.</li>
+          <li><strong>Télépromptage</strong> — le texte arabe défile, décompte de trois, captation micro brute.</li>
+          <li><strong>Écoute</strong> — forme d’onde, catalogue d’acoustiques, profondeur et présence.</li>
+          <li><strong>Export</strong> — audio seul, ou vidéo 9:16 avec texte et traduction incrustés.</li>
+        </ul>
+      </section>
+
+      <section class="note">
+        <h2><b>02</b> Direction artistique</h2>
+        <p>
+          Le sujet a fourni la palette : le mushaf imprimé le jour, la salle de prière la nuit.
+          Un neutre biaisé vert tient les deux registres, le laiton sert d’unique accent,
+          la garance ne paraît que pour l’enregistrement — c’est la couleur du mushaf pour
+          les signes de pause, pas une alarme.
+        </p>
+        <div class="swatches">
+          <span class="swatch"><i style="background:#EEEFEA"></i>Calcaire</span>
+          <span class="swatch"><i style="background:#141A19"></i>Encre</span>
+          <span class="swatch"><i style="background:#8A6620"></i>Laiton</span>
+          <span class="swatch"><i style="background:#2F5D50"></i>Myrte</span>
+          <span class="swatch"><i style="background:#9B3A2E"></i>Garance</span>
+          <span class="swatch"><i style="background:#0E1414"></i>Nuit</span>
+        </div>
+        <p style="margin-top:12px">
+          <strong>Amiri Quran</strong> pour le texte sacré — c’est la seule police libre dessinée
+          pour l’othmanien entièrement vocalisé. <strong>Spectral</strong> porte les traductions et
+          les titres, <strong>IBM Plex Sans</strong> l’interface et les chiffres.
+        </p>
+      </section>
+
+      <section class="note">
+        <h2><b>03</b> Le texte, vérifié et non généré</h2>
+        <p>
+          Le corpus est embarqué dans la page : 6 236 versets, texte othmanien (Hafs), traduction
+          française de Hamidullah et anglaise de Saheeh International. Aucun appel réseau, aucune
+          génération. La compilation échoue plutôt que de livrer un corpus douteux.
+        </p>
+        <p>Deux défauts de la source ont été détectés et traités :</p>
+        <ul>
+          <li>La basmala était <strong>collée au verset 1</strong> de 112 sourates. Elle a été détachée et stockée comme ligne d’ouverture — elle n’est un verset numéroté que dans Al-Fatiha.</li>
+          <li>En <strong>95:1 et 97:1</strong>, cette basmala portait une shadda parasite sur le bāʾ initial. L’anomalie est tracée dans les métadonnées du corpus.</li>
+        </ul>
+      </section>
+
+      <section class="note">
+        <h2><b>04</b> Tajwid : ce qui est coloré</h2>
+        <p>
+          La coloration est volontairement conservatrice. Seules les règles déterministes à partir
+          du texte vocalisé sont rendues ; dans le doute, aucune couleur. C’est une aide à la
+          lecture, le mushaf imprimé reste la référence, et le mode noir simple est toujours à un
+          geste.
+        </p>
+        <table>
+          <tr><th>Règle</th><th>Détection</th></tr>
+          <tr><td>Madd</td><td>signe maddah explicite</td></tr>
+          <tr><td>Ghunna</td><td>noun ou mim porteur de shadda</td></tr>
+          <tr><td>Qalqala</td><td>les cinq lettres avec soukoun</td></tr>
+          <tr><td>Ikhfa, idgham, iqlab</td><td>noun quiescent ou tanwin, selon la lettre suivante</td></tr>
+          <tr><td>Lettre muette</td><td>petit rond ou rectangle suscrit</td></tr>
+        </table>
+      </section>
+
+      <section class="note">
+        <h2><b>05</b> La recherche extrait, elle ne rédige pas</h2>
+        <p>
+          Un index inverse est construit dans le navigateur sur les traductions vérifiées et sur
+          l’arabe normalisé. Une requête en langage naturel est pondérée par rareté des termes et
+          par couverture ; tout résultat est un verset existant, rendu avec sa référence exacte.
+        </p>
+        <p>
+          Les thèmes proposés sont des <strong>requêtes</strong>, pas des listes de références
+          apprises : ils traversent le même moteur. Un agent serveur pourrait enrichir le rappel,
+          à la condition inchangée de ne jamais produire de texte religieux — il ne ferait que
+          désigner des versets du corpus.
+        </p>
+      </section>
+
+      <section class="note">
+        <h2><b>06</b> La voix, et rien d’autre</h2>
+        <p>
+          Les acoustiques sont des réponses impulsionnelles synthétisées à la volée : bruit filtré,
+          enveloppe calée sur le temps de réverbération, quelques réflexions précoces pour donner
+          sa taille au volume. Elles placent la voix dans un lieu, elles n’ajoutent aucune note.
+        </p>
+        <p>
+          Il n’existe dans ce fichier ni oscillateur, ni nappe, ni échantillon musical. Le micro est
+          demandé sans correction d’écho, sans réduction de bruit et sans gain automatique : ces
+          traitements abîment la récitation.
+        </p>
+      </section>
+
+      <section class="note">
+        <h2><b>07</b> Ce qui tourne, ce qui reste à faire</h2>
+        <table>
+          <tr><th>Brique</th><th>État</th></tr>
+          <tr><td>Lecture, tajwid, traductions</td><td>fonctionnel, corpus complet</td></tr>
+          <tr><td>Recherche par thème</td><td>fonctionnel, local</td></tr>
+          <tr><td>Télépromptage et captation</td><td>fonctionnel (micro réel)</td></tr>
+          <tr><td>Effets de voix</td><td>fonctionnel (Web Audio)</td></tr>
+          <tr><td>Export audio et vidéo</td><td>fonctionnel (rendu temps réel)</td></tr>
+          <tr><td>Calage verset par verset</td><td>réparti au prorata des signes — un alignement forcé reste à faire</td></tr>
+          <tr><td>Comptes, paiement, stockage</td><td>maquette : la bascule premium ne fait que montrer la différence</td></tr>
+        </table>
+      </section>
+    </aside>
+  </div>
+
+  <footer class="colophon">
+    <span>Talawa Studio — prototype</span>
+    <span>Texte othmanien Hafs, 6 236 versets vérifiés à la compilation</span>
+    <span>Traductions Hamidullah et Saheeh International</span>
+  </footer>
+</main>
+
+<script>window.__QURAN__=/*%%DATA%%*/null;</script>
+<script>
+  (function () {
+    var el = document.getElementById('clock');
+    function tick() {
+      var d = new Date();
+      el.textContent = d.getHours() + ':' + String(d.getMinutes()).padStart(2, '0');
+    }
+    tick();
+    setInterval(tick, 20000);
+  })();
+</script>
+<script>/*%%JS%%*/</script>

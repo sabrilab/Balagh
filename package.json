@@ -1,0 +1,16 @@
+{
+  "name": "talawa-studio",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Talawa Studio — studio de recitation coranique personnelle (prototype haute fidelite).",
+  "type": "module",
+  "scripts": {
+    "fetch": "node tools/fetch-quran.mjs",
+    "data": "node tools/build-data.mjs",
+    "build": "node tools/build.mjs",
+    "all": "npm run fetch && npm run fonts && npm run data && npm run build",
+    "fonts": "node tools/fetch-fonts.mjs",
+    "test": "node tools/smoke.mjs"
+  },
+  "license": "UNLICENSED"
+}
