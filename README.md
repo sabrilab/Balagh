@@ -14,6 +14,22 @@ audio et vidéo. Tout tourne réellement — ce n'est pas une maquette cliquable
 - Décisions techniques : [`docs/architecture.md`](docs/architecture.md)
 - Direction artistique : [`docs/direction-artistique.md`](docs/direction-artistique.md)
 
+## Application native (Expo)
+
+`native/` est l application React Native, installable sur un téléphone. Elle
+partage son cœur avec le web — moteur tajwid, recherche, accès au corpus **et
+chaîne d effets** viennent tous de `core/`.
+
+C est possible parce que `react-native-audio-api` implémente la même interface
+que la Web Audio API : les acoustiques sonnent à l identique des deux côtés,
+sans une ligne dupliquée. `npm run verify:core` le prouve sur les 6 236
+versets — zéro divergence de classement tajwid, zéro divergence de recherche.
+
+L export vidéo n y est pas : aucun encodeur maintenu n existe côté Expo. Il
+reste sur la version web. Voir [`docs/native.md`](docs/native.md) pour les
+détails et les chemins d installation — dont la contrainte du compte
+développeur Apple pour iOS.
+
 ## Conformité Apple
 
 `npm run audit` mesure dans le navigateur, sur cinq écrans, les quatre règles
