@@ -6,11 +6,15 @@
   "type": "module",
   "scripts": {
     "fetch": "node tools/fetch-quran.mjs",
+    "fonts": "node tools/fetch-fonts.mjs && node tools/split-fonts.mjs",
+    "icons": "node tools/make-icons.mjs",
     "data": "node tools/build-data.mjs",
     "build": "node tools/build.mjs",
-    "all": "npm run fetch && npm run fonts && npm run data && npm run build",
-    "fonts": "node tools/fetch-fonts.mjs",
-    "test": "node tools/smoke.mjs"
+    "all": "npm run fetch && npm run fonts && npm run data && npm run icons && npm run build",
+    "test": "node tools/smoke.mjs && node tools/smoke-studio.mjs"
   },
-  "license": "UNLICENSED"
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=20"
+  }
 }

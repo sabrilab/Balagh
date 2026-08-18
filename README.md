@@ -14,15 +14,73 @@ audio et vidéo. Tout tourne réellement — ce n'est pas une maquette cliquable
 - Décisions techniques : [`docs/architecture.md`](docs/architecture.md)
 - Direction artistique : [`docs/direction-artistique.md`](docs/direction-artistique.md)
 
+## Deux cibles, mêmes sources
+
+| Cible | Fichier | Forme |
+|---|---|---|
+| Site (Vercel) | `public/` | Document complet, actifs séparés et empreintés |
+| Artifact | `dist/talawa-studio.html` | Fragment autonome, polices et corpus intégrés |
+
+L'Artifact doit tout embarquer : sa politique de sécurité interdit toute requête
+sortante. Le site a l'intérêt inverse — le corpus et les polices deviennent des
+actifs immuables que le navigateur garde en cache.
+
+Coût d'une première visite du site, mesuré : 118 Ko de HTML, 3,0 Mo de corpus
+et **5 fichiers de police sur 23** — les règles `@font-face` portent un
+`unicode-range`, donc le cyrillique, le grec et le vietnamien ne partent jamais.
+Après compression Vercel, environ 1 Mo. Une visite de retour ne revalide que le
+HTML, les actifs étant immuables.
+
 ## Démarrer
 
 ```sh
-npm run all      # télécharge, vérifie, assemble
+npm run all      # télécharge, vérifie, assemble les deux cibles
 npm test         # bancs de test Chromium (27 vérifications)
 ```
 
-Puis ouvrir `dist/talawa-studio.html` dans un navigateur. Sur téléphone, le
-châssis iOS disparaît et l'application occupe tout l'écran.
+Pour le site : `npx http-server public -p 8080` puis `http://localhost:8080`.
+Pour l'Artifact : ouvrir `dist/talawa-studio.html` directement.
+Sur téléphone, le châssis iOS disparaît et l'application occupe tout l'écran.
+
+Les bancs de test visent l'Artifact par défaut ; `TARGET_URL=http://localhost:8080/ npm test`
+les fait viser le site.
+
+## Déployer sur Vercel
+
+Le dépôt est prêt : `vercel.json` déclare la commande de build, le répertoire de
+sortie et les en-têtes. Aucune dépendance npm à installer.
+
+**Par le tableau de bord** — Vercel → *Add New… → Project* → importer
+`sabrilab/Balagh` → choisir la branche → *Deploy*. Les réglages sont lus dans
+`vercel.json`, il n'y a rien à saisir.
+
+**En ligne de commande** :
+
+```sh
+npx vercel --prod
+```
+
+### Ce que règle `vercel.json`
+
+- `/assets/*` en cache immuable un an : les noms portent l'empreinte du contenu,
+  un déploiement change le nom, jamais le contenu d'un nom déjà servi.
+- Le HTML revalidé à chaque visite, pour que les mises à jour arrivent.
+- `Permissions-Policy: microphone=(self)` — sans quoi la captation est refusée.
+- `X-Content-Type-Options` et `Referrer-Policy`.
+
+### Le micro exige HTTPS
+
+C'est la raison d'être du déploiement : `getUserMedia` ne fonctionne qu'en
+contexte sécurisé. En HTTPS sur Vercel la captation marche pour de bon, alors
+qu'elle peut être refusée dans une page intégrée en cadre. À défaut, l'écran
+Passage propose d'importer un enregistrement, et toute la chaîne effets et
+export reste utilisable.
+
+### Installable sur l'écran d'accueil
+
+Le site sert un manifeste et les icônes correspondantes. Sur iOS, *Partager →
+Sur l'écran d'accueil* lance l'application en plein écran, sans barre de
+navigateur — c'est ce qui s'approche le plus de l'application native visée.
 
 Le micro exige un contexte sécurisé : `file://` et `https://` conviennent, une
 page servie en `http://` sur un hôte distant non. Si le micro est indisponible,

@@ -4,7 +4,9 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const URL_ = 'file://' + join(ROOT, 'dist', 'talawa-studio.html');
+// TARGET_URL permet de viser la cible web servie en HTTP ; sans elle on
+// teste le fragment Artifact ouvert directement.
+const URL_ = process.env.TARGET_URL || 'file://' + join(ROOT, 'dist', 'talawa-studio.html');
 const OUT = process.env.SHOTS || join(ROOT, '.shots');
 
 const errors = [];

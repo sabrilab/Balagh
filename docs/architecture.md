@@ -150,6 +150,41 @@ La composition vidéo est entièrement exprimée en multiples de `k = largeur/10
 de sorte que l'aperçu basse définition et l'export 1080×1920 donnent exactement
 la même image.
 
+## Deux cibles, mêmes sources
+
+Le même code produit deux formes, parce que les contraintes sont opposées.
+
+**L'Artifact** doit tout embarquer : sa politique de sécurité interdit toute requête
+sortante. Un seul fichier de 4,1 Mo, polices et corpus intégrés.
+
+**Le site** a l'intérêt inverse. Le corpus et les polices ne changent presque
+jamais ; les servir séparément, sous un nom empreinté sur leur contenu, permet un
+cache immuable. Le HTML tombe à 118 Ko et une visite de retour ne revalide que lui.
+
+Trois marqueurs en commentaire dans `src/index.html` — `HEAD`, `FONTS`, `DATA` —
+et un séparateur `BODY` suffisent : le build substitue la balise entière, pas
+seulement son contenu, et enveloppe la cible web dans un document complet.
+
+Côté application, un seul point bouge :
+
+```js
+const D = window.__QURAN__ || await fetch(window.__QURAN_URL__).then(r => r.json());
+```
+
+### Les polices séparées ne sont pas qu'une question de cache
+
+Les règles `@font-face` de Google Fonts portent un `unicode-range`. Intégrées en
+base64, les 23 sous-ensembles partent d'un bloc — cyrillique, grec et vietnamien
+compris, qui ne seront jamais dessinés. Servis en fichiers, le navigateur n'en
+demande que ce qu'il doit rendre : **5 sur 23, 154 Ko au lieu de 431**, mesuré.
+
+### Ce qui reste à gagner
+
+Le corpus domine la première visite : 3,0 Mo, dont environ un tiers pour la
+traduction anglaise, qui n'est chargée que si on la demande. La scinder du noyau
+arabe et français couperait encore un quart du transfert initial. Non fait :
+cela rend la lecture d'un verset asynchrone, ce qui touche le chemin de rendu.
+
 ## Publication
 
 Le fichier construit est un **fragment** : ni doctype, ni `<html>`, ni `<body>`.

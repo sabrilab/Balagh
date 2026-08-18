@@ -9,11 +9,38 @@
    - la recherche EXTRAIT du corpus, elle ne rédige jamais ;
    - les effets s'appliquent à la voix seule, aucun accompagnement musical.
    ========================================================================== */
-(function () {
+(async function () {
   'use strict';
 
-  const D = window.__QURAN__;
-  if (!D) throw new Error('Corpus absent : le build n a pas injecte __QURAN__.');
+  /**
+   * Le corpus arrive de deux façons selon la cible du build :
+   *  - intégré à la page (`__QURAN__`) pour la publication en Artifact, dont la
+   *    politique de sécurité interdit toute requête sortante ;
+   *  - téléchargé depuis un fichier au nom empreinté (`__QURAN_URL__`) pour le
+   *    site, où il devient un actif immuable que le navigateur garde en cache.
+   */
+  async function loadCorpus() {
+    if (window.__QURAN__) return window.__QURAN__;
+    const url = window.__QURAN_URL__;
+    if (!url) throw new Error('Aucune source de corpus déclarée par le build.');
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`Corpus indisponible (HTTP ${res.status}).`);
+    return res.json();
+  }
+
+  let D;
+  try {
+    D = await loadCorpus();
+  } catch (err) {
+    const host = document.getElementById('screen');
+    if (host) {
+      host.innerHTML =
+        '<div class="empty"><strong>Corpus introuvable</strong>' +
+        'Le texte coranique n’a pas pu être chargé. Rechargez la page ; ' +
+        'si le problème persiste, le fichier de données manque au déploiement.</div>';
+    }
+    throw err;
+  }
 
   /* ======================================================================
      1. Utilitaires
