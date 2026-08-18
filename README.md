@@ -14,6 +14,13 @@ audio et vidéo. Tout tourne réellement — ce n'est pas une maquette cliquable
 - Décisions techniques : [`docs/architecture.md`](docs/architecture.md)
 - Direction artistique : [`docs/direction-artistique.md`](docs/direction-artistique.md)
 
+## Conformité Apple
+
+`npm run audit` mesure dans le navigateur, sur cinq écrans, les quatre règles
+des Human Interface Guidelines qui se vérifient mécaniquement : cibles tactiles
+de 44 pt, plancher de texte à 11 pt, contraste 4,5:1, et absence de débordement
+hors cadre. Le premier jet en comptait 39 en écart ; il en reste **zéro**.
+
 ## Deux cibles, mêmes sources
 
 | Cible | Fichier | Forme |
@@ -35,7 +42,7 @@ HTML, les actifs étant immuables.
 
 ```sh
 npm run all      # télécharge, vérifie, assemble les deux cibles
-npm test         # bancs de test Chromium (27 vérifications)
+npm test         # 27 vérifications fonctionnelles + audit HIG
 ```
 
 Pour le site : `npx http-server public -p 8080` puis `http://localhost:8080`.

@@ -11,7 +11,8 @@
     "data": "node tools/build-data.mjs",
     "build": "node tools/build.mjs",
     "all": "npm run fetch && npm run fonts && npm run data && npm run icons && npm run build",
-    "test": "node tools/smoke.mjs && node tools/smoke-studio.mjs"
+    "test": "node tools/smoke.mjs && node tools/smoke-studio.mjs && node tools/audit-hig.mjs",
+    "audit": "node tools/audit-hig.mjs"
   },
   "license": "UNLICENSED",
   "engines": {

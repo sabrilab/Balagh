@@ -1000,6 +1000,7 @@
     star: SVG('M12 4l2.35 4.9 5.15.72-3.75 3.7.9 5.18L12 16.05 7.35 18.5l.9-5.18L4.5 9.62l5.15-.72z'),
     trash: SVG('M5 7h14M9.5 7V5.5h5V7M6.7 7l.8 12.5h9l.8-12.5'),
     dot: SVG('', '<circle cx="12" cy="12" r="6"/>'),
+    chevron: SVG('M9.5 5.5L16 12l-6.5 6.5'),
   };
 
   /* ======================================================================
@@ -1065,10 +1066,15 @@
      10. Fragments partagés
      ====================================================================== */
 
+  const largeTitle = (title, sub) =>
+    `<h1 class="large-title">${esc(title)}${sub ? `<small>${esc(sub)}</small>` : ''}</h1>`;
+
+  const groupHeader = (label, trailing) =>
+    `<div class="group-header"><strong>${esc(label)}</strong>${trailing || ''}</div>`;
+
   function ayahHTML(s, a, opts) {
     const o = opts || {};
-    const ar = verseAr(s, a);
-    const body = S.mode === 'tajwid' ? tajwidHTML(ar) : plainHTML(ar);
+    const body = S.mode === 'tajwid' ? tajwidHTML(verseAr(s, a)) : plainHTML(verseAr(s, a));
     const picked = inSelection(s, a);
     const tr = S.tr === 'none' ? '' : `<p class="ayah-tr">${esc(verseTr(s, a, S.tr))}</p>`;
     return `
@@ -1077,9 +1083,8 @@
           <span class="ayah-ref">${esc(o.label || ref(s, a))}</span>
           <div class="verse-actions">
             <button class="icon-btn" data-act="pick" data-s="${s}" data-a="${a}" aria-pressed="${picked}"
-              title="${picked ? 'Retirer de la sélection' : 'Ajouter à la sélection'}"
               aria-label="${picked ? 'Retirer le verset de la sélection' : 'Ajouter le verset à la sélection'}">${picked ? ICONS.check : ICONS.plus}</button>
-            <button class="icon-btn" data-act="recite" data-s="${s}" data-a="${a}" title="Réciter ce verset" aria-label="Réciter ce verset">${ICONS.mic}</button>
+            <button class="icon-btn" data-act="recite" data-s="${s}" data-a="${a}" aria-label="Réciter ce verset">${ICONS.mic}</button>
           </div>
         </div>
         <p class="ayah-ar ${S.mode === 'plain' ? 'plain' : ''}">${body}<span class="ayah-mark">﴿${arNum(a)}﴾</span></p>
@@ -1087,18 +1092,18 @@
       </article>`;
   }
 
-  const selectionBar = () => {
+  const selectionCard = () => {
     if (!S.selection.length) return '';
     const label = S.selection.length === 1
       ? refLabel(S.selection[0].s, S.selection[0].a)
       : `${passageLabel(S.selection)} · ${S.selection.length} versets`;
     return `
-      <div class="card card-pad" style="display:flex;align-items:center;gap:10px;justify-content:space-between">
-        <div style="min-width:0">
-          <div class="section-label" style="margin-bottom:3px">Passage à réciter</div>
-          <div style="font-family:var(--serif);font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(label)}</div>
+      <div class="card" style="display:flex;align-items:center;gap:var(--sp-3)">
+        <div style="flex:1;min-width:0">
+          <div class="row-sub">Passage à réciter</div>
+          <div class="row-title">${esc(label)}</div>
         </div>
-        <button class="btn btn-primary" data-act="to-prompter">${ICONS.mic}Réciter</button>
+        <button class="btn btn-filled" data-act="to-prompter">${ICONS.mic}Réciter</button>
       </div>`;
   };
 
@@ -1112,32 +1117,38 @@
       !q || deAccent(s.tr.toLowerCase()).includes(q) || deAccent(s.fr.toLowerCase()).includes(q) || String(s.i) === q,
     );
     return `
+      ${largeTitle('Le Coran', '114 sourates · lecture Hafs')}
       <div class="screen-pad">
-        <input class="field" type="search" placeholder="Filtrer les 114 sourates" value="${esc(S.filter)}" data-input="filter" aria-label="Filtrer les sourates">
-        ${selectionBar()}
-        <div class="list card">
+        <label class="search">
+          ${ICONS.search}
+          <input type="search" placeholder="Rechercher une sourate" value="${esc(S.filter)}" data-input="filter" aria-label="Filtrer les sourates">
+        </label>
+        ${selectionCard()}
+        ${list.length ? `<div class="list">
           ${list.map((s) => `
-            <button class="row" data-act="open-surah" data-s="${s.i}">
-              <span class="row-index">${s.i}</span>
-              <span class="row-main">
+            <button class="list-row" data-act="open-surah" data-s="${s.i}">
+              <span class="row-lead">${s.i}</span>
+              <span class="row-body">
                 <span class="row-title">${esc(s.tr)}</span>
-                <span class="row-sub">${esc(s.fr)} · ${s.n} versets · ${s.place === 'M' ? 'Mecquoise' : 'Médinoise'}</span>
+                <span class="row-sub">${esc(s.fr)} · ${s.n} versets</span>
               </span>
-              <span class="row-ar">${esc(s.ar)}</span>
+              <span class="row-trail">
+                <span class="row-ar">${esc(s.ar)}</span>
+                <span class="row-chevron">${ICONS.chevron}</span>
+              </span>
             </button>`).join('')}
-        </div>
-        ${list.length ? '' : '<div class="empty"><strong>Aucune sourate</strong>Essayez un autre nom ou un numéro.</div>'}
+        </div>` : '<div class="empty"><strong>Aucune sourate</strong>Essayez un autre nom ou un numéro.</div>'}
       </div>`;
   }
 
   function screenSurah() {
     const m = surahMeta(S.surah);
-    const n = m.n;
-    let out = '<div class="screen-pad">';
+    let out = largeTitle(m.tr, `${m.fr} · ${m.n} versets · ${m.place === 'M' ? 'mecquoise' : 'médinoise'}`);
+    out += '<div class="screen-pad">';
     out += `
-      <div class="card card-pad" style="display:flex;flex-direction:column;gap:12px">
+      <div class="card" style="display:flex;flex-direction:column;gap:var(--sp-3)">
         <div class="segmented" role="group" aria-label="Mode d’affichage">
-          <button data-act="mode" data-v="tajwid" aria-pressed="${S.mode === 'tajwid'}">Tajwid en couleurs</button>
+          <button data-act="mode" data-v="tajwid" aria-pressed="${S.mode === 'tajwid'}">Tajwid</button>
           <button data-act="mode" data-v="plain" aria-pressed="${S.mode === 'plain'}">Noir simple</button>
         </div>
         <div class="segmented" role="group" aria-label="Traduction">
@@ -1147,12 +1158,12 @@
         </div>
         ${S.mode === 'tajwid' ? `<div class="tajwid-legend">${TAJWID_LEGEND.map(([c, l]) => `<span><i style="background:var(--${c})"></i>${esc(l)}</span>`).join('')}</div>` : ''}
       </div>`;
-    out += selectionBar();
-    out += '<div class="card card-pad">';
+    out += selectionCard();
+    out += '<div class="card card-flush">';
     if (m.pre) out += `<div class="basmala">${esc(D.basmala.ar)}</div>`;
-    for (let a = 1; a <= n; a++) out += ayahHTML(S.surah, a);
+    for (let a = 1; a <= m.n; a++) out += ayahHTML(S.surah, a);
     out += '</div>';
-    out += `<div style="display:flex;gap:8px">
+    out += `<div style="display:flex;gap:var(--sp-2)">
       ${S.surah > 1 ? `<button class="btn btn-block" data-act="open-surah" data-s="${S.surah - 1}">${ICONS.left}${esc(surahMeta(S.surah - 1).tr)}</button>` : ''}
       ${S.surah < 114 ? `<button class="btn btn-block" data-act="open-surah" data-s="${S.surah + 1}">${esc(surahMeta(S.surah + 1).tr)}${ICONS.right}</button>` : ''}
     </div>`;
@@ -1167,10 +1178,13 @@
   function screenSearch() {
     const r = S.results;
     return `
+      ${largeTitle('Chercher', 'par thème ou par mot')}
       <div class="screen-pad">
-        <form data-act="search-submit" style="display:flex;gap:8px">
-          <input class="field" type="search" placeholder="Un verset sur la patience…" value="${esc(S.query)}" data-input="query" aria-label="Rechercher un thème ou un mot">
-          <button class="btn btn-primary" type="submit" aria-label="Chercher">${ICONS.search}</button>
+        <form data-act="search-submit">
+          <label class="search">
+            ${ICONS.search}
+            <input type="search" enterkeyhint="search" placeholder="Un verset sur la patience…" value="${esc(S.query)}" data-input="query" aria-label="Rechercher un thème ou un mot">
+          </label>
         </form>
 
         <div class="notice">
@@ -1178,18 +1192,18 @@
           <div><strong>Extraction, jamais rédaction.</strong> La recherche parcourt le corpus vérifié embarqué et renvoie des versets existants avec leur référence exacte. Aucun texte religieux n’est produit par un modèle.</div>
         </div>
 
-        <div>
-          <div class="section-label" style="margin-bottom:8px">Thèmes</div>
+        <div class="group">
+          ${groupHeader('Thèmes')}
           <div class="chip-row">
             ${THEMES.map(([name, q]) => `<button class="chip" data-act="theme" data-q="${esc(q)}" data-name="${esc(name)}" aria-pressed="${S.query === name}">${esc(name)}</button>`).join('')}
           </div>
         </div>
 
-        ${r === null ? `<div class="empty"><strong>Cherchez un thème</strong>Écrivez en langage naturel, ou touchez un thème ci-dessus.</div>`
-          : !r.length ? `<div class="empty"><strong>Aucun verset trouvé</strong>Reformulez avec d’autres mots.</div>`
-          : `<div class="section-label">${r.length} verset${r.length > 1 ? 's' : ''} — les plus proches d’abord</div>
-             <div class="card card-pad" style="display:flex;flex-direction:column;gap:4px">
-               ${r.map((x) => ayahHTML(x.s, x.a, { label: refLabel(x.s, x.a) })).join('')}
+        ${r === null ? '<div class="empty"><strong>Cherchez un thème</strong>Écrivez en langage naturel, ou touchez un thème ci-dessus.</div>'
+          : !r.length ? '<div class="empty"><strong>Aucun verset trouvé</strong>Reformulez avec d’autres mots.</div>'
+          : `<div class="group">
+               ${groupHeader(`${r.length} verset${r.length > 1 ? 's' : ''}`, '<span>les plus proches d’abord</span>')}
+               <div class="card card-flush">${r.map((x) => ayahHTML(x.s, x.a, { label: refLabel(x.s, x.a) })).join('')}</div>
              </div>`}
       </div>`;
   }
@@ -1204,41 +1218,44 @@
     const has = S.selection.length > 0;
     const micBlocked = AudioEngine.micError === 'denied' || AudioEngine.micError === 'unsupported';
     return `
+      ${largeTitle('Studio', 'Étape 1 sur 4 · le passage')}
       <div class="screen-pad">
-        <div class="section-label">Passage</div>
         ${has ? `
-          <div class="card card-pad" style="display:flex;flex-direction:column;gap:10px">
-            ${S.selection.map((v, i) => `
-              <div style="display:flex;align-items:flex-start;gap:10px">
-                <span class="row-index" style="width:26px;height:26px;font-size:10.5px">${i + 1}</span>
-                <div style="flex:1;min-width:0">
-                  <div class="ayah-ref">${esc(refLabel(v.s, v.a))}</div>
-                  <p class="ayah-ar" style="font-size:19px;line-height:1.95;margin:4px 0 0">${plainHTML(verseAr(v.s, v.a))}</p>
-                </div>
+          <div class="card card-flush">
+            ${S.selection.map((v) => `
+              <div class="list-row flush">
+                <span class="row-body">
+                  <span class="ayah-ref">${esc(refLabel(v.s, v.a))}</span>
+                  <p class="ayah-ar" style="font-size:20px;line-height:2;margin:var(--sp-1) 0 0">${plainHTML(verseAr(v.s, v.a))}</p>
+                </span>
                 <button class="icon-btn" data-act="pick" data-s="${v.s}" data-a="${v.a}" aria-label="Retirer ce verset">${ICONS.close}</button>
               </div>`).join('')}
           </div>
-          <button class="btn btn-primary btn-lg btn-block" data-act="to-prompter">${ICONS.mic}Passer au télépromptage</button>
+          <button class="btn btn-filled btn-block" data-act="to-prompter">${ICONS.mic}Passer au télépromptage</button>
+          ${S.take ? `<button class="btn btn-block" data-act="studio" data-v="review">${ICONS.play}Reprendre « ${esc(S.take.name)} »</button>` : ''}
         ` : `
           <div class="empty">
             <strong>Aucun verset sélectionné</strong>
             Choisissez un ou plusieurs versets dans la lecture ou la recherche, puis revenez ici.
           </div>
-          <div style="display:flex;gap:8px">
+          <div style="display:flex;gap:var(--sp-2)">
             <button class="btn btn-block" data-act="tab" data-v="lire">${ICONS.book}Parcourir</button>
             <button class="btn btn-block" data-act="tab" data-v="chercher">${ICONS.search}Chercher</button>
-          </div>`}
-
-        ${S.take ? `<button class="btn btn-block" data-act="studio" data-v="review">${ICONS.play}Reprendre « ${esc(S.take.name)} »</button>` : ''}
-
-        <div class="section-label">Réglages de captation</div>
-        <div class="card card-pad" style="display:flex;flex-direction:column;gap:12px">
-          <div class="slider-row">
-            <label for="sp">Défilement</label>
-            <input id="sp" type="range" min="0" max="70" step="2" value="${S.prompterSpeed}" data-input="speed">
-            <output>${S.prompterSpeed ? S.prompterSpeed + '' : 'off'}</output>
           </div>
-          <p style="margin:0;font-size:11.5px;color:var(--ink-3)">Vitesse du télépromptage en pixels par seconde. À zéro, le texte reste fixe et vous faites défiler vous-même.</p>
+        `}
+
+        <div class="group">
+          ${groupHeader('Captation')}
+          <div class="card">
+            <div class="slider-row">
+              <label for="sp">Défilement</label>
+              <input id="sp" type="range" min="0" max="70" step="2" value="${S.prompterSpeed}" data-input="speed">
+              <output>${S.prompterSpeed ? S.prompterSpeed : 'off'}</output>
+            </div>
+            <p style="margin:var(--sp-2) 0 0;font-size:var(--t-footnote);line-height:var(--lh-footnote);color:var(--label-3)">
+              Vitesse du télépromptage en pixels par seconde. À zéro, le texte reste fixe et vous faites défiler vous-même.
+            </p>
+          </div>
         </div>
 
         ${micBlocked ? `
@@ -1257,18 +1274,17 @@
   }
 
   function screenPrompter() {
-    const verses = S.selection;
     return `
       <div class="teleprompter">
         <div class="tp-mask top"></div>
         <div class="tp-scroll" id="tp">
-          ${verses.map((v, i) => `
+          ${S.selection.map((v, i) => `
             <div class="tp-verse" data-active="${i === 0 ? 1 : 0}" data-i="${i}">
-              <div class="ayah-ref" style="margin-bottom:10px">${esc(refLabel(v.s, v.a))}</div>
+              <div class="ayah-ref" style="margin-bottom:var(--sp-3)">${esc(refLabel(v.s, v.a))}</div>
               <p class="ayah-ar ${S.mode === 'plain' ? 'plain' : ''}">${S.mode === 'tajwid' ? tajwidHTML(verseAr(v.s, v.a)) : plainHTML(verseAr(v.s, v.a))}<span class="ayah-mark">﴿${arNum(v.a)}﴾</span></p>
               ${S.tr === 'none' ? '' : `<p class="ayah-tr">${esc(verseTr(v.s, v.a, S.tr))}</p>`}
             </div>`).join('')}
-          <div style="height:120px"></div>
+          <div style="height:140px"></div>
         </div>
         <div class="tp-mask bot"></div>
         <div class="rec-bar">
@@ -1276,13 +1292,18 @@
             <span class="rec-time" id="rec-time">0:00.0</span>
             <span id="rec-status">${REC.state === 'recording'
               ? '<span class="rec-live"><i></i>Enregistrement</span>'
-              : '<span style="font-size:11.5px;color:var(--ink-3)">Prêt à enregistrer</span>'}</span>
+              : '<span class="rec-idle">Prêt à enregistrer</span>'}</span>
           </div>
           <div class="meter" id="meter" aria-hidden="true">${Array.from({ length: 28 }, () => '<i style="height:2px"></i>').join('')}</div>
           <div class="rec-controls">
-            <button class="btn btn-quiet" data-act="studio" data-v="passage" ${REC.state === 'recording' ? 'disabled' : ''}>${ICONS.left}Passage</button>
-            <button class="rec-main" data-act="rec-toggle" data-state="${REC.state}" aria-label="${REC.state === 'recording' ? 'Arrêter l’enregistrement' : 'Démarrer l’enregistrement'}"><span class="core"></span></button>
-            <button class="btn btn-quiet" data-act="studio" data-v="review" ${S.take ? '' : 'disabled'}>Écoûte${ICONS.right}</button>
+            <span class="rec-side">
+              <button class="btn btn-plain" data-act="studio" data-v="passage" ${REC.state === 'recording' ? 'disabled' : ''}>Passage</button>
+            </span>
+            <button class="rec-main" data-act="rec-toggle" data-state="${REC.state}"
+              aria-label="${REC.state === 'recording' ? 'Arrêter l’enregistrement' : 'Démarrer l’enregistrement'}"><span class="core"></span></button>
+            <span class="rec-side end">
+              <button class="btn btn-plain" data-act="studio" data-v="review" ${S.take ? '' : 'disabled'}>Écoute</button>
+            </span>
           </div>
         </div>
       </div>`;
@@ -1290,34 +1311,37 @@
 
   function screenReview() {
     const t = S.take;
-    if (!t) return `<div class="screen-pad"><div class="empty"><strong>Aucune prise</strong>Enregistrez d’abord une récitation.</div><button class="btn btn-primary btn-block" data-act="studio" data-v="passage">Choisir un passage</button></div>`;
+    if (!t) return `<div class="screen-pad"><div class="empty"><strong>Aucune prise</strong>Enregistrez d’abord une récitation.</div><button class="btn btn-filled btn-block" data-act="studio" data-v="passage">Choisir un passage</button></div>`;
     const wet = S.wet == null ? presetById(S.preset).wet : S.wet;
     return `
+      ${largeTitle('Écoute', 'Étape 3 sur 4 · les effets')}
       <div class="screen-pad">
-        <div class="card card-pad" style="display:flex;flex-direction:column;gap:12px">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
-            <div style="min-width:0">
-              <div style="font-family:var(--serif);font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.name)}</div>
-              <div style="font-size:11.5px;color:var(--ink-3)">${esc(t.label)} · ${fmtShort(t.duration)}</div>
+        <div class="card" style="display:flex;flex-direction:column;gap:var(--sp-3)">
+          <div style="display:flex;align-items:center;gap:var(--sp-3)">
+            <div style="flex:1;min-width:0">
+              <div class="row-title">${esc(t.name)}</div>
+              <div class="row-sub">${esc(t.label)} · ${fmtShort(t.duration)}</div>
             </div>
             <button class="btn" data-act="play-toggle">${S.playing ? ICONS.pause : ICONS.play}${S.playing ? 'Pause' : 'Écouter'}</button>
           </div>
           <canvas class="wave" id="wave"></canvas>
         </div>
 
-        <div class="section-label">Acoustique</div>
-        <div class="preset-grid">
-          ${PRESETS.map((p) => {
-            const locked = p.premium && !S.premium;
-            return `<button class="preset" data-act="preset" data-v="${p.id}" aria-pressed="${S.preset === p.id}" ${locked ? 'disabled' : ''}>
-              ${locked ? `<span class="preset-lock">${ICONS.lock}</span>` : ''}
-              <span class="preset-name">${esc(p.name)}</span>
-              <span class="preset-desc">${esc(p.desc)}</span>
-            </button>`;
-          }).join('')}
+        <div class="group">
+          ${groupHeader('Acoustique')}
+          <div class="tile-grid">
+            ${PRESETS.map((p) => {
+              const locked = p.premium && !S.premium;
+              return `<button class="tile" data-act="preset" data-v="${p.id}" aria-pressed="${S.preset === p.id}" ${locked ? 'disabled' : ''}>
+                ${locked ? `<span class="tile-lock">${ICONS.lock}</span>` : ''}
+                <span class="tile-name">${esc(p.name)}</span>
+                <span class="tile-desc">${esc(p.desc)}</span>
+              </button>`;
+            }).join('')}
+          </div>
         </div>
 
-        <div class="card card-pad" style="display:flex;flex-direction:column;gap:10px">
+        <div class="card">
           <div class="slider-row">
             <label for="wet">Profondeur</label>
             <input id="wet" type="range" min="0" max="70" step="1" value="${Math.round(wet * 100)}" data-input="wet">
@@ -1335,16 +1359,17 @@
           <div><strong>Voix seule.</strong> Ces réglages placent votre voix dans un volume acoustique. Aucun accompagnement musical n’est ajouté, ni ici ni à l’export.</div>
         </div>
 
-        <button class="btn btn-primary btn-lg btn-block" data-act="studio" data-v="export">${ICONS.down}Exporter</button>
+        <button class="btn btn-filled btn-block" data-act="studio" data-v="export">${ICONS.down}Exporter</button>
       </div>`;
   }
 
   function screenExport() {
     const t = S.take;
-    if (!t) return `<div class="screen-pad"><div class="empty"><strong>Aucune prise</strong>Enregistrez une récitation avant d’exporter.</div></div>`;
+    if (!t) return '<div class="screen-pad"><div class="empty"><strong>Aucune prise</strong>Enregistrez une récitation avant d’exporter.</div></div>';
     const isVideo = S.format === 'video';
     const busy = S.busy === 'render';
     return `
+      ${largeTitle('Export', 'Étape 4 sur 4 · le fichier')}
       <div class="screen-pad">
         <div class="segmented" role="group" aria-label="Format d’export">
           <button data-act="format" data-v="video" aria-pressed="${isVideo}">Vidéo 9:16</button>
@@ -1352,18 +1377,20 @@
         </div>
 
         ${isVideo ? `
-          <div class="section-label">Style vidéo</div>
-          <div class="preset-grid">
-            ${VIDEO_STYLES.map((v) => {
-              const locked = v.premium && !S.premium;
-              return `<button class="preset" data-act="vstyle" data-v="${v.id}" aria-pressed="${S.videoStyle === v.id}" ${locked ? 'disabled' : ''}>
-                ${locked ? `<span class="preset-lock">${ICONS.lock}</span>` : ''}
-                <span class="preset-name">${esc(v.name)}</span>
-                <span class="preset-desc">${esc(v.desc)}</span>
-              </button>`;
-            }).join('')}
+          <div class="group">
+            ${groupHeader('Style vidéo')}
+            <div class="tile-grid">
+              ${VIDEO_STYLES.map((v) => {
+                const locked = v.premium && !S.premium;
+                return `<button class="tile" data-act="vstyle" data-v="${v.id}" aria-pressed="${S.videoStyle === v.id}" ${locked ? 'disabled' : ''}>
+                  ${locked ? `<span class="tile-lock">${ICONS.lock}</span>` : ''}
+                  <span class="tile-name">${esc(v.name)}</span>
+                  <span class="tile-desc">${esc(v.desc)}</span>
+                </button>`;
+              }).join('')}
+            </div>
+            <canvas class="video-preview" id="vprev" aria-label="Aperçu de la première image"></canvas>
           </div>
-          <canvas class="video-preview" id="vprev" aria-label="Aperçu de la première image"></canvas>
         ` : ''}
 
         ${S.premium ? '' : `
@@ -1373,59 +1400,68 @@
           </div>`}
 
         ${busy ? `
-          <div class="card card-pad" style="display:flex;flex-direction:column;gap:9px">
-            <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--ink-2)">
-              <span>Rendu en temps réel…</span><span style="font-variant-numeric:tabular-nums">${Math.round(S.progress * 100)}%</span>
+          <div class="card" style="display:flex;flex-direction:column;gap:var(--sp-2)">
+            <div style="display:flex;justify-content:space-between;font-size:var(--t-subhead);color:var(--label-2)">
+              <span>Rendu en temps réel…</span><span style="font-variant-numeric:tabular-nums">${Math.round(S.progress * 100)} %</span>
             </div>
             <div class="progress"><i style="width:${S.progress * 100}%"></i></div>
-            <p style="margin:0;font-size:11.5px;color:var(--ink-3)">Le rendu suit la durée réelle de la récitation (${fmtShort(t.duration)}). Gardez cet écran affiché.</p>
+            <p style="margin:0;font-size:var(--t-footnote);line-height:var(--lh-footnote);color:var(--label-3)">Le rendu suit la durée réelle de la récitation (${fmtShort(t.duration)}). Gardez cet écran affiché.</p>
           </div>
         ` : S.rendered ? `
-          <div class="card card-pad" style="display:flex;flex-direction:column;gap:10px">
-            <div style="display:flex;align-items:center;gap:9px">
-              <span class="pill pill-myrtle">${ICONS.check}Rendu prêt</span>
-              <span style="font-size:12px;color:var(--ink-3)">${esc(S.rendered.filename)} · ${(S.rendered.blob.size / 1024 / 1024).toFixed(1)} Mo</span>
+          <div class="card" style="display:flex;flex-direction:column;gap:var(--sp-3)">
+            <div style="display:flex;align-items:center;gap:var(--sp-2);flex-wrap:wrap">
+              <span class="badge badge-myrtle">${ICONS.check}Rendu prêt</span>
+              <span style="font-size:var(--t-footnote);color:var(--label-3)">${esc(S.rendered.filename)} · ${(S.rendered.blob.size / 1024 / 1024).toFixed(1)} Mo</span>
             </div>
             ${S.rendered.video ? `<video class="video-preview" controls playsinline src="${esc(S.rendered.url)}"></video>`
               : `<audio controls style="width:100%" src="${esc(S.rendered.url)}"></audio>`}
-            <button class="btn btn-gold btn-lg btn-block" data-act="save">${ICONS.down}Enregistrer le fichier</button>
-            <button class="btn btn-quiet btn-block" data-act="render">Refaire le rendu</button>
+            <button class="btn btn-filled btn-block" data-act="save">${ICONS.down}Enregistrer le fichier</button>
+            <button class="btn btn-plain btn-block" data-act="render">Refaire le rendu</button>
           </div>
         ` : `
-          <button class="btn btn-primary btn-lg btn-block" data-act="render">${isVideo ? ICONS.film : ICONS.wave}Lancer le rendu</button>
+          <button class="btn btn-filled btn-block" data-act="render">${isVideo ? ICONS.film : ICONS.wave}Lancer le rendu</button>
         `}
 
-        <button class="btn btn-quiet btn-block" data-act="studio" data-v="passage">${ICONS.plus}Enregistrer un autre passage</button>
+        <button class="btn btn-block" data-act="studio" data-v="passage">${ICONS.plus}Enregistrer un autre passage</button>
 
-        <div class="section-label">Contenu</div>
-        <div class="card card-pad" style="display:flex;flex-direction:column;gap:6px">
-          <div style="font-size:12.5px;color:var(--ink-2)">${esc(t.label)}</div>
-          <div style="font-size:11.5px;color:var(--ink-3)">Acoustique : ${esc(presetById(S.preset).name)} · Traduction incrustée : ${S.tr === 'none' ? 'aucune' : S.tr === 'fr' ? 'français (Hamidullah)' : 'anglais (Saheeh International)'}</div>
+        <div class="group">
+          ${groupHeader('Contenu')}
+          <div class="card">
+            <dl style="margin:0">
+              <div class="kv"><dt>Passage</dt><dd>${esc(t.label)}</dd></div>
+              <div class="kv"><dt>Acoustique</dt><dd>${esc(presetById(S.preset).name)}</dd></div>
+              <div class="kv"><dt>Traduction incrustée</dt><dd>${S.tr === 'none' ? 'aucune' : S.tr === 'fr' ? 'français (Hamidullah)' : 'anglais (Saheeh International)'}</dd></div>
+            </dl>
+          </div>
         </div>
       </div>`;
   }
 
   /* ======================================================================
-     14. Écrans — Recitations et Compte
+     14. Écrans — Récitations et Compte
      ====================================================================== */
 
   function screenTakes() {
     if (!S.takes.length) {
-      return `<div class="screen-pad"><div class="empty"><strong>Aucune récitation</strong>Vos prises apparaîtront ici pendant la session.</div>
-        <button class="btn btn-primary btn-block" data-act="tab" data-v="studio">${ICONS.mic}Enregistrer</button></div>`;
+      return `${largeTitle('Prises', 'aucune pour le moment')}
+        <div class="screen-pad">
+          <div class="empty"><strong>Aucune récitation</strong>Vos prises apparaîtront ici pendant la session.</div>
+          <button class="btn btn-filled btn-block" data-act="tab" data-v="studio">${ICONS.mic}Enregistrer</button>
+        </div>`;
     }
     return `
+      ${largeTitle('Prises', `${S.takes.length} enregistrement${S.takes.length > 1 ? 's' : ''}`)}
       <div class="screen-pad">
         <div class="notice">${ICONS.info}<div>Les prises vivent dans cette session. Exportez celles que vous voulez garder.</div></div>
-        <div class="list card">
+        <div class="list">
           ${S.takes.map((t) => `
-            <div class="row">
-              <button class="row-index" data-act="open-take" data-id="${t.id}" aria-label="Ouvrir ${esc(t.name)}">${ICONS.play}</button>
-              <button class="row-main" data-act="open-take" data-id="${t.id}" style="text-align:left">
+            <div class="list-row">
+              <span class="row-lead">${ICONS.play}</span>
+              <button class="row-body" data-act="open-take" data-id="${t.id}" style="text-align:left;min-height:var(--hit);justify-content:center">
                 <span class="row-title">${esc(t.name)}</span>
                 <span class="row-sub">${esc(t.label)} · ${fmtShort(t.duration)}</span>
               </button>
-              <button class="icon-btn" data-act="del-take" data-id="${t.id}" aria-label="Supprimer">${ICONS.trash}</button>
+              <button class="icon-btn" data-act="del-take" data-id="${t.id}" aria-label="Supprimer ${esc(t.name)}">${ICONS.trash}</button>
             </div>`).join('')}
         </div>
       </div>`;
@@ -1434,54 +1470,72 @@
   function screenAccount() {
     const src = D.meta.sources;
     return `
+      ${largeTitle('Compte', 'formule et sources')}
       <div class="screen-pad">
-        <div class="card card-pad" style="display:flex;flex-direction:column;gap:12px">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+        <div class="card" style="display:flex;flex-direction:column;gap:var(--sp-3)">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:var(--sp-3)">
             <div>
-              <div style="font-family:var(--serif);font-size:16px">${S.premium ? 'Abonnement actif' : 'Formule gratuite'}</div>
-              <div style="font-size:11.5px;color:var(--ink-3)">${S.premium ? 'Toutes les acoustiques, export sans mention' : 'Export avec mention, catalogue restreint'}</div>
+              <div class="row-title">${S.premium ? 'Abonnement actif' : 'Formule gratuite'}</div>
+              <div class="row-sub">${S.premium ? 'Toutes les acoustiques, export sans mention' : 'Export avec mention, catalogue restreint'}</div>
             </div>
-            <span class="pill ${S.premium ? 'pill-gold' : 'pill-myrtle'}">${S.premium ? 'Premium' : 'Gratuit'}</span>
+            <span class="badge ${S.premium ? 'badge-tint' : 'badge-myrtle'}">${S.premium ? 'Premium' : 'Gratuit'}</span>
           </div>
-          <button class="btn ${S.premium ? '' : 'btn-gold'} btn-block" data-act="premium">
+          <button class="btn ${S.premium ? '' : 'btn-tinted'} btn-block" data-act="premium">
             ${S.premium ? 'Revenir à la formule gratuite' : ICONS.star + 'Simuler l’abonnement'}
           </button>
-          <p style="margin:0;font-size:11px;color:var(--ink-3)">Bascule de démonstration : elle déverrouille le catalogue premium pour montrer la différence, sans aucun paiement.</p>
+          <p style="margin:0;font-size:var(--t-footnote);line-height:var(--lh-footnote);color:var(--label-3)">
+            Bascule de démonstration : elle déverrouille le catalogue premium pour montrer la différence, sans aucun paiement.
+          </p>
         </div>
 
-        <div class="section-label">Affichage</div>
-        <div class="card card-pad" style="display:flex;flex-direction:column;gap:10px">
-          <div class="segmented" role="group" aria-label="Mode d’affichage">
-            <button data-act="mode" data-v="tajwid" aria-pressed="${S.mode === 'tajwid'}">Tajwid</button>
-            <button data-act="mode" data-v="plain" aria-pressed="${S.mode === 'plain'}">Noir simple</button>
+        <div class="group">
+          ${groupHeader('Affichage')}
+          <div class="card" style="display:flex;flex-direction:column;gap:var(--sp-3)">
+            <div class="segmented" role="group" aria-label="Mode d’affichage">
+              <button data-act="mode" data-v="tajwid" aria-pressed="${S.mode === 'tajwid'}">Tajwid</button>
+              <button data-act="mode" data-v="plain" aria-pressed="${S.mode === 'plain'}">Noir simple</button>
+            </div>
+            <div class="segmented" role="group" aria-label="Traduction">
+              <button data-act="tr" data-v="fr" aria-pressed="${S.tr === 'fr'}">Français</button>
+              <button data-act="tr" data-v="en" aria-pressed="${S.tr === 'en'}">English</button>
+              <button data-act="tr" data-v="none" aria-pressed="${S.tr === 'none'}">Arabe seul</button>
+            </div>
           </div>
-          <div class="segmented" role="group" aria-label="Traduction">
-            <button data-act="tr" data-v="fr" aria-pressed="${S.tr === 'fr'}">Français</button>
-            <button data-act="tr" data-v="en" aria-pressed="${S.tr === 'en'}">English</button>
-            <button data-act="tr" data-v="none" aria-pressed="${S.tr === 'none'}">Arabe seul</button>
+        </div>
+
+        <div class="group">
+          ${groupHeader('Provenance du texte')}
+          <div class="card">
+            <dl style="margin:0">
+              <div class="kv"><dt>Texte arabe</dt><dd>${esc(D.meta.script)}</dd></div>
+              <div class="kv"><dt>Édition</dt><dd>${esc(src.arabic.edition)} · ${esc(src.arabic.upstream)}</dd></div>
+              <div class="kv"><dt>Français</dt><dd>${esc(src.fr.translator)}</dd></div>
+              <div class="kv"><dt>Anglais</dt><dd>${esc(src.en.translator)}</dd></div>
+              <div class="kv"><dt>Vérifié</dt><dd>${D.meta.verses} versets · ${D.meta.surahs} sourates</dd></div>
+              <div class="kv"><dt>Empreinte</dt><dd style="font-family:ui-monospace,Menlo,monospace;font-size:var(--t-footnote)">${esc(src.arabic.sha256.slice(0, 16))}…</dd></div>
+            </dl>
           </div>
         </div>
 
-        <div class="section-label">Provenance du texte</div>
-        <div class="card card-pad" style="display:flex;flex-direction:column;gap:9px;font-size:12px;color:var(--ink-2)">
-          <div><strong style="color:var(--ink)">Texte arabe</strong><br>${esc(D.meta.script)} — edition <code>${esc(src.arabic.edition)}</code> (${esc(src.arabic.upstream)}).</div>
-          <div><strong style="color:var(--ink)">Francais</strong><br>${esc(src.fr.translator)}.</div>
-          <div><strong style="color:var(--ink)">Anglais</strong><br>${esc(src.en.translator)}.</div>
-          <div style="font-size:11px;color:var(--ink-3)">${D.meta.verses} versets, ${D.meta.surahs} sourates, vérifiés à la compilation. Empreinte du texte arabe : <code>${esc(src.arabic.sha256.slice(0, 16))}…</code></div>
-        </div>
-
-        <div class="section-label">Règles du produit</div>
-        <div class="card card-pad" style="display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:var(--ink-2)">
-          <div>${ICONS.check} Le texte affiché provient d’une source vérifiée, jamais d’un modèle.</div>
-          <div>${ICONS.check} La recherche cite des versets existants avec leur référence.</div>
-          <div>${ICONS.check} Les effets s’appliquent à la voix seule, sans musique.</div>
-          <div>${ICONS.check} Aucune représentation figurative dans les vidéos.</div>
+        <div class="group">
+          ${groupHeader('Règles du produit')}
+          <div class="list">
+            ${[
+              'Le texte affiché provient d’une source vérifiée, jamais d’un modèle.',
+              'La recherche cite des versets existants avec leur référence.',
+              'Les effets s’appliquent à la voix seule, sans musique.',
+              'Aucune représentation figurative dans les vidéos.',
+            ].map((r) => `<div class="list-row">
+              <span style="color:var(--myrtle);display:grid;place-items:center;flex:none">${ICONS.check}</span>
+              <span class="row-body"><span style="font-size:var(--t-subhead);line-height:var(--lh-subhead);white-space:normal">${esc(r)}</span></span>
+            </div>`).join('')}
+          </div>
         </div>
       </div>`;
   }
 
   /* ======================================================================
-     15. Chrome : barre de navigation et barre d onglets
+     15. Chrome : barre de navigation et barre d'onglets
      ====================================================================== */
 
   const TABS = [
@@ -1492,35 +1546,28 @@
     { id: 'compte', label: 'Compte', icon: 'user' },
   ];
 
+  /** Titre compact et bouton de retour. Le titre large vit dans le contenu. */
   function navHTML() {
-    let back = '', title = '', sub = '', right = '';
+    let back = '';
+    let title = '';
     if (S.tab === 'lire') {
-      if (S.screen === 'surah') {
-        const m = surahMeta(S.surah);
-        back = `<button class="navbar-btn" data-act="lire-index">${ICONS.left}Sourates</button>`;
-        title = esc(m.tr); sub = `${esc(m.fr)} · ${m.n} versets`;
-        right = `<span class="navbar-btn right" style="font-family:var(--arabic);font-size:19px;color:var(--gold)">${esc(m.ar)}</span>`;
-      } else { title = 'Le Coran'; sub = '114 sourates · lecture Hafs'; }
-    } else if (S.tab === 'chercher') { title = 'Chercher'; sub = 'par thème ou par mot'; }
+      title = S.screen === 'surah' ? surahMeta(S.surah).tr : 'Le Coran';
+      if (S.screen === 'surah') back = `<button class="navbar-btn" data-act="lire-index">${ICONS.left}Sourates</button>`;
+    } else if (S.tab === 'chercher') { title = 'Chercher'; }
     else if (S.tab === 'studio') {
-      const steps = { passage: ['Passage', '1 sur 4'], prompter: ['Télépromptage', '2 sur 4'], review: ['Écoute et effets', '3 sur 4'], export: ['Export', '4 sur 4'] };
-      const cur = steps[S.screen] || steps.passage;
-      title = cur[0]; sub = cur[1];
+      const steps = { passage: 'Passage', prompter: 'Télépromptage', review: 'Écoute', export: 'Export' };
+      title = steps[S.screen] || 'Studio';
       const prev = { prompter: 'passage', review: 'prompter', export: 'review' }[S.screen];
-      if (prev) back = `<button class="navbar-btn" data-act="studio" data-v="${prev}" ${REC.state === 'recording' ? 'disabled' : ''}>${ICONS.left}Retour</button>`;
-    } else if (S.tab === 'recitations') { title = 'Mes récitations'; sub = `${S.takes.length} prise${S.takes.length > 1 ? 's' : ''}`; }
-    else { title = 'Compte'; sub = 'formule et sources'; }
-    return `${back || '<span></span>'}<div class="navbar-title">${title}${sub ? `<small>${sub}</small>` : ''}</div>${right || '<span></span>'}`;
+      if (prev) back = `<button class="navbar-btn" data-act="studio" data-v="${prev}" ${REC.state === 'recording' ? 'disabled' : ''}>${ICONS.left}${esc(steps[prev])}</button>`;
+    } else if (S.tab === 'recitations') { title = 'Prises'; }
+    else { title = 'Compte'; }
+    return `${back || '<span class="navbar-slot"></span>'}<div class="navbar-title">${esc(title)}</div><span class="navbar-slot"></span>`;
   }
 
-  const tabbarHTML = () => TABS.map((t) => {
-    const on = S.tab === t.id;
-    if (t.id === 'studio') {
-      return `<button class="tab tab-rec" data-act="tab" data-v="studio" aria-selected="${on}" role="tab">
-        <span class="rec-dot">${ICONS.mic}</span><span>${t.label}</span></button>`;
-    }
-    return `<button class="tab" data-act="tab" data-v="${t.id}" aria-selected="${on}" role="tab">${ICONS[t.icon]}<span>${t.label}</span></button>`;
-  }).join('') + '<span class="home-indicator"></span>';
+  const tabbarHTML = () => TABS.map((t) => `
+    <button class="tab" data-act="tab" data-v="${t.id}" aria-selected="${S.tab === t.id}" role="tab">
+      ${ICONS[t.icon]}<span class="tab-label">${t.label}</span>
+    </button>`).join('') + '<span class="home-indicator"></span>';
 
   function screenHTML() {
     if (S.tab === 'lire') return S.screen === 'surah' ? screenSurah() : screenIndex();
@@ -1546,12 +1593,16 @@
     const scr = $('#screen');
     if (scr && lastKey) scrollMem[lastKey] = scr.scrollTop;
 
-    $('#navbar').innerHTML = navHTML();
+    const nav = $('#navbar');
+    nav.innerHTML = navHTML();
     $('#tabbar').innerHTML = tabbarHTML();
+
     const isPrompter = S.tab === 'studio' && S.screen === 'prompter';
     scr.classList.toggle('no-pad', isPrompter);
     scr.style.overflowY = isPrompter ? 'hidden' : 'auto';
     scr.innerHTML = screenHTML();
+    // Sans titre large — écran plein cadre — le titre compact reste visible.
+    nav.dataset.compact = isPrompter || !scr.querySelector('.large-title') ? '1' : '0';
 
     $('#overlay').innerHTML = S.toast ? `<div class="toast">${esc(S.toast)}</div>` : '';
 
@@ -1563,8 +1614,18 @@
 
   const waveColors = () => {
     const cs = getComputedStyle(document.documentElement);
-    return { played: cs.getPropertyValue('--gold').trim() || '#8A6620', idle: cs.getPropertyValue('--line-2').trim() || '#BFC5B9' };
+    return { played: cs.getPropertyValue('--tint').trim() || '#7A5A18', idle: cs.getPropertyValue('--separator-opaque').trim() || '#DEDED9' };
   };
+
+  /** Le titre compact prend le relais du titre large dès qu'il sort du cadre. */
+  function syncNavbar() {
+    const scr = $('#screen');
+    const nav = $('#navbar');
+    if (!scr || !nav) return;
+    const big = scr.querySelector('.large-title');
+    const passed = big ? scr.scrollTop > big.offsetHeight - 8 : scr.scrollTop > 4;
+    nav.dataset.scrolled = passed ? '1' : '0';
+  }
 
   function afterRender() {
     const wave = $('#wave');
@@ -1588,6 +1649,9 @@
 
     const tp = $('#tp');
     if (tp) tp.addEventListener('scroll', syncActiveVerse, { passive: true });
+
+    const scr = $('#screen');
+    if (scr) { scr.addEventListener('scroll', syncNavbar, { passive: true }); syncNavbar(); }
   }
 
   function syncActiveVerse() {

@@ -53,6 +53,41 @@ d'enregistrement.
 
 Un seul accent porte l'ensemble — le laiton. Tout le reste est tenu au calme.
 
+## La structure vient des Human Interface Guidelines
+
+Le premier jet suivait sa propre logique. Un audit mesuré dans le navigateur a
+relevé **39 écarts** avec les règles d Apple : 26 cibles tactiles sous 44 pt —
+dont des boutons d icône à 30 x 30 —, 3 tailles de texte sous le plancher de
+11 pt, et 10 échecs de contraste, le pire à 2,31:1 sur les lettres muettes du
+tajwid. L interface a été refondue sur les fondations du système.
+
+Ce qui vient d Apple :
+
+- **L échelle typographique iOS**, du Large Title 34/41 au Caption 2 11/13,
+  exprimée en `calc(Npx / 17)` pour tomber sur la valeur exacte en points —
+  `.647rem` aurait donné 10,999 px et manqué le plancher.
+- **44 pt de cible** partout. Un contrôle segmenté reste dessiné à 36 pt, comme
+  dans le système, mais sa zone sensible est étendue à 44 par un pseudo-élément.
+- **Les rôles de couleur** : `label` / `label-2` / `label-3`, `fill`,
+  `separator`, fonds groupé / uni / surélevé. Les trois niveaux de texte
+  passent 4,5:1 sur les trois fonds, vérifié plutôt que supposé.
+- **Les matériaux** : barres de navigation et d onglets translucides, le contenu
+  passe dessous. `prefers-reduced-transparency` les rend opaques.
+- **Le titre large qui se replie** : il défile avec le contenu, et le titre
+  compact prend le relais dès qu il sort du cadre.
+- **Les listes groupées en retrait**, séparateurs alignés sur le texte, rayon
+  de 10 pt.
+- **Les zones de sécurité** via `env(safe-area-inset-*)`.
+
+`npm run audit` mesure les quatre règles automatisables — cible, taille,
+contraste, débordement — sur cinq écrans. Le compte est à **zéro**.
+
+L audit a lui-même trouvé deux vrais défauts que l œil avait laissés passer :
+un bouton de recherche qui sortait de l écran, et — sur mobile — la page qui
+défilait derrière l application en emportant la barre d onglets. Sur téléphone,
+l application est désormais fixe et plein écran ; le rail de notes reste au
+grand écran, là où il a du sens.
+
 ## Typographie
 
 **Amiri Quran** pour le texte sacré. Ce n'est pas un choix d'ambiance : c'est la
