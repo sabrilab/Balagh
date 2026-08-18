@@ -46,9 +46,11 @@ await mkdir(join(ROOT, 'dist'), { recursive: true });
 const target = join(ROOT, 'dist', 'talawa-studio.html');
 await writeFile(target, out);
 
-const mb = (out.length / 1024 / 1024).toFixed(2);
-console.log(`dist/talawa-studio.html — ${mb} Mo`);
-if (out.length > 16 * 1024 * 1024) {
+// La limite de publication porte sur des OCTETS ; out.length compte des
+// unites UTF-16. Avec de l arabe et du francais l ecart depasse 15 %.
+const bytes = Buffer.byteLength(out, 'utf8');
+console.log(`dist/talawa-studio.html — ${(bytes / 1024 / 1024).toFixed(2)} Mo (${bytes.toLocaleString('fr-FR')} octets)`);
+if (bytes > 16 * 1024 * 1024) {
   console.error('Depassement de la limite Artifact de 16 Mo.');
   process.exit(1);
 }
