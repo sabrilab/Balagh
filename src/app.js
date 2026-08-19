@@ -906,9 +906,7 @@
           drawFrame(g, W, Hh, {
             styleId,
             verse: gseg.text,
-            // La traduction appartient au VERSET, pas au fragment : la decouper
-            // reviendrait a inventer un alignement entre l'arabe et le francais.
-            translation: translationLang === 'none' ? '' : verseTr(gseg.s, gseg.a, translationLang),
+            translation: segTr(gseg, translationLang),
             label: segLabel(gseg),
             t, duration, level, watermark, marks,
           });
@@ -1304,6 +1302,16 @@
   const deckList = () => (S.segments && S.segments.length ? S.segments : S.selection.map((v) => ({
     s: v.s, a: v.a, text: verseAr(v.s, v.a), mark: null, technique: false, part: 1, parts: 1,
   })));
+
+  /**
+   * Traduction incrustée à la vidéo.
+   *
+   * Elle appartient au VERSET, pas au fragment : la découper reviendrait à
+   * inventer un alignement entre l'arabe et le français. On la donne donc une
+   * fois, sur le premier fragment, puis on laisse l'arabe seul — la référence
+   * dit « 2/5 », le spectateur sait qu'il est dans le même verset.
+   */
+  const segTr = (g, lang) => (lang === 'none' || g.part > 1 ? '' : verseTr(g.s, g.a, lang));
 
   /** « An-Nur 24:35 » ou « An-Nur 24:35 · 2/3 » pour un fragment de verset. */
   const segLabel = (g) => (g.parts > 1 ? `${refLabel(g.s, g.a)} · ${g.part}/${g.parts}` : refLabel(g.s, g.a));
@@ -1806,7 +1814,7 @@
         drawFrame(prev.getContext('2d'), W, Hh, {
           styleId: S.videoStyle,
           verse: gseg.text,
-          translation: S.tr === 'none' ? '' : verseTr(gseg.s, gseg.a, S.tr),
+          translation: segTr(gseg, S.tr),
           label: segLabel(gseg),
           t: 0, duration: duree, level: 0.3, watermark: !S.premium,
           marks: playSchedule(takeRegions(S.take), cues).map((e) => e.start / Math.max(0.1, duree)),

@@ -170,6 +170,12 @@ L'unité affichée n'est plus le verset mais le **segment** : un verset long cha
 de plan à chacun de ses waqf. La barre de progression porte les passages d'un
 segment au suivant, comme les chapitres d'une piste.
 
+La traduction incrustée ne paraît qu'**une fois par verset**, sur le premier
+fragment. La répéter sous chaque fragment donnait huit lignes de français figées
+sous un arabe qui change ; la découper aurait supposé un alignement entre les
+hémistiches arabes et les mots français, qui n'existe pas. La référence dit
+« 2/5 » : le spectateur sait qu'il est dans le même verset.
+
 L'image respire avec la voix. L'enveloppe est un **RMS** et non une crête : le
 RMS suit l'énergie perçue là où la crête suit les accidents, donc le texte
 respire au lieu de sursauter sur les claquements. L'effet est volontairement

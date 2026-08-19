@@ -183,8 +183,10 @@ export default function Prompter() {
                     </View>
                   )}
                   {tr !== 'none' && (
-                    // La traduction porte le VERSET entier : sur un fragment on
-                    // la replie, elle rappelle le sens sans occuper la carte.
+                    // La traduction porte le VERSET entier : la découper
+                    // reviendrait à inventer un alignement entre l'arabe et le
+                    // français. Sur un fragment on la replie — elle rappelle le
+                    // sens sans occuper la carte.
                     <Text numberOfLines={g.parts > 1 ? 2 : undefined} style={[type.subhead, { color: t.label3, textAlign: 'center' }]}>
                       {verseTr(g.s, g.a, tr)}
                     </Text>
