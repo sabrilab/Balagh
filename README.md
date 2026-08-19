@@ -14,6 +14,21 @@ audio et vidéo. Tout tourne réellement — ce n'est pas une maquette cliquable
 - Décisions techniques : [`docs/architecture.md`](docs/architecture.md)
 - Direction artistique : [`docs/direction-artistique.md`](docs/direction-artistique.md)
 
+## Five League — outil de gestion associative
+
+`five-league/` est un second outil, indépendant de Talawa : le tableau de bord
+de l'association **Five League**, qui organise la **Sunday Five League**. Il
+réunit les sept domaines de son modèle socio-économique — ressources humaines,
+cotisations, subventions, merchandising, événements, prestations,
+partenariats — en une page unique, avec saisie, indicateurs, alertes et
+exports.
+
+Comme Talawa, il tient dans un seul fichier HTML sans dépendance :
+[`five-league/dist/five-league.html`](five-league/dist/five-league.html), 160 Ko,
+qui s'ouvre d'un double-clic et enregistre les données dans le navigateur.
+
+Voir [`five-league/README.md`](five-league/README.md).
+
 ## Application native (Expo)
 
 `native/` est l application React Native, installable sur un téléphone. Elle

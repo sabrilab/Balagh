@@ -1,0 +1,3381 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Five League — Sunday Five League</title>
+<meta name="description" content="Outil de gestion de l'association Five League : ressources humaines, cotisations, subventions, merchandising, événements, prestations et partenariats de la Sunday Five League.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#1C3144">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%2314283A'/%3E%3Cpath d='M32 12.5 45.5 22.3 40.3 38.2H23.7L18.5 22.3z' fill='%232ECC71'/%3E%3C/svg%3E">
+<style>
+/**
+ * Feuille de style unique. Les couleurs, les rayons et les ombres passent
+ * tous par des variables : le thème sombre ne redéfinit qu'elles, et un
+ * changement d'identité visuelle se fait en un seul endroit.
+ *
+ * Palette : bleu marine de fond de marque, vert dynamique en accent, ambre
+ * pour les alertes — la déclinaison « énergique sport » demandée au cahier
+ * des charges, corrigée là où le vert d'origine ne tenait pas le contraste
+ * de 4,5:1 sur fond clair.
+ */
+
+:root {
+  color-scheme: light;
+
+  --marine: #1C3144;
+  --marine-clair: #2A4A66;
+  --vert: #2ECC71;
+  --vert-fonce: #17864A;
+  --orange: #E67E22;
+  --ambre: #B26A00;
+  --ambre-texte: #8A5300;
+  --rouge: #D6334C;
+  --bleu: #3A72C4;
+  --violet: #7D51C4;
+
+  --accent: var(--vert-fonce);
+  --accent-vif: var(--vert);
+  --marque-fond: #14283A;
+  --marque-accent: var(--vert);
+
+  --fond: #F1F4F8;
+  --fond-carte: #FFFFFF;
+  --fond-doux: #F7F9FC;
+  --fond-survol: #EDF1F6;
+  --encre: #15202B;
+  --encre-douce: #55677A;
+  --encre-inverse: #FFFFFF;
+  --trait: #DDE4EC;
+  --trait-fort: #C4CEDA;
+  --trait-graphe: #E4EAF1;
+
+  --ombre-carte: 0 1px 2px rgba(21, 32, 43, .06), 0 8px 24px rgba(21, 32, 43, .05);
+  --ombre-flottante: 0 12px 40px rgba(21, 32, 43, .18);
+  --rayon: 14px;
+  --rayon-petit: 9px;
+  --largeur: 1240px;
+
+  --police: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+}
+
+:root[data-theme="sombre"] {
+  color-scheme: dark;
+  --fond: #0D151E;
+  --fond-carte: #16212D;
+  --fond-doux: #1B2836;
+  --fond-survol: #22303F;
+  --encre: #EAF0F6;
+  --encre-douce: #9FB0C2;
+  --trait: #26333F;
+  --trait-fort: #35465A;
+  --trait-graphe: #26333F;
+  --marine: #0B1520;
+  --marque-fond: #0B1520;
+  --accent: #35C97B;
+  --ambre: #E0A030;
+  --ambre-texte: #E8B255;
+  --rouge: #F0637A;
+  --bleu: #6FA0EC;
+  --violet: #A98AE6;
+  --ombre-carte: 0 1px 2px rgba(0, 0, 0, .4), 0 10px 28px rgba(0, 0, 0, .3);
+  --ombre-flottante: 0 16px 44px rgba(0, 0, 0, .55);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="clair"]) {
+    color-scheme: dark;
+    --fond: #0D151E;
+    --fond-carte: #16212D;
+    --fond-doux: #1B2836;
+    --fond-survol: #22303F;
+    --encre: #EAF0F6;
+    --encre-douce: #9FB0C2;
+    --trait: #26333F;
+    --trait-fort: #35465A;
+    --trait-graphe: #26333F;
+    --marine: #0B1520;
+    --marque-fond: #0B1520;
+    --accent: #35C97B;
+    --ambre: #E0A030;
+    --ambre-texte: #E8B255;
+    --rouge: #F0637A;
+    --bleu: #6FA0EC;
+    --violet: #A98AE6;
+    --ombre-carte: 0 1px 2px rgba(0, 0, 0, .4), 0 10px 28px rgba(0, 0, 0, .3);
+    --ombre-flottante: 0 16px 44px rgba(0, 0, 0, .55);
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--fond);
+  color: var(--encre);
+  font-family: var(--police);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 { margin: 0; line-height: 1.2; letter-spacing: -0.015em; }
+p { margin: 0; }
+ul, ol, dl, dd { margin: 0; padding: 0; }
+li { list-style: none; }
+a { color: inherit; text-decoration: none; }
+a:hover { text-decoration: none; }
+button { font: inherit; color: inherit; }
+table { border-collapse: collapse; width: 100%; }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.visuellement-cache {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden; clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.texte-doux { color: var(--encre-douce); }
+.petit { font-size: 12.5px; line-height: 1.45; }
+.aligne-droite { text-align: right; font-variant-numeric: tabular-nums; }
+.pile { display: grid; gap: 14px; }
+
+/* ------------------------------------------------------------- En-tête */
+
+.application { min-height: 100vh; display: flex; flex-direction: column; }
+
+.entete {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 10px max(16px, calc((100vw - var(--largeur)) / 2));
+  background: color-mix(in srgb, var(--fond-carte) 88%, transparent);
+  backdrop-filter: saturate(180%) blur(14px);
+  border-bottom: 1px solid var(--trait);
+}
+
+.marque { display: flex; align-items: center; gap: 10px; min-height: 44px; flex: none; }
+.marque-texte { display: flex; flex-direction: column; }
+.marque-nom { font-weight: 700; font-size: 15px; letter-spacing: -0.01em; }
+.marque-ligue { font-size: 11.5px; color: var(--encre-douce); }
+
+.nav-modules {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 2px;
+}
+.nav-modules::-webkit-scrollbar { display: none; }
+
+.nav-lien {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 11px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 550;
+  color: var(--encre-douce);
+  white-space: nowrap;
+  transition: background .16s ease, color .16s ease;
+}
+.nav-lien .icone { color: var(--couleur-module, var(--encre-douce)); }
+.nav-lien:hover { background: var(--fond-survol); color: var(--encre); }
+.nav-lien--actif {
+  background: color-mix(in srgb, var(--couleur-module, var(--accent)) 14%, transparent);
+  color: var(--encre);
+}
+
+.entete-outils { display: flex; align-items: center; gap: 6px; flex: none; }
+
+.bouton-icone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px; height: 40px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--encre-douce);
+  cursor: pointer;
+  transition: background .16s ease, color .16s ease;
+}
+.bouton-icone:hover { background: var(--fond-survol); color: var(--encre); }
+.bouton-icone--danger:hover { background: color-mix(in srgb, var(--rouge) 14%, transparent); color: var(--rouge); }
+
+/* --------------------------------------------------------------- Bandeaux */
+
+.bandeaux { display: grid; gap: 8px; padding: 12px max(16px, calc((100vw - var(--largeur)) / 2)) 0; }
+.bandeau {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--rayon-petit);
+  background: color-mix(in srgb, var(--ambre) 12%, var(--fond-carte));
+  border: 1px solid color-mix(in srgb, var(--ambre) 32%, transparent);
+  font-size: 13px;
+}
+.bandeau .icone { color: var(--ambre); flex: none; }
+.bandeau a { text-decoration: underline; font-weight: 600; }
+.bandeau--alerte { background: color-mix(in srgb, var(--rouge) 12%, var(--fond-carte)); border-color: color-mix(in srgb, var(--rouge) 34%, transparent); }
+.bandeau--alerte .icone { color: var(--rouge); }
+
+/* ---------------------------------------------------------------- Contenu */
+
+.contenu {
+  flex: 1;
+  width: 100%;
+  max-width: var(--largeur);
+  margin: 0 auto;
+  padding: 22px 16px 56px;
+}
+
+.page { display: grid; gap: 20px; }
+
+.page-tete { display: grid; gap: 6px; }
+.page-tete-haut { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.sur-titre { font-size: 12.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--encre-douce); }
+.page-titre { font-size: clamp(24px, 3.6vw, 33px); font-weight: 700; }
+.page-resume { color: var(--encre-douce); max-width: 68ch; }
+
+.lien-retour {
+  display: inline-flex; align-items: center; gap: 5px;
+  min-height: 40px;
+  font-size: 13px; font-weight: 600; color: var(--encre-douce);
+}
+.lien-retour:hover { color: var(--accent); }
+
+.puce-module {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12.5px; font-weight: 650;
+  background: color-mix(in srgb, var(--accent-module, var(--accent)) 14%, transparent);
+  color: var(--encre);
+}
+.puce-module .icone { color: var(--accent-module, var(--accent)); }
+
+.hub-tete { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+.hub-tete-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ------------------------------------------------------------------ Cartes */
+
+.carte {
+  background: var(--fond-carte);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+  box-shadow: var(--ombre-carte);
+  overflow: hidden;
+}
+.carte-tete {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 14px;
+  padding: 16px 18px 0;
+}
+.carte-titre { font-size: 16px; font-weight: 650; }
+.carte-sous-titre { font-size: 12.5px; color: var(--encre-douce); margin-top: 2px; }
+.carte-corps { padding: 16px 18px 18px; }
+.carte--tableau .carte-corps { padding: 12px 0 0; }
+.carte--danger { border-color: color-mix(in srgb, var(--rouge) 30%, var(--trait)); }
+
+.grille-deux { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+.grille-deux--inverse { grid-template-columns: 5fr 7fr; }
+/* Le tableau prend toute la largeur : neuf colonnes plus les actions ne
+   tiennent pas à côté d'un graphique, et une colonne d'actions coupée est
+   pire qu'un graphique plus bas. Au-delà de quelques dizaines de lignes, le
+   tableau défile sous son propre en-tête, resté collé en haut. */
+.colonnes-module { display: grid; gap: 16px; align-items: start; }
+.carte--tableau .tableau-cadre { max-height: 68vh; overflow: auto; }
+
+/* --------------------------------------------------------------- Indicateurs */
+
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.kpis--large { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+
+.kpi {
+  position: relative;
+  padding: 14px 16px 15px;
+  background: var(--fond-carte);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+  box-shadow: var(--ombre-carte);
+  display: grid;
+  gap: 5px;
+  align-content: start;
+}
+.kpi::before {
+  content: "";
+  position: absolute; left: 0; top: 14px; bottom: 14px;
+  width: 3px; border-radius: 0 3px 3px 0;
+  background: var(--kpi-accent, var(--accent));
+}
+.kpi--alerte::before { background: var(--rouge); }
+.kpi-libelle { font-size: 12px; font-weight: 600; color: var(--encre-douce); text-transform: uppercase; letter-spacing: .04em; }
+.kpi-valeur { font-size: 23px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.kpi-detail { font-size: 12.5px; color: var(--encre-douce); }
+
+.jauge { display: block; height: 5px; border-radius: 999px; background: var(--trait-graphe); overflow: hidden; }
+.jauge-remplissage { display: block; height: 100%; border-radius: 999px; }
+
+/* ---------------------------------------------------------------- Le hub */
+
+.hub {
+  position: relative;
+  width: min(760px, 100%);
+  aspect-ratio: 1;
+  margin: 4px auto 6px;
+  container-type: inline-size;
+}
+.hub-liens { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+.hub-centre {
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  width: 35cqw; height: 35cqw;
+  border-radius: 50%;
+  background-color: var(--marine);
+  background-image: radial-gradient(circle at 30% 25%, var(--marine-clair), var(--marine) 70%);
+  color: #fff;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  text-align: center;
+  gap: 1px;
+  box-shadow: var(--ombre-flottante);
+  padding: 2cqw;
+}
+.hub-centre-nom { font-size: 3cqw; font-weight: 700; letter-spacing: -0.01em; margin-top: .6cqw; }
+.hub-centre-ligue { font-size: 1.9cqw; color: rgba(255, 255, 255, .72); }
+.hub-centre-valeur { font-size: 3.6cqw; font-weight: 700; margin-top: 1.2cqw; font-variant-numeric: tabular-nums; }
+.hub-centre-detail { font-size: 1.7cqw; color: rgba(255, 255, 255, .72); }
+
+/* En thème sombre, le médaillon et le fond partagent le même bleu nuit :
+   un liseré le détache sans ajouter de bordure visible en thème clair. */
+:root[data-theme="sombre"] .hub-centre { box-shadow: 0 0 0 1px var(--trait-fort), var(--ombre-flottante); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="clair"]) .hub-centre { box-shadow: 0 0 0 1px var(--trait-fort), var(--ombre-flottante); }
+}
+
+.hub-noeud {
+  position: absolute;
+  left: var(--x); top: var(--y);
+  transform: translate(-50%, -50%);
+  width: 23cqw;
+  min-height: 23cqw;
+  padding: 1.6cqw 1cqw;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: .5cqw;
+  text-align: center;
+  background: var(--fond-carte);
+  border: 1px solid var(--trait);
+  border-radius: 50%;
+  box-shadow: var(--ombre-carte);
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.hub-noeud:hover, .hub-noeud:focus-visible {
+  transform: translate(-50%, -50%) scale(1.06);
+  border-color: var(--couleur-module);
+  box-shadow: var(--ombre-flottante);
+}
+.hub-noeud-icone {
+  display: grid; place-items: center;
+  width: 6.6cqw; height: 6.6cqw;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--couleur-module);
+}
+.hub-noeud-icone .icone { width: 55%; height: 55%; }
+.hub-noeud-titre { font-size: 2.15cqw; font-weight: 650; }
+.hub-noeud-valeur { font-size: 1.85cqw; color: var(--encre-douce); font-variant-numeric: tabular-nums; }
+
+/* --------------------------------------------------------------- Graphiques */
+
+.anneau-bloc { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 18px; align-items: center; }
+.graphe-anneau { flex: none; max-width: 100%; height: auto; }
+.anneau-part { transition: opacity .16s ease; }
+.graphe-anneau:hover .anneau-part { opacity: .45; }
+.graphe-anneau .anneau-part:hover { opacity: 1; }
+.anneau-valeur { font-size: 21px; font-weight: 700; fill: var(--encre); font-family: var(--police); }
+.anneau-libelle { font-size: 11.5px; fill: var(--encre-douce); font-family: var(--police); text-transform: uppercase; letter-spacing: .05em; }
+
+.legende { display: grid; gap: 7px; }
+.legende-item { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.legende-pastille { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+.legende-nom { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.legende-valeur { color: var(--encre-douce); font-variant-numeric: tabular-nums; }
+.legende-plate { display: flex; gap: 16px; }
+
+.graphe-cadre { width: 100%; }
+.graphe-barres { display: block; max-width: 100%; }
+.graphe-axe { font-size: 11px; fill: var(--encre-douce); font-family: var(--police); }
+.barre { transition: opacity .16s ease; }
+.barre:hover { opacity: .75; }
+
+.barres-h { display: grid; gap: 9px; }
+.barre-h { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; font-size: 13px; }
+.barre-h-nom { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.barre-h-piste { display: block; height: 8px; border-radius: 999px; background: var(--trait-graphe); overflow: hidden; }
+.barre-h-remplissage { display: block; height: 100%; border-radius: 999px; }
+.barre-h-valeur { font-size: 12.5px; color: var(--encre-douce); font-variant-numeric: tabular-nums; }
+
+/* ------------------------------------------------------------------ Alertes */
+
+.alertes { display: grid; gap: 8px; }
+.alerte {
+  display: flex; align-items: flex-start; gap: 11px;
+  padding: 11px 13px;
+  border-radius: var(--rayon-petit);
+  background: var(--fond-doux);
+  border: 1px solid var(--trait);
+  border-left: 3px solid var(--couleur-module);
+  transition: background .16s ease, transform .16s ease;
+}
+.alerte:hover { background: var(--fond-survol); }
+.alerte-icone { color: var(--encre-douce); flex: none; margin-top: 1px; }
+.alerte--haute .alerte-icone { color: var(--rouge); }
+.alerte--moyenne .alerte-icone { color: var(--ambre); }
+.alerte-texte { display: grid; gap: 2px; flex: 1; min-width: 0; }
+.alerte-titre { font-weight: 600; font-size: 13.5px; }
+.alerte-detail { font-size: 12.5px; color: var(--encre-douce); }
+.alerte-module { font-size: 11px; font-weight: 650; color: var(--encre-douce); text-transform: uppercase; letter-spacing: .04em; flex: none; }
+
+/* ------------------------------------------------------------------ Boutons */
+
+.bouton {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  min-height: 40px;
+  padding: 0 15px;
+  border: 1px solid var(--trait-fort);
+  border-radius: 10px;
+  background: var(--fond-carte);
+  color: var(--encre);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .16s ease, border-color .16s ease, transform .1s ease;
+}
+.bouton:hover { background: var(--fond-survol); }
+.bouton:active { transform: translateY(1px); }
+.bouton--primaire { background: var(--accent); border-color: var(--accent); color: #fff; }
+.bouton--primaire:hover { background: color-mix(in srgb, var(--accent) 88%, #000); }
+.bouton--danger { background: var(--rouge); border-color: var(--rouge); color: #fff; }
+.bouton--danger:hover { background: color-mix(in srgb, var(--rouge) 88%, #000); }
+:root[data-theme="sombre"] .bouton--primaire, :root[data-theme="sombre"] .bouton--danger { color: #0B1520; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="clair"]) .bouton--primaire,
+  :root:not([data-theme="clair"]) .bouton--danger { color: #0B1520; }
+}
+
+/* --------------------------------------------------------------- Formulaires */
+
+.barre-outils {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+}
+.barre-outils-gauche { display: flex; gap: 8px; flex: 1; min-width: 260px; flex-wrap: wrap; align-items: center; }
+.barre-outils-droite { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.saisie {
+  min-height: 40px;
+  padding: 8px 11px;
+  border: 1px solid var(--trait-fort);
+  border-radius: 10px;
+  background: var(--fond-carte);
+  color: var(--encre);
+  font: inherit;
+  font-size: 13.5px;
+  width: 100%;
+}
+.saisie:focus-visible { border-color: var(--accent); }
+.saisie--recherche { flex: 1; min-width: 200px; max-width: 380px; }
+.saisie--filtre, .saisie--saison { width: auto; min-width: 140px; }
+.saisie--saison { min-width: 118px; }
+.saisie--code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 12.5px; }
+textarea.saisie { resize: vertical; }
+
+.bascule { display: inline-flex; align-items: center; gap: 7px; min-height: 40px; font-size: 13px; color: var(--encre-douce); cursor: pointer; }
+.bascule input { width: 16px; height: 16px; accent-color: var(--accent); }
+
+.formulaire { display: grid; gap: 14px; }
+.grille-champs { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
+.champ { display: grid; gap: 5px; align-content: start; }
+.champ--large { grid-column: 1 / -1; }
+.champ-libelle { font-size: 12.5px; font-weight: 600; color: var(--encre-douce); }
+.champ-aide { font-size: 11.5px; color: var(--encre-douce); }
+.requis { color: var(--rouge); }
+[aria-invalid="true"] { border-color: var(--rouge); }
+
+.choix-export { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.selecteur-fichier { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; cursor: pointer; }
+.champ-fichier { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.champ-fichier:focus-visible + .bouton { outline: 2px solid var(--accent); outline-offset: 2px; }
+.selecteur-fichier:hover .bouton { background: var(--fond-survol); }
+.champ-fichier-nom { font-size: 12.5px; color: var(--encre-douce); }
+
+.definitions { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; font-size: 13.5px; }
+.definitions dt { color: var(--encre-douce); }
+.definitions dd { text-align: right; font-variant-numeric: tabular-nums; }
+
+.liste-notes { display: grid; gap: 9px; font-size: 13.5px; color: var(--encre-douce); }
+.liste-notes li { padding-left: 15px; position: relative; }
+.liste-notes li::before { content: ""; position: absolute; left: 0; top: 8px; width: 6px; height: 6px; border-radius: 50%; background: var(--trait-fort); }
+
+/* ------------------------------------------------------------------ Tableaux */
+
+.tableau-cadre { overflow-x: auto; }
+.tableau { font-size: 13.5px; }
+.tableau th, .tableau td { padding: 10px 14px; text-align: left; }
+.tableau th.aligne-droite, .tableau td.aligne-droite { text-align: right; }
+.tableau thead th {
+  position: sticky; top: 0;
+  background: var(--fond-carte);
+  border-bottom: 1px solid var(--trait);
+  font-size: 12px; font-weight: 600; color: var(--encre-douce);
+  text-transform: uppercase; letter-spacing: .04em;
+  white-space: nowrap;
+  padding: 0;
+  z-index: 1;
+}
+.tableau thead th.colonne-actions { padding: 10px 14px; }
+.tri {
+  display: inline-flex; align-items: center; gap: 5px;
+  width: 100%; min-height: 40px;
+  padding: 0 14px;
+  background: none; border: 0; cursor: pointer;
+  font: inherit; font-size: 12px; font-weight: 600; color: inherit;
+  text-transform: uppercase; letter-spacing: .04em;
+}
+.aligne-droite .tri { justify-content: flex-end; }
+.tri:hover { color: var(--encre); }
+.tri-fleche { font-size: 9px; color: var(--accent); }
+.tableau tbody tr { border-bottom: 1px solid var(--trait); }
+.tableau tbody tr:hover { background: var(--fond-doux); }
+.tableau tbody tr:last-child { border-bottom: 0; }
+.cellule-cle { font-weight: 600; }
+.colonne-actions { width: 96px; white-space: nowrap; text-align: right; }
+.tableau tfoot th, .tableau tfoot td { border-top: 1px solid var(--trait-fort); font-weight: 650; }
+.lien-domaine { display: inline-flex; align-items: center; gap: 8px; min-height: 24px; }
+.lien-domaine:hover { color: var(--accent); }
+.point { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+
+.pastille {
+  display: inline-flex; align-items: center;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11.5px; font-weight: 650;
+  white-space: nowrap;
+}
+.pastille--vert { background: color-mix(in srgb, var(--vert-fonce) 16%, transparent); color: var(--vert-fonce); }
+.pastille--ambre { background: color-mix(in srgb, var(--ambre) 16%, transparent); color: var(--ambre-texte); }
+.pastille--rouge { background: color-mix(in srgb, var(--rouge) 16%, transparent); color: var(--rouge); }
+.pastille--bleu { background: color-mix(in srgb, var(--bleu) 16%, transparent); color: var(--bleu); }
+.pastille--violet { background: color-mix(in srgb, var(--violet) 16%, transparent); color: var(--violet); }
+.pastille--gris { background: var(--fond-survol); color: var(--encre-douce); }
+:root[data-theme="sombre"] .pastille--vert { color: #4FDE95; background: rgba(79, 222, 149, .16); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="clair"]) .pastille--vert { color: #4FDE95; background: rgba(79, 222, 149, .16); }
+}
+
+/* -------------------------------------------------------------- États vides */
+
+.vide { display: grid; justify-items: center; gap: 8px; padding: 40px 20px; text-align: center; color: var(--encre-douce); }
+.vide .icone { color: var(--trait-fort); }
+.vide-titre { font-size: 15px; font-weight: 650; color: var(--encre); }
+.vide-detail { font-size: 13.5px; max-width: 46ch; }
+
+/* ------------------------------------------------------------------ Modales */
+
+.modale-fond {
+  position: fixed; inset: 0; z-index: 60;
+  display: grid; place-items: center;
+  padding: 18px;
+  background: rgba(12, 20, 28, .55);
+  backdrop-filter: blur(3px);
+  animation: apparition .16s ease;
+}
+.modale {
+  width: min(540px, 100%);
+  max-height: min(86vh, 820px);
+  display: flex; flex-direction: column;
+  background: var(--fond-carte);
+  border: 1px solid var(--trait);
+  border-radius: 16px;
+  box-shadow: var(--ombre-flottante);
+  overflow: hidden;
+  animation: montee .18s ease;
+}
+.modale--large { width: min(760px, 100%); }
+.modale-tete {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 14px 14px 14px 18px;
+  border-bottom: 1px solid var(--trait);
+}
+.modale-tete h2 { font-size: 16px; font-weight: 650; }
+.modale-corps { padding: 18px; overflow-y: auto; }
+.modale-pied { display: flex; justify-content: flex-end; gap: 8px; padding: 13px 18px; border-top: 1px solid var(--trait); background: var(--fond-doux); }
+
+@keyframes apparition { from { opacity: 0; } }
+@keyframes montee { from { opacity: 0; transform: translateY(10px); } }
+
+.toasts { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 80; display: grid; gap: 8px; justify-items: center; }
+.toast {
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: var(--marine);
+  color: #fff;
+  font-size: 13.5px; font-weight: 550;
+  box-shadow: var(--ombre-flottante);
+  animation: montee .18s ease;
+}
+.toast--erreur { background: var(--rouge); }
+.toast--sortie { opacity: 0; transition: opacity .3s ease; }
+:root[data-theme="sombre"] .toast { background: var(--fond-survol); border: 1px solid var(--trait-fort); }
+
+/* ------------------------------------------------------------------ Rapport */
+
+.rapport-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.rapport {
+  background: var(--fond-carte);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+  box-shadow: var(--ombre-carte);
+  padding: 32px;
+  display: grid;
+  gap: 26px;
+}
+.rapport-tete { display: flex; align-items: center; gap: 16px; border-bottom: 2px solid var(--marine); padding-bottom: 18px; }
+.rapport-tete h1 { font-size: 24px; }
+.rapport-sous-titre { color: var(--encre-douce); font-size: 14px; margin-top: 3px; }
+.rapport-date { color: var(--encre-douce); font-size: 12.5px; margin-top: 2px; }
+.rapport-section { display: grid; gap: 12px; break-inside: avoid; }
+.rapport-section h2 { font-size: 16px; text-transform: uppercase; letter-spacing: .06em; color: var(--encre-douce); }
+.rapport-chiffres { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+.rapport-chiffre { display: grid; gap: 2px; padding: 12px 14px; background: var(--fond-doux); border-radius: var(--rayon-petit); }
+.rapport-chiffre-valeur { font-size: 19px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.rapport-chiffre-libelle { font-size: 12px; color: var(--encre-douce); }
+.rapport-texte { font-size: 14px; line-height: 1.6; max-width: 78ch; }
+.rapport-anneau { display: grid; grid-template-columns: auto minmax(0, 460px); gap: 24px; align-items: center; justify-content: start; }
+.tableau--rapport th, .tableau--rapport td { padding: 8px 10px; border-bottom: 1px solid var(--trait); }
+.tableau--rapport thead th { position: static; }
+.tableau--rapport tbody th { font-weight: 600; }
+.tableau--rapport tbody th span:last-child { margin-left: 8px; }
+.rapport-grille { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.rapport-bloc { padding: 13px 15px; border-radius: var(--rayon-petit); background: var(--fond-doux); border-left: 3px solid var(--couleur-module); break-inside: avoid; }
+.rapport-bloc h3 { font-size: 13.5px; margin-bottom: 7px; }
+.rapport-liste { display: grid; gap: 4px; font-size: 12.5px; }
+.rapport-liste li { display: flex; justify-content: space-between; gap: 12px; }
+.rapport-liste-libelle { color: var(--encre-douce); }
+.rapport-liste-valeur { font-weight: 650; font-variant-numeric: tabular-nums; }
+.rapport-vigilance { display: grid; gap: 6px; font-size: 13.5px; color: var(--encre-douce); }
+.rapport-vigilance li { padding-left: 15px; position: relative; }
+.rapport-vigilance li::before { content: ""; position: absolute; left: 0; top: 8px; width: 6px; height: 6px; border-radius: 50%; background: var(--ambre); }
+.rapport-pied { border-top: 1px solid var(--trait); padding-top: 14px; font-size: 12px; color: var(--encre-douce); }
+
+.pied {
+  border-top: 1px solid var(--trait);
+  padding: 20px max(16px, calc((100vw - var(--largeur)) / 2));
+  font-size: 12.5px;
+  color: var(--encre-douce);
+  display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+}
+.pied a { text-decoration: underline; }
+
+/* ------------------------------------------------------------- Adaptations */
+
+@media (max-width: 1420px) {
+  .entete { flex-wrap: wrap; row-gap: 8px; }
+  .nav-modules { order: 3; width: 100%; flex: none; }
+  .entete-outils { margin-left: auto; }
+}
+
+@media (max-width: 1080px) {
+  .kpis, .kpis--large { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 920px) {
+  .grille-deux, .grille-deux--inverse { grid-template-columns: minmax(0, 1fr); }
+  .hub { aspect-ratio: auto; container-type: normal; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .hub-liens { display: none; }
+  .hub-centre {
+    position: static; transform: none;
+    width: auto; height: auto;
+    grid-column: 1 / -1;
+    border-radius: var(--rayon);
+    padding: 20px;
+    gap: 2px;
+  }
+  .hub-centre-nom { font-size: 18px; }
+  .hub-centre-ligue { font-size: 13px; }
+  .hub-centre-valeur { font-size: 26px; margin-top: 8px; }
+  .hub-centre-detail { font-size: 12px; }
+  .hub-noeud {
+    position: static; transform: none;
+    width: auto; min-height: 92px;
+    border-radius: var(--rayon);
+    padding: 14px 12px;
+    gap: 5px;
+  }
+  .hub-noeud:hover, .hub-noeud:focus-visible { transform: translateY(-2px); }
+  .hub-noeud-icone { width: 34px; height: 34px; }
+  .hub-noeud-icone .icone { width: 19px; height: 19px; }
+  .hub-noeud-titre { font-size: 13.5px; }
+  .hub-noeud-valeur { font-size: 12.5px; }
+  .anneau-bloc, .rapport-anneau { grid-template-columns: minmax(0, 1fr); justify-items: center; }
+  .rapport-chiffres { grid-template-columns: repeat(2, 1fr); }
+  .rapport-grille { grid-template-columns: minmax(0, 1fr); }
+  .rapport { padding: 22px 18px; }
+}
+
+@media (max-width: 760px) {
+  /* Sur un écran tactile, les cibles passent à 44 px : la règle d'Apple, et
+     le critère AAA « Target Size » du WCAG. */
+  .bouton, .bouton-icone, .nav-lien, .saisie, .tri, .lien-retour, .bascule { min-height: 44px; }
+  .bouton-icone { width: 44px; }
+  .entete { flex-wrap: wrap; gap: 10px; padding: 10px 14px; }
+  .nav-modules { order: 3; width: 100%; flex: none; }
+  .entete-outils { margin-left: auto; }
+  .contenu { padding: 18px 14px 44px; }
+  .kpis, .kpis--large { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grille-champs { grid-template-columns: minmax(0, 1fr); }
+  .hub-tete-actions { width: 100%; }
+  .hub-tete-actions .bouton { flex: 1; }
+
+  /* Le tableau devient une pile de fiches : sur un téléphone, un défilement
+     horizontal de huit colonnes est illisible. */
+  .carte--tableau .carte-corps { padding: 0 12px 12px; }
+  .tableau thead { display: none; }
+  .tableau, .tableau tbody, .tableau tr, .tableau td { display: block; width: auto; }
+  .tableau tbody tr {
+    border: 1px solid var(--trait);
+    border-radius: var(--rayon-petit);
+    padding: 8px 12px;
+    margin-top: 10px;
+    position: relative;
+  }
+  .tableau td { padding: 4px 0; display: flex; justify-content: space-between; gap: 14px; text-align: right; }
+  .tableau td::before {
+    content: attr(data-libelle);
+    font-size: 12px; font-weight: 600; color: var(--encre-douce);
+    text-align: left; flex: none;
+  }
+  .tableau td.colonne-actions { justify-content: flex-end; width: auto; padding-top: 6px; }
+  .tableau td.colonne-actions::before { content: none; }
+  .tableau--synthese tfoot { display: none; }
+  .toasts { left: 14px; right: 14px; bottom: 14px; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+
+/* ---------------------------------------------------------------- Impression */
+
+@media print {
+  :root { --fond: #fff; --fond-carte: #fff; --fond-doux: #fff; --trait: #C9D2DC; }
+  body { background: #fff; font-size: 11pt; }
+  .entete, .pied, .bandeaux, .rapport-actions, .barre-outils, .colonne-actions, .toasts, .hub-liens { display: none !important; }
+  .contenu { padding: 0; max-width: none; }
+  .carte, .rapport, .kpi { box-shadow: none; break-inside: avoid; border-color: #C9D2DC; }
+  .rapport { border: 0; padding: 0; }
+  .page { gap: 14px; }
+  a { color: inherit; }
+  .hub { width: 100%; }
+  @page { margin: 14mm; }
+}
+</style>
+</head>
+<body>
+<noscript><p style="padding:24px;font-family:sans-serif">Cet outil a besoin de JavaScript : toute la gestion des données se fait dans le navigateur.</p></noscript>
+<script>
+(() => {
+'use strict';
+
+/* ================================================== format.js */
+/**
+ * Formatage. Tout l'affichage chiffré passe par ici : une seule règle par
+ * type de valeur, appliquée partout, évite les tableaux où deux colonnes
+ * écrivent les euros différemment.
+ */
+
+const FMT_EUROS = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
+const FMT_EUROS_CENT = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 });
+const FMT_NOMBRE = new Intl.NumberFormat('fr-FR');
+
+/** Les montants d'un tableau de bord se lisent à l'euro près, pas au centime. */
+const euros = (n, precis = false) => (precis ? FMT_EUROS_CENT : FMT_EUROS).format(Number(n) || 0);
+
+/** Version compacte pour les pastilles du hub, où la place manque. */
+function eurosCourt(n) {
+  const v = Number(n) || 0;
+  if (Math.abs(v) >= 10000) return `${FMT_NOMBRE.format(Math.round(v / 1000))} k€`;
+  return FMT_EUROS.format(v);
+}
+
+const nombre = (n) => FMT_NOMBRE.format(Number(n) || 0);
+
+function pourcent(part, total, decimales = 0) {
+  if (!total) return '0 %';
+  return `${((part / total) * 100).toFixed(decimales).replace('.', ',')} %`;
+}
+
+const heures = (n) => `${FMT_NOMBRE.format(Math.round(Number(n) || 0))} h`;
+
+const MOIS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+const MOIS_LONG = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+
+/** Les dates sont stockées en ISO (`2026-03-08`) : comparables comme du texte. */
+function dateCourte(iso) {
+  if (!iso) return '—';
+  const [a, m, j] = String(iso).split('-');
+  if (!j) return iso;
+  return `${Number(j)} ${MOIS[Number(m) - 1]} ${a}`;
+}
+
+function moisEtiquette(cle) {
+  const [a, m] = cle.split('-');
+  return `${MOIS[Number(m) - 1]} ${String(a).slice(2)}`;
+}
+
+const moisDe = (iso) => (iso ? String(iso).slice(0, 7) : '');
+const aujourdhui = () => new Date().toISOString().slice(0, 10);
+
+/** Nombre de jours d'ici la date donnée : négatif si elle est passée. */
+const joursRestants = (iso) =>
+  Math.round((Date.parse(`${iso}T00:00:00`) - Date.parse(`${aujourdhui()}T00:00:00`)) / 86400000);
+
+function delaiHumain(iso) {
+  const j = joursRestants(iso);
+  if (j === 0) return "aujourd'hui";
+  if (j === 1) return 'demain';
+  if (j > 0) return `dans ${j} j`;
+  return `il y a ${-j} j`;
+}
+
+let compteur = 0;
+const identifiant = (prefixe = 'r') => `${prefixe}-${Date.now().toString(36)}-${(compteur++).toString(36)}`;
+
+/** Comparaison insensible à la casse et aux accents, pour le tri et la recherche. */
+const plie = (s) => String(s ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+const normalise = plie;
+const contient = (valeur, requete) => plie(valeur).includes(plie(requete));
+
+const TYPES_CHIFFRES = ['montant', 'nombre', 'heures'];
+
+function comparer(a, b, type) {
+  if (TYPES_CHIFFRES.includes(type)) return (Number(a) || 0) - (Number(b) || 0);
+  return plie(a).localeCompare(plie(b), 'fr');
+}
+
+/** Bornes d'une saison sportive : du 1er septembre au 31 août. */
+function bornesSaison(saison) {
+  const [debut] = String(saison).split('-');
+  const a = Number(debut);
+  return { debut: `${a}-09-01`, fin: `${a + 1}-08-31` };
+}
+
+/** Saison en cours à la date du jour. */
+function saisonDuJour(date = new Date()) {
+  const a = date.getFullYear();
+  return date.getMonth() >= 8 ? `${a}-${a + 1}` : `${a - 1}-${a}`;
+}
+
+const dansSaison = (iso, saison) => {
+  if (!iso) return false;
+  const { debut, fin } = bornesSaison(saison);
+  return iso >= debut && iso <= fin;
+};
+
+/* ================================================== dom.js */
+/**
+ * Fabrique de DOM. Pas de moteur de gabarits : `h()` suffit, et une fonction
+ * de 30 lignes se relit plus vite qu'une dépendance de 40 Ko.
+ *
+ *   h('article.carte', { role: 'group' }, h('h3', {}, 'Titre'), 'texte')
+ *
+ * Le sélecteur du premier argument accepte les classes et l'identifiant :
+ * `'button.puce.puce--vert#tri'`.
+ */
+
+const SVG_NS = 'http://www.w3.org/2000/svg';
+const BALISES_SVG = new Set(['svg', 'g', 'path', 'circle', 'rect', 'line', 'polyline', 'polygon', 'text', 'tspan', 'defs', 'linearGradient', 'radialGradient', 'stop', 'clipPath', 'title', 'use', 'ellipse']);
+
+function h(selecteur, attributs = {}, ...enfants) {
+  const [balise, ...reste] = String(selecteur).split(/(?=[.#])/);
+  const nom = balise || 'div';
+  const el = BALISES_SVG.has(nom) ? document.createElementNS(SVG_NS, nom) : document.createElement(nom);
+  for (const morceau of reste) {
+    if (morceau[0] === '#') el.id = morceau.slice(1);
+    else el.classList.add(morceau.slice(1));
+  }
+  for (const [cle, valeur] of Object.entries(attributs || {})) {
+    if (valeur === null || valeur === undefined || valeur === false) continue;
+    if (cle === 'class') { for (const c of String(valeur).split(' ')) if (c) el.classList.add(c); }
+    else if (cle === 'text') el.textContent = valeur;
+    else if (cle === 'style' && typeof valeur === 'object') appliquerStyle(el, valeur);
+    else if (cle === 'dataset') Object.assign(el.dataset, valeur);
+    else if (cle.startsWith('on') && typeof valeur === 'function') el.addEventListener(cle.slice(2).toLowerCase(), valeur);
+    else if (cle in el && !BALISES_SVG.has(nom) && typeof valeur !== 'object' && cle !== 'list') el[cle] = valeur;
+    else el.setAttribute(cle, valeur === true ? '' : valeur);
+  }
+  ajouter(el, enfants);
+  return el;
+}
+
+/** Les propriétés personnalisées (`--x`) échappent à l'affectation directe :
+ *  `style['--x'] = …` est ignoré, seul `setProperty` les enregistre. */
+function appliquerStyle(el, style) {
+  for (const [propriete, valeur] of Object.entries(style)) {
+    if (valeur === null || valeur === undefined) continue;
+    if (propriete.startsWith('--')) el.style.setProperty(propriete, String(valeur));
+    else el.style[propriete] = valeur;
+  }
+}
+
+function ajouter(parent, enfants) {
+  for (const enfant of enfants.flat(4)) {
+    if (enfant === null || enfant === undefined || enfant === false) continue;
+    parent.appendChild(enfant instanceof Node ? enfant : document.createTextNode(String(enfant)));
+  }
+  return parent;
+}
+
+const $ = (selecteur, racine = document) => racine.querySelector(selecteur);
+const $$ = (selecteur, racine = document) => Array.from(racine.querySelectorAll(selecteur));
+
+function vider(el) {
+  while (el.firstChild) el.removeChild(el.firstChild);
+  return el;
+}
+
+const remplacer = (el, ...enfants) => ajouter(vider(el), enfants);
+
+/** Icône : un tracé unique sur une grille de 24, trait rond. */
+function icone(trace, taille = 24) {
+  return h('svg.icone', { viewBox: '0 0 24 24', width: taille, height: taille, fill: 'none', 'aria-hidden': 'true' },
+    h('path', { d: trace, stroke: 'currentColor', 'stroke-width': 1.8, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }));
+}
+
+/* ------------------------------------------------------------- Superposés */
+
+let fermerCourant = null;
+
+/**
+ * Fenêtre modale. Le focus est piégé tant qu'elle est ouverte et rendu à
+ * l'élément qui l'a ouverte à la fermeture — sans quoi la navigation au
+ * clavier repart du haut du document à chaque enregistrement.
+ */
+function modale({ titre, corps, actions = [], large = false }) {
+  if (fermerCourant) fermerCourant();
+  const ouvreur = document.activeElement;
+  const fond = h('div.modale-fond', { role: 'presentation' });
+  const boite = h(`div.modale${large ? '.modale--large' : ''}`, { role: 'dialog', 'aria-modal': 'true', 'aria-label': titre });
+  const fermer = () => {
+    document.removeEventListener('keydown', auClavier, true);
+    fond.remove();
+    fermerCourant = null;
+    if (ouvreur && ouvreur.focus) ouvreur.focus();
+  };
+  const auClavier = (e) => {
+    if (e.key === 'Escape') { e.preventDefault(); fermer(); return; }
+    if (e.key !== 'Tab') return;
+    const cibles = $$('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])', boite).filter((el) => !el.disabled && el.offsetParent !== null);
+    if (!cibles.length) return;
+    const premier = cibles[0];
+    const dernier = cibles[cibles.length - 1];
+    if (e.shiftKey && document.activeElement === premier) { e.preventDefault(); dernier.focus(); }
+    else if (!e.shiftKey && document.activeElement === dernier) { e.preventDefault(); premier.focus(); }
+  };
+  ajouter(boite, [
+    h('header.modale-tete', {}, h('h2', { text: titre }), h('button.bouton-icone', { type: 'button', 'aria-label': 'Fermer la fenêtre', onclick: fermer }, icone('M6 6l12 12M18 6L6 18', 20))),
+    h('div.modale-corps', {}, corps),
+    actions.length ? h('footer.modale-pied', {}, actions.map((a) => h(`button.bouton${a.variante ? `.bouton--${a.variante}` : ''}`, { type: a.type || 'button', text: a.libelle, onclick: a.action ? () => a.action(fermer) : fermer }))) : null,
+  ]);
+  fond.appendChild(boite);
+  fond.addEventListener('mousedown', (e) => { if (e.target === fond) fermer(); });
+  document.body.appendChild(fond);
+  document.addEventListener('keydown', auClavier, true);
+  fermerCourant = fermer;
+  requestAnimationFrame(() => ($('input, select, textarea, button', boite) || boite).focus());
+  return { fermer, boite };
+}
+
+function confirmer(question, detail) {
+  return new Promise((resoudre) => {
+    modale({
+      titre: question,
+      corps: h('p.texte-doux', { text: detail || 'Cette action est définitive.' }),
+      actions: [
+        { libelle: 'Annuler', action: (fermer) => { fermer(); resoudre(false); } },
+        { libelle: 'Supprimer', variante: 'danger', action: (fermer) => { fermer(); resoudre(true); } },
+      ],
+    });
+  });
+}
+
+let pileToasts = null;
+function toast(message, variante = 'succes') {
+  if (!pileToasts) {
+    pileToasts = h('div.toasts', { role: 'status', 'aria-live': 'polite' });
+    document.body.appendChild(pileToasts);
+  }
+  const el = h(`div.toast.toast--${variante}`, { text: message });
+  pileToasts.appendChild(el);
+  setTimeout(() => { el.classList.add('toast--sortie'); setTimeout(() => el.remove(), 300); }, 3400);
+}
+
+/* ================================================== schema.js */
+/**
+ * Le schéma décrit les sept domaines du modèle socio-économique. Il est la
+ * seule source de vérité de l'application : les formulaires, les tableaux,
+ * les exports, les indicateurs et les alertes en sont tous dérivés. Ajouter
+ * un champ à un module, c'est ajouter une ligne ici — rien d'autre.
+ *
+ * Types de champ : texte, zone, courriel, tel, date, liste, montant, nombre,
+ * heures. `calcules` décrit les colonnes déduites (jamais saisies).
+ */
+
+
+/** Taux de valorisation du bénévolat : le SMIC horaire brut, comme le
+ *  recommande le plan comptable associatif pour les contributions
+ *  volontaires en nature. Modifiable dans les réglages. */
+const TAUX_HORAIRE_DEFAUT = 12;
+
+const REGLAGES_DEFAUT = {
+  association: 'Five League',
+  ligue: 'Sunday Five League',
+  territoire: 'Hauts-de-France',
+  tauxHoraire: TAUX_HORAIRE_DEFAUT,
+  objectifProduits: 55000,
+  adherentsAttendus: 140,
+};
+
+/** Tonalité des pastilles d'état, commune à tous les modules. */
+const TONS = {
+  Actif: 'vert', Ponctuel: 'bleu', Inactif: 'gris',
+  Payée: 'vert', Partielle: 'ambre', 'En attente': 'gris', Relancée: 'rouge',
+  'À déposer': 'gris', Déposé: 'bleu', 'En instruction': 'ambre', Accordée: 'violet', Versée: 'vert', Refusée: 'rouge',
+  Planifié: 'gris', Confirmé: 'bleu', Réalisé: 'vert', Annulé: 'rouge',
+  'Devis envoyé': 'gris', Confirmée: 'bleu', Facturée: 'ambre', Annulée: 'rouge',
+  'En négociation': 'ambre', 'À renouveler': 'rouge', Terminé: 'gris',
+  'En stock': 'vert', 'Stock faible': 'ambre', Rupture: 'rouge',
+};
+
+const somme = (lignes, champ) => lignes.reduce((t, l) => t + (Number(l[champ]) || 0), 0);
+const parmi = (lignes, champ, ...valeurs) => lignes.filter((l) => valeurs.includes(l[champ]));
+
+/** État d'une cotisation : déduit des montants, jamais saisi — deux sources
+ *  de vérité pour la même information finissent toujours par diverger. */
+function etatCotisation(l) {
+  const du = Number(l.montant) || 0;
+  const regle = Number(l.regle) || 0;
+  if (regle >= du && du > 0) return 'Payée';
+  if (regle > 0) return 'Partielle';
+  if (l.echeance && joursRestants(l.echeance) < 0) return 'Relancée';
+  return 'En attente';
+}
+
+function etatStock(l) {
+  const stock = Number(l.stock) || 0;
+  if (stock <= 0) return 'Rupture';
+  if (stock <= (Number(l.seuil) || 0)) return 'Stock faible';
+  return 'En stock';
+}
+
+const SAISONS_LISTE = ['2024-2025', '2025-2026', '2026-2027'];
+const SAISONS = SAISONS_LISTE;
+
+const champSaison = { id: 'saison', libelle: 'Saison', type: 'liste', options: SAISONS_LISTE, requis: true };
+
+const MODULES = [
+  {
+    id: 'rh',
+    route: 'rh',
+    titre: 'Ressources humaines',
+    court: 'RH',
+    resume: 'Bénévoles, dirigeants et arbitres : qui fait tourner la ligue, et combien de temps cela représente.',
+    couleur: '#4F8DF7',
+    icone: 'M15.5 20v-1.5a3.5 3.5 0 0 0-3.5-3.5H7a3.5 3.5 0 0 0-3.5 3.5V20M9.5 11.8a3.9 3.9 0 1 0 0-7.8 3.9 3.9 0 0 0 0 7.8M20.5 20v-1.5a3.5 3.5 0 0 0-2.7-3.4M15.5 4.3a3.9 3.9 0 0 1 0 7.2',
+    singulier: 'bénévole',
+    pluriel: 'bénévoles',
+    champCle: 'nom',
+    champDate: 'depuis',
+    champs: [
+      { id: 'nom', libelle: 'Nom et prénom', type: 'texte', requis: true },
+      { id: 'role', libelle: 'Rôle', type: 'texte', aide: 'Président, arbitre, responsable buvette…' },
+      { id: 'categorie', libelle: 'Pôle', type: 'liste', options: ['Bureau', 'Encadrement', 'Arbitrage', 'Logistique', 'Communication'], defaut: 'Logistique' },
+      { id: 'statut', libelle: 'Engagement', type: 'liste', options: ['Actif', 'Ponctuel', 'Inactif'], defaut: 'Actif' },
+      { id: 'heures', libelle: 'Heures sur la saison', type: 'heures' },
+      { id: 'courriel', libelle: 'Courriel', type: 'courriel' },
+      { id: 'telephone', libelle: 'Téléphone', type: 'tel' },
+      { id: 'depuis', libelle: 'Engagé depuis', type: 'date' },
+      champSaison,
+      { id: 'notes', libelle: 'Disponibilités et notes', type: 'zone' },
+    ],
+    calcules: [
+      { id: 'valorisation', libelle: 'Valorisation', type: 'montant', calcul: (l, r) => (Number(l.heures) || 0) * (r.tauxHoraire || TAUX_HORAIRE_DEFAUT) },
+    ],
+    colonnes: ['nom', 'role', 'categorie', 'heures', 'valorisation', 'statut'],
+    etat: (l) => l.statut,
+    kpis: (lignes, ctx) => {
+      const actifs = parmi(lignes, 'statut', 'Actif', 'Ponctuel');
+      const h = somme(lignes, 'heures');
+      return [
+        { libelle: 'Bénévoles actifs', valeur: nombre(actifs.length), detail: `${lignes.length} personnes recensées` },
+        { libelle: 'Heures contribuées', valeur: heures(h), detail: actifs.length ? `${Math.round(h / actifs.length)} h par bénévole en moyenne` : 'aucun bénévole actif' },
+        { libelle: 'Valorisation du bénévolat', valeur: euros(h * ctx.reglages.tauxHoraire), detail: `au taux de ${euros(ctx.reglages.tauxHoraire)} de l'heure` },
+        { libelle: 'Bureau directeur', valeur: nombre(parmi(lignes, 'categorie', 'Bureau').length), detail: 'membres du bureau' },
+      ];
+    },
+    groupe: { champ: 'categorie', titre: 'Heures par pôle', mesure: (l) => Number(l.heures) || 0, format: heures },
+    pastille: (lignes) => `${nombre(parmi(lignes, 'statut', 'Actif', 'Ponctuel').length)} bénévoles`,
+    economie: (lignes, r) => ({ produits: 0, charges: 0, attendu: 0, valorisation: somme(lignes, 'heures') * r.tauxHoraire }),
+  },
+
+  {
+    id: 'cotisations',
+    route: 'cotisations',
+    titre: 'Cotisations',
+    court: 'Cotisations',
+    resume: 'Adhésions de la saison, encaissements, relances et taux de règlement.',
+    couleur: '#2ECC71',
+    icone: 'M3 8.5A2.5 2.5 0 0 1 5.5 6h13A2.5 2.5 0 0 1 21 8.5v7a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 15.5zM3 10.5h18M6.5 14.5h3.5',
+    singulier: 'adhésion',
+    pluriel: 'adhésions',
+    champCle: 'adherent',
+    champDate: 'datePaiement',
+    champs: [
+      { id: 'adherent', libelle: 'Adhérent', type: 'texte', requis: true },
+      { id: 'categorie', libelle: 'Catégorie', type: 'liste', options: ['Joueur senior', 'Joueur jeune', 'Dirigeant', 'Arbitre', 'Membre bienfaiteur'], defaut: 'Joueur senior' },
+      { id: 'equipe', libelle: 'Équipe', type: 'texte' },
+      { id: 'montant', libelle: 'Montant dû', type: 'montant', requis: true },
+      { id: 'regle', libelle: 'Montant réglé', type: 'montant' },
+      { id: 'moyen', libelle: 'Moyen de paiement', type: 'liste', options: ['Virement', 'Carte (HelloAsso)', 'Espèces', 'Chèque', "Pass'Sport"], defaut: 'Virement' },
+      { id: 'datePaiement', libelle: 'Date de règlement', type: 'date' },
+      { id: 'echeance', libelle: 'Échéance', type: 'date' },
+      { id: 'courriel', libelle: 'Courriel', type: 'courriel' },
+      champSaison,
+      { id: 'notes', libelle: 'Notes', type: 'zone' },
+    ],
+    calcules: [
+      { id: 'reste', libelle: 'Reste dû', type: 'montant', calcul: (l) => Math.max(0, (Number(l.montant) || 0) - (Number(l.regle) || 0)) },
+      { id: 'etat', libelle: 'État', type: 'etat', calcul: etatCotisation },
+    ],
+    colonnes: ['adherent', 'categorie', 'equipe', 'montant', 'regle', 'reste', 'etat', 'echeance'],
+    etat: etatCotisation,
+    kpis: (lignes, ctx) => {
+      const du = somme(lignes, 'montant');
+      const encaisse = somme(lignes, 'regle');
+      const payees = lignes.filter((l) => etatCotisation(l) === 'Payée');
+      return [
+        { libelle: 'Encaissé', valeur: euros(encaisse), detail: `sur ${euros(du)} appelés`, jauge: du ? encaisse / du : 0 },
+        { libelle: 'Taux de règlement', valeur: pourcent(payees.length, lignes.length), detail: `${payees.length} adhésions soldées sur ${lignes.length}` },
+        { libelle: 'Reste à recouvrer', valeur: euros(du - encaisse), detail: `${lignes.length - payees.length} adhésions incomplètes`, ton: du - encaisse > 0 ? 'alerte' : null },
+        { libelle: 'Adhérents', valeur: nombre(lignes.length), detail: `objectif ${nombre(ctx.reglages.adherentsAttendus)}`, jauge: ctx.reglages.adherentsAttendus ? lignes.length / ctx.reglages.adherentsAttendus : 0 },
+      ];
+    },
+    groupe: { champ: 'categorie', titre: 'Encaissé par catégorie', mesure: (l) => Number(l.regle) || 0, format: euros },
+    pastille: (lignes) => `${eurosCourt(somme(lignes, 'regle'))} encaissés`,
+    economie: (lignes) => ({ produits: somme(lignes, 'regle'), charges: 0, attendu: Math.max(0, somme(lignes, 'montant') - somme(lignes, 'regle')), valorisation: 0 }),
+    flux: (l) => [{ date: l.datePaiement, montant: Number(l.regle) || 0, sens: 'produit' }],
+  },
+
+  {
+    id: 'subventions',
+    route: 'subventions',
+    titre: 'Subventions publiques',
+    court: 'Subventions',
+    resume: 'Dossiers déposés auprès des collectivités et de l’État, échéances des appels à projets.',
+    couleur: '#9B6DE0',
+    icone: 'M3 21h18M4.5 21V9.8L12 4.5l7.5 5.3V21M9.5 21v-6h5v6M8 12h.01M16 12h.01',
+    singulier: 'dossier',
+    pluriel: 'dossiers',
+    champCle: 'financeur',
+    champDate: 'dateVersement',
+    champs: [
+      { id: 'financeur', libelle: 'Financeur', type: 'texte', requis: true, aide: 'Ville, département, région, ANS, CAF…' },
+      { id: 'dispositif', libelle: 'Dispositif', type: 'texte', aide: "Fonds de développement de la vie associative, Pass'Sport…" },
+      { id: 'demande', libelle: 'Montant demandé', type: 'montant', requis: true },
+      { id: 'accorde', libelle: 'Montant accordé', type: 'montant' },
+      { id: 'statut', libelle: 'Statut du dossier', type: 'liste', options: ['À déposer', 'Déposé', 'En instruction', 'Accordée', 'Versée', 'Refusée'], defaut: 'À déposer' },
+      { id: 'echeance', libelle: 'Date limite de dépôt', type: 'date' },
+      { id: 'dateDepot', libelle: 'Déposé le', type: 'date' },
+      { id: 'dateVersement', libelle: 'Versé le', type: 'date' },
+      { id: 'referent', libelle: 'Référent du dossier', type: 'texte' },
+      champSaison,
+      { id: 'notes', libelle: 'Pièces et suivi', type: 'zone' },
+    ],
+    colonnes: ['financeur', 'dispositif', 'demande', 'accorde', 'statut', 'echeance'],
+    etat: (l) => l.statut,
+    kpis: (lignes) => {
+      const versees = parmi(lignes, 'statut', 'Versée');
+      const enCours = parmi(lignes, 'statut', 'Déposé', 'En instruction', 'Accordée');
+      const arbitrees = parmi(lignes, 'statut', 'Versée', 'Accordée', 'Refusée');
+      return [
+        { libelle: 'Reçu cette saison', valeur: euros(somme(versees, 'accorde')), detail: `${versees.length} subventions versées` },
+        { libelle: 'Dossiers en cours', valeur: nombre(enCours.length), detail: `${euros(somme(enCours, 'accorde') || somme(enCours, 'demande'))} attendus` },
+        { libelle: 'Taux de réussite', valeur: pourcent(parmi(arbitrees, 'statut', 'Versée', 'Accordée').length, arbitrees.length), detail: `${arbitrees.length} dossiers arbitrés` },
+        { libelle: 'Demandé', valeur: euros(somme(lignes, 'demande')), detail: `${lignes.length} dossiers ouverts` },
+      ];
+    },
+    groupe: { champ: 'statut', titre: 'Montants par statut de dossier', mesure: (l) => Number(l.accorde) || Number(l.demande) || 0, format: euros },
+    pastille: (lignes) => `${eurosCourt(somme(parmi(lignes, 'statut', 'Versée'), 'accorde'))} reçus`,
+    economie: (lignes) => ({
+      produits: somme(parmi(lignes, 'statut', 'Versée'), 'accorde'),
+      charges: 0,
+      attendu: somme(parmi(lignes, 'statut', 'Accordée'), 'accorde') + somme(parmi(lignes, 'statut', 'Déposé', 'En instruction'), 'demande'),
+      valorisation: 0,
+    }),
+    flux: (l) => [{ date: l.dateVersement, montant: l.statut === 'Versée' ? Number(l.accorde) || 0 : 0, sens: 'produit' }],
+  },
+
+  {
+    id: 'boutique',
+    route: 'boutique',
+    titre: 'Merchandising',
+    court: 'Boutique',
+    resume: 'Catalogue, stocks et marges des maillots, textiles et équipements aux couleurs de la ligue.',
+    couleur: '#E67E22',
+    icone: 'M5.5 8h13l1 12h-15zM9 8V6.2a3 3 0 0 1 6 0V8',
+    singulier: 'article',
+    pluriel: 'articles',
+    champCle: 'produit',
+    champs: [
+      { id: 'produit', libelle: 'Article', type: 'texte', requis: true },
+      { id: 'categorie', libelle: 'Catégorie', type: 'liste', options: ['Maillot', 'Textile', 'Équipement', 'Accessoire', 'Goodies'], defaut: 'Textile' },
+      { id: 'prixVente', libelle: 'Prix de vente', type: 'montant', requis: true },
+      { id: 'coutUnitaire', libelle: 'Coût unitaire', type: 'montant' },
+      { id: 'vendus', libelle: 'Unités vendues', type: 'nombre' },
+      { id: 'stock', libelle: 'Stock restant', type: 'nombre' },
+      { id: 'seuil', libelle: "Seuil d'alerte", type: 'nombre', defaut: 5 },
+      { id: 'fournisseur', libelle: 'Fournisseur', type: 'texte' },
+      champSaison,
+      { id: 'notes', libelle: 'Notes', type: 'zone' },
+    ],
+    calcules: [
+      { id: 'ca', libelle: "Chiffre d'affaires", type: 'montant', calcul: (l) => (Number(l.prixVente) || 0) * (Number(l.vendus) || 0) },
+      { id: 'marge', libelle: 'Marge', type: 'montant', calcul: (l) => ((Number(l.prixVente) || 0) - (Number(l.coutUnitaire) || 0)) * (Number(l.vendus) || 0) },
+      { id: 'etat', libelle: 'Stock', type: 'etat', calcul: etatStock },
+    ],
+    colonnes: ['produit', 'categorie', 'prixVente', 'vendus', 'ca', 'marge', 'stock', 'etat'],
+    etat: etatStock,
+    kpis: (lignes) => {
+      const ca = lignes.reduce((t, l) => t + (Number(l.prixVente) || 0) * (Number(l.vendus) || 0), 0);
+      const marge = lignes.reduce((t, l) => t + ((Number(l.prixVente) || 0) - (Number(l.coutUnitaire) || 0)) * (Number(l.vendus) || 0), 0);
+      const dormant = lignes.reduce((t, l) => t + (Number(l.coutUnitaire) || 0) * (Number(l.stock) || 0), 0);
+      const alertes = lignes.filter((l) => etatStock(l) !== 'En stock');
+      return [
+        { libelle: "Chiffre d'affaires", valeur: euros(ca), detail: `${nombre(somme(lignes, 'vendus'))} articles vendus` },
+        { libelle: 'Marge dégagée', valeur: euros(marge), detail: ca ? `taux de marge ${pourcent(marge, ca)}` : 'aucune vente' },
+        { libelle: 'Stock immobilisé', valeur: euros(dormant), detail: `${nombre(somme(lignes, 'stock'))} articles en réserve` },
+        { libelle: 'Alertes de stock', valeur: nombre(alertes.length), detail: alertes.length ? alertes.map((l) => l.produit).slice(0, 2).join(', ') : 'aucune rupture', ton: alertes.length ? 'alerte' : null },
+      ];
+    },
+    groupe: { champ: 'categorie', titre: 'Chiffre d’affaires par catégorie', mesure: (l) => (Number(l.prixVente) || 0) * (Number(l.vendus) || 0), format: euros },
+    pastille: (lignes) => `${eurosCourt(lignes.reduce((t, l) => t + (Number(l.prixVente) || 0) * (Number(l.vendus) || 0), 0))} de CA`,
+    economie: (lignes) => ({
+      produits: lignes.reduce((t, l) => t + (Number(l.prixVente) || 0) * (Number(l.vendus) || 0), 0),
+      charges: lignes.reduce((t, l) => t + (Number(l.coutUnitaire) || 0) * (Number(l.vendus) || 0), 0),
+      attendu: 0,
+      valorisation: 0,
+    }),
+  },
+
+  {
+    id: 'evenements',
+    route: 'evenements',
+    titre: 'Organisation d’événements',
+    court: 'Événements',
+    resume: 'Journées de championnat, tournois et plateaux : logistique, équipes engagées et équilibre financier.',
+    couleur: '#E8455F',
+    icone: 'M4 7.5A1.5 1.5 0 0 1 5.5 6h13A1.5 1.5 0 0 1 20 7.5v11a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5zM8 4v4M16 4v4M4 10.5h16M8 14.5h2M13.5 14.5h2',
+    singulier: 'événement',
+    pluriel: 'événements',
+    champCle: 'intitule',
+    champDate: 'date',
+    champs: [
+      { id: 'intitule', libelle: 'Intitulé', type: 'texte', requis: true },
+      { id: 'type', libelle: 'Type', type: 'liste', options: ['Journée de championnat', 'Tournoi', 'Plateau jeunes', 'Stage', 'Assemblée générale', 'Événement partenaire'], defaut: 'Journée de championnat' },
+      { id: 'date', libelle: 'Date', type: 'date', requis: true },
+      { id: 'lieu', libelle: 'Lieu', type: 'texte' },
+      { id: 'equipes', libelle: 'Équipes engagées', type: 'nombre' },
+      { id: 'participants', libelle: 'Participants', type: 'nombre' },
+      { id: 'recettes', libelle: 'Recettes', type: 'montant', aide: 'Engagements, buvette, entrées.' },
+      { id: 'depenses', libelle: 'Dépenses', type: 'montant', aide: 'Location de terrain, arbitrage, récompenses.' },
+      { id: 'statut', libelle: 'Statut', type: 'liste', options: ['Planifié', 'Confirmé', 'Réalisé', 'Annulé'], defaut: 'Planifié' },
+      { id: 'responsable', libelle: 'Responsable', type: 'texte' },
+      champSaison,
+      { id: 'notes', libelle: 'Logistique', type: 'zone' },
+    ],
+    calcules: [
+      { id: 'solde', libelle: 'Solde', type: 'montant', calcul: (l) => (Number(l.recettes) || 0) - (Number(l.depenses) || 0) },
+    ],
+    colonnes: ['intitule', 'type', 'date', 'lieu', 'equipes', 'recettes', 'depenses', 'solde', 'statut'],
+    etat: (l) => l.statut,
+    tri: 'date',
+    kpis: (lignes) => {
+      const realises = parmi(lignes, 'statut', 'Réalisé');
+      const aVenir = lignes.filter((l) => l.statut !== 'Annulé' && l.date && joursRestants(l.date) >= 0);
+      const equipes = Math.max(0, ...lignes.map((l) => Number(l.equipes) || 0));
+      const solde = somme(lignes, 'recettes') - somme(lignes, 'depenses');
+      return [
+        { libelle: 'Événements réalisés', valeur: nombre(realises.length), detail: `${lignes.length} programmés sur la saison` },
+        { libelle: 'Équipes engagées', valeur: nombre(equipes), detail: `${nombre(somme(realises, 'participants'))} participants accueillis` },
+        { libelle: 'Solde des événements', valeur: euros(solde), detail: `${euros(somme(lignes, 'recettes'))} de recettes, ${euros(somme(lignes, 'depenses'))} de dépenses`, ton: solde < 0 ? 'alerte' : null },
+        { libelle: 'À venir', valeur: nombre(aVenir.length), detail: aVenir.length ? `prochain : ${aVenir.slice().sort((a, b) => a.date.localeCompare(b.date))[0].intitule}` : 'rien de programmé' },
+      ];
+    },
+    groupe: { champ: 'type', titre: 'Événements par type', mesure: () => 1, format: nombre },
+    pastille: (lignes) => `${nombre(parmi(lignes, 'statut', 'Réalisé', 'Confirmé', 'Planifié').length)} événements`,
+    economie: (lignes) => ({ produits: somme(parmi(lignes, 'statut', 'Réalisé'), 'recettes'), charges: somme(parmi(lignes, 'statut', 'Réalisé', 'Confirmé'), 'depenses'), attendu: somme(parmi(lignes, 'statut', 'Confirmé', 'Planifié'), 'recettes'), valorisation: 0 }),
+    flux: (l) => (l.statut === 'Réalisé' ? [{ date: l.date, montant: Number(l.recettes) || 0, sens: 'produit' }, { date: l.date, montant: Number(l.depenses) || 0, sens: 'charge' }] : []),
+  },
+
+  {
+    id: 'prestations',
+    route: 'prestations',
+    titre: 'Prestations',
+    court: 'Prestations',
+    resume: 'Animations d’entreprise, formations et locations facturées par l’association.',
+    couleur: '#17BEBB',
+    icone: 'M4 9.5A1.5 1.5 0 0 1 5.5 8h13A1.5 1.5 0 0 1 20 9.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5zM9 8V6.5A1.5 1.5 0 0 1 10.5 5h3A1.5 1.5 0 0 1 15 6.5V8M4 13h16',
+    singulier: 'prestation',
+    pluriel: 'prestations',
+    champCle: 'client',
+    champDate: 'date',
+    champs: [
+      { id: 'client', libelle: 'Client', type: 'texte', requis: true },
+      { id: 'prestation', libelle: 'Prestation', type: 'liste', options: ["Animation d'entreprise", 'Formation encadrants', 'Coaching', 'Location de créneau', 'Arbitrage extérieur'], defaut: "Animation d'entreprise" },
+      { id: 'date', libelle: 'Date', type: 'date' },
+      { id: 'montant', libelle: 'Montant', type: 'montant', requis: true },
+      { id: 'statut', libelle: 'Statut', type: 'liste', options: ['Devis envoyé', 'Confirmée', 'Facturée', 'Payée', 'Annulée'], defaut: 'Devis envoyé' },
+      { id: 'echeance', libelle: 'Échéance de paiement', type: 'date' },
+      { id: 'contact', libelle: 'Contact', type: 'texte' },
+      { id: 'courriel', libelle: 'Courriel', type: 'courriel' },
+      champSaison,
+      { id: 'notes', libelle: 'Détail de la prestation', type: 'zone' },
+    ],
+    colonnes: ['client', 'prestation', 'date', 'montant', 'statut', 'echeance'],
+    etat: (l) => l.statut,
+    tri: 'date',
+    kpis: (lignes) => {
+      const payees = parmi(lignes, 'statut', 'Payée');
+      const attente = parmi(lignes, 'statut', 'Facturée', 'Confirmée');
+      const clients = new Set(lignes.filter((l) => l.statut !== 'Annulée').map((l) => l.client));
+      const gagnees = parmi(lignes, 'statut', 'Payée', 'Facturée', 'Confirmée');
+      return [
+        { libelle: 'Chiffre d’affaires encaissé', valeur: euros(somme(payees, 'montant')), detail: `${payees.length} prestations payées` },
+        { libelle: 'Clients', valeur: nombre(clients.size), detail: `${lignes.length} affaires suivies` },
+        { libelle: 'En attente de paiement', valeur: euros(somme(attente, 'montant')), detail: `${attente.length} factures ouvertes`, ton: attente.length ? 'alerte' : null },
+        { libelle: 'Taux de transformation', valeur: pourcent(gagnees.length, lignes.length), detail: 'des devis transformés' },
+      ];
+    },
+    groupe: { champ: 'prestation', titre: 'Chiffre d’affaires par type de prestation', mesure: (l) => (l.statut === 'Annulée' ? 0 : Number(l.montant) || 0), format: euros },
+    pastille: (lignes) => `${eurosCourt(somme(parmi(lignes, 'statut', 'Payée'), 'montant'))} de CA`,
+    economie: (lignes) => ({ produits: somme(parmi(lignes, 'statut', 'Payée'), 'montant'), charges: 0, attendu: somme(parmi(lignes, 'statut', 'Facturée', 'Confirmée'), 'montant'), valorisation: 0 }),
+    flux: (l) => (l.statut === 'Payée' ? [{ date: l.date, montant: Number(l.montant) || 0, sens: 'produit' }] : []),
+  },
+
+  {
+    id: 'partenariats',
+    route: 'partenariats',
+    titre: 'Partenariats privés',
+    court: 'Partenariats',
+    resume: 'Entreprises partenaires, contrats de sponsoring, contreparties et échéances de renouvellement.',
+    couleur: '#D4A017',
+    icone: 'M10.5 13.5a3.6 3.6 0 0 0 5.1 0l2.9-2.9a3.6 3.6 0 0 0-5.1-5.1l-1.4 1.4M13.5 10.5a3.6 3.6 0 0 0-5.1 0l-2.9 2.9a3.6 3.6 0 0 0 5.1 5.1l1.4-1.4',
+    singulier: 'partenaire',
+    pluriel: 'partenaires',
+    champCle: 'entreprise',
+    champDate: 'debut',
+    champs: [
+      { id: 'entreprise', libelle: 'Entreprise', type: 'texte', requis: true },
+      { id: 'type', libelle: 'Type de partenariat', type: 'liste', options: ['Sponsor maillot', 'Panneau terrain', 'Dotation matériel', 'Mécénat', 'Visibilité digitale'], defaut: 'Panneau terrain' },
+      { id: 'montant', libelle: 'Montant annuel', type: 'montant', requis: true },
+      { id: 'encaisse', libelle: 'Déjà encaissé', type: 'montant' },
+      { id: 'statut', libelle: 'Statut', type: 'liste', options: ['En négociation', 'Actif', 'À renouveler', 'Terminé'], defaut: 'En négociation' },
+      { id: 'debut', libelle: 'Début du contrat', type: 'date' },
+      { id: 'fin', libelle: 'Fin du contrat', type: 'date' },
+      { id: 'contact', libelle: 'Interlocuteur', type: 'texte' },
+      { id: 'courriel', libelle: 'Courriel', type: 'courriel' },
+      { id: 'nature', libelle: 'Contreparties', type: 'texte', aide: 'Logo maillot, panneau, publications, invitations…' },
+      champSaison,
+      { id: 'notes', libelle: 'Historique de la relation', type: 'zone' },
+    ],
+    calcules: [
+      { id: 'reste', libelle: 'Reste à percevoir', type: 'montant', calcul: (l) => Math.max(0, (Number(l.montant) || 0) - (Number(l.encaisse) || 0)) },
+    ],
+    colonnes: ['entreprise', 'type', 'montant', 'encaisse', 'reste', 'fin', 'statut'],
+    etat: (l) => l.statut,
+    kpis: (lignes) => {
+      const actifs = parmi(lignes, 'statut', 'Actif', 'À renouveler');
+      const aRenouveler = lignes.filter((l) => l.statut === 'À renouveler' || (l.statut === 'Actif' && l.fin && joursRestants(l.fin) <= 90));
+      const negociation = parmi(lignes, 'statut', 'En négociation');
+      return [
+        { libelle: 'Sponsoring encaissé', valeur: euros(somme(lignes, 'encaisse')), detail: `sur ${euros(somme(actifs, 'montant'))} contractualisés` },
+        { libelle: 'Partenaires actifs', valeur: nombre(actifs.length), detail: `${lignes.length} relations suivies` },
+        { libelle: 'À renouveler sous 90 j', valeur: nombre(aRenouveler.length), detail: aRenouveler.length ? aRenouveler.map((l) => l.entreprise).slice(0, 2).join(', ') : 'aucune échéance proche', ton: aRenouveler.length ? 'alerte' : null },
+        { libelle: 'En négociation', valeur: euros(somme(negociation, 'montant')), detail: `${negociation.length} pistes ouvertes` },
+      ];
+    },
+    groupe: { champ: 'type', titre: 'Sponsoring par type de partenariat', mesure: (l) => Number(l.montant) || 0, format: euros },
+    pastille: (lignes) => `${eurosCourt(somme(lignes, 'encaisse'))} de sponsoring`,
+    economie: (lignes) => ({ produits: somme(lignes, 'encaisse'), charges: 0, attendu: somme(parmi(lignes, 'statut', 'Actif', 'À renouveler'), 'montant') - somme(parmi(lignes, 'statut', 'Actif', 'À renouveler'), 'encaisse'), valorisation: 0 }),
+    flux: (l) => [{ date: l.debut, montant: Number(l.encaisse) || 0, sens: 'produit' }],
+  },
+];
+
+const MODULE_PAR_ID = Object.fromEntries(MODULES.map((m) => [m.id, m]));
+const CHAMPS_TOUS = (module) => [...module.champs, ...(module.calcules || [])];
+const champParId = (module, id) => CHAMPS_TOUS(module).find((c) => c.id === id);
+
+/* ================================================== demo.js */
+/**
+ * Jeu de démonstration. Une association qui ouvre l'outil sur des tableaux
+ * vides ne peut rien juger : elle a besoin de voir à quoi ressemblent des
+ * données réalistes avant d'y mettre les siennes. Un bouton des réglages
+ * vide tout d'un coup.
+ *
+ * Le tirage est déterministe (générateur mulberry32 amorcé sur une
+ * constante) : deux installations montrent la même association fictive, et
+ * les captures d'écran de la documentation restent valables.
+ *
+ * Les noms de personnes, d'entreprises et de clients sont inventés.
+ */
+
+
+
+function alea(graine) {
+  let a = graine >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+const PRENOMS = ['Karim', 'Julien', 'Sofiane', 'Mathieu', 'Anaïs', 'Lucas', 'Nadia', 'Thomas', 'Inès', 'Antoine', 'Camille', 'Youssef', 'Léa', 'Maxime', 'Sarah', 'Baptiste', 'Ilyes', 'Manon', 'Quentin', 'Fatima', 'Romain', 'Chloé', 'Adrien', 'Amine', 'Émilie', 'Nicolas', 'Jade', 'Farid', 'Clara', 'Damien', 'Océane', 'Hugo', 'Sabrina', 'Vincent', 'Élodie', 'Mehdi'];
+const NOMS = ['Delcroix', 'Vandamme', 'Lefebvre', 'Bouchard', 'Dubois', 'Carpentier', 'Leroy', 'Ben Ali', 'Descamps', 'Mercier', 'Dhaene', 'Fournier', 'Lemaire', 'Blondel', 'Verhaeghe', 'Caron', 'Delattre', 'Mahieu', 'Bonnet', 'Sadaoui', 'Duthoit', 'Renard', 'Wattiez', 'Lecomte', 'Bertin', 'Hamdi', 'Vasseur', 'Danjou', 'Pollet', 'Lammens'];
+const EQUIPES = ['Lille Futsal Club', 'Roubaix Five', 'Tourcoing Ballers', "Villeneuve United", 'Wattrelos FC5', 'Marcq Athletic', 'Armentières Five', 'Croix Sporting', 'Lambersart FC', 'Seclin Five', 'Hem Athletic', 'Wasquehal Five'];
+const SALLES = ['Halle Vauban, Roubaix', 'Complexe Léo-Lagrange, Tourcoing', 'Gymnase des Quatre-Vents, Lille', 'Salle Jean-Jaurès, Wattrelos', 'Palais des sports, Villeneuve-d’Ascq', 'Gymnase du Blanc-Seau, Tourcoing'];
+
+const ROLES = [
+  ['Président', 'Bureau', 210], ['Trésorière', 'Bureau', 180], ['Secrétaire général', 'Bureau', 150],
+  ['Vice-président', 'Bureau', 120], ['Responsable arbitrage', 'Arbitrage', 140], ['Arbitre', 'Arbitrage', 90],
+  ['Arbitre', 'Arbitrage', 75], ['Arbitre', 'Arbitrage', 60], ['Responsable logistique', 'Logistique', 130],
+  ['Responsable buvette', 'Logistique', 95], ['Intendance matériel', 'Logistique', 70],
+  ['Community manager', 'Communication', 110], ['Photographe', 'Communication', 45],
+  ['Responsable communication', 'Communication', 100], ['Coach jeunes', 'Encadrement', 160],
+  ['Éducateur sportif', 'Encadrement', 140], ['Éducateur sportif', 'Encadrement', 85],
+  ['Responsable des équipes', 'Encadrement', 120], ['Délégué de journée', 'Logistique', 55],
+  ['Bénévole accueil', 'Logistique', 40], ['Bénévole accueil', 'Logistique', 30],
+  ['Référent jeunes', 'Encadrement', 75], ['Chargé de partenariats', 'Bureau', 105],
+  ['Webmestre', 'Communication', 50], ['Bénévole buvette', 'Logistique', 35], ['Arbitre stagiaire', 'Arbitrage', 25],
+];
+
+const FINANCEURS = [
+  ['Agence nationale du Sport', 'Projet Sportif Fédéral — pratiques nouvelles', 4500],
+  ['Ville de Roubaix', 'Subvention de fonctionnement aux clubs', 2600],
+  ['Département du Nord', 'Aide aux associations sportives', 2100],
+  ['Région Hauts-de-France', 'Appel à projets Sport et citoyenneté', 3600],
+  ['Métropole Européenne de Lille', 'Soutien aux manifestations sportives', 1600],
+  ['FDVA', 'FDVA 2 — fonctionnement et innovation', 3000],
+  ['CAF du Nord', 'Vacances sportives pour tous', 1300],
+  ['Ville de Wattrelos', 'Sport dans les quartiers prioritaires', 1100],
+  ['ANCT', 'Contrat de ville — cohésion sociale', 1800],
+];
+
+const ARTICLES = [
+  ['Maillot domicile SFL', 'Maillot', 32, 18, 34, 24],
+  ['Maillot extérieur SFL', 'Maillot', 32, 18, 22, 12],
+  ['Short d’entraînement', 'Textile', 18, 9.5, 28, 30],
+  ['Survêtement club', 'Textile', 55, 34, 14, 9],
+  ['Sweat à capuche SFL', 'Textile', 42, 23, 19, 16],
+  ['Chaussettes de match (lot de 2)', 'Textile', 12, 5, 42, 44],
+  ['Ballon futsal taille 4', 'Équipement', 28, 16, 16, 11],
+  ['Sac de sport SFL', 'Accessoire', 26, 14, 13, 6],
+  ['Gourde 750 ml', 'Accessoire', 9, 3.8, 33, 48],
+  ['Écharpe supporter', 'Accessoire', 14, 6, 17, 3],
+  ['Casquette SFL', 'Goodies', 15, 6.5, 14, 21],
+  ['Porte-clés ballon', 'Goodies', 5, 1.6, 46, 62],
+  ['Coupe-vent encadrement', 'Textile', 48, 29, 8, 4],
+  ['Serviette microfibre', 'Goodies', 11, 4.5, 10, 17],
+];
+
+const PARTENAIRES = [
+  ['Garage Delcroix', 'Sponsor maillot', 2000, 'Logo face avant du maillot, panneau, publications réseaux'],
+  ['Brasserie du Beffroi', 'Panneau terrain', 700, 'Panneau 3 m, mention sur les affiches de journée'],
+  ['Optique Vandamme', 'Panneau terrain', 500, 'Panneau 2 m, invitation à la finale'],
+  ['Nord Isolation', 'Mécénat', 1400, 'Reçu fiscal, logo sur le site, tournoi entreprise offert'],
+  ['Auto-école Horizon', 'Visibilité digitale', 400, 'Publications mensuelles, story de journée'],
+  ['Menuiserie Lemaire', 'Dotation matériel', 800, 'Fourniture des bancs de touche et rangements'],
+  ['Ambulances du Ferrain', 'Panneau terrain', 600, 'Panneau 2 m, présence secours sur les finales'],
+  ['Pizzeria Bella Nonna', 'Dotation matériel', 350, 'Repas des bénévoles sur les journées'],
+  ['Assurances Cauchy', 'Sponsor maillot', 1600, 'Logo dos du maillot, encart newsletter'],
+  ['Espace Sport Roubaix', 'Dotation matériel', 1000, 'Équipements arbitres et ballons de match'],
+  ['Multitech Services', 'Visibilité digitale', 500, 'Bandeau site, écran de la halle'],
+];
+
+const CLIENTS = [
+  ['Groupe Verlinde', "Animation d'entreprise", 900],
+  ['CCAS de Wattrelos', 'Formation encadrants', 600],
+  ['Comité d’entreprise Vandelle', "Animation d'entreprise", 750],
+  ['Mairie de Croix', 'Location de créneau', 400],
+  ['Collège Jean-Zay', 'Coaching', 500],
+  ['Résidence Les Tilleuls', "Animation d'entreprise", 320],
+  ['Ligue régionale de futsal', 'Arbitrage extérieur', 700],
+  ['Nord Isolation', "Animation d'entreprise", 1000],
+  ['Maison de quartier du Pile', 'Formation encadrants', 450],
+  ['Multitech Services', "Animation d'entreprise", 800],
+  ['Centre social de l’Alma', 'Coaching', 550],
+  ['Association Sport et Cité', 'Formation encadrants', 620],
+];
+
+/** Dimanches d'une saison, du premier de septembre au dernier de juin. */
+function dimanches(saison) {
+  const { debut } = bornesSaison(saison);
+  const d = new Date(`${debut}T12:00:00Z`);
+  while (d.getUTCDay() !== 0) d.setUTCDate(d.getUTCDate() + 1);
+  const sorties = [];
+  const limite = `${Number(saison.split('-')[1])}-06-30`;
+  while (d.toISOString().slice(0, 10) <= limite) {
+    const iso = d.toISOString().slice(0, 10);
+    const mois = iso.slice(5, 7);
+    if (mois !== '12' || Number(iso.slice(8)) < 20) sorties.push(iso);
+    d.setUTCDate(d.getUTCDate() + 14);
+  }
+  return sorties;
+}
+
+const decalage = (iso, jours) => {
+  const d = new Date(`${iso}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + jours);
+  return d.toISOString().slice(0, 10);
+};
+
+/**
+ * Construit la base de démonstration : deux saisons complètes et l'amorce de
+ * la suivante. `jour` fixe la date de référence — les événements passés sont
+ * réalisés, les suivants restent planifiés.
+ */
+function baseDemo(jour = new Date().toISOString().slice(0, 10)) {
+  const r = alea(20260419);
+  const entier = (min, max) => min + Math.floor(r() * (max - min + 1));
+  const choix = (liste) => liste[Math.floor(r() * liste.length)];
+  const chance = (p) => r() < p;
+  const donnees = { rh: [], cotisations: [], subventions: [], boutique: [], evenements: [], prestations: [], partenariats: [] };
+  const ajoute = (cle, ligne) => donnees[cle].push({ id: identifiant(cle.slice(0, 3)), creeLe: jour, majLe: jour, ...ligne });
+
+  const saisons = [
+    { saison: '2024-2025', part: 0.74, close: true },
+    { saison: '2025-2026', part: 1, close: false },
+  ];
+
+  for (const { saison, part, close } of saisons) {
+    const an = Number(saison.split('-')[0]);
+    const { debut } = bornesSaison(saison);
+
+    /* -------- Ressources humaines */
+    const effectif = Math.round(ROLES.length * part);
+    const benevoles = [];
+    for (let i = 0; i < effectif; i++) {
+      const [role, pole, heuresBase] = ROLES[i];
+      const nom = `${PRENOMS[(i * 5 + an) % PRENOMS.length]} ${NOMS[(i * 7 + an) % NOMS.length]}`;
+      const h = Math.round(heuresBase * (0.8 + r() * 0.4) * part);
+      benevoles.push(nom);
+      ajoute('rh', {
+        saison, nom, role, categorie: pole,
+        statut: h > 60 ? 'Actif' : chance(0.7) ? 'Ponctuel' : 'Inactif',
+        heures: h,
+        courriel: `${nom.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]+/g, '.')}@fiveleague.fr`,
+        telephone: `06 ${entier(10, 99)} ${entier(10, 99)} ${entier(10, 99)} ${entier(10, 99)}`,
+        depuis: `${an - entier(0, 4)}-09-${String(entier(1, 28)).padStart(2, '0')}`,
+        notes: pole === 'Arbitrage' ? 'Disponible les dimanches matin.' : '',
+      });
+    }
+
+    /* -------- Cotisations */
+    const tarifs = { 'Joueur senior': 120, 'Joueur jeune': 70, Dirigeant: 40, Arbitre: 30, 'Membre bienfaiteur': 150 };
+    const effectifs = { 'Joueur senior': Math.round(84 * part), 'Joueur jeune': Math.round(24 * part), Dirigeant: Math.round(11 * part), Arbitre: Math.round(8 * part), 'Membre bienfaiteur': Math.round(5 * part) };
+    let n = 0;
+    for (const [categorie, total] of Object.entries(effectifs)) {
+      for (let i = 0; i < total; i++, n++) {
+        const montant = tarifs[categorie] + (categorie === 'Membre bienfaiteur' ? entier(0, 4) * 50 : 0);
+        const solde = close ? chance(0.97) : chance(0.84);
+        const partiel = !solde && chance(0.35);
+        const regle = solde ? montant : partiel ? Math.round(montant / 2) : 0;
+        const datePaiement = regle ? decalage(debut, entier(0, 160)) : '';
+        ajoute('cotisations', {
+          saison,
+          adherent: `${PRENOMS[(n * 3 + an * 2) % PRENOMS.length]} ${NOMS[(n * 11 + an) % NOMS.length]}`,
+          categorie,
+          equipe: categorie.startsWith('Joueur') ? EQUIPES[n % EQUIPES.length] : '',
+          montant, regle,
+          moyen: regle ? choix(['Virement', 'Carte (HelloAsso)', 'Espèces', 'Chèque', "Pass'Sport"]) : 'Virement',
+          datePaiement,
+          echeance: decalage(debut, 60),
+          courriel: '',
+          notes: !solde && !close ? 'Relance à faire.' : '',
+        });
+      }
+    }
+
+    /* -------- Subventions */
+    const dossiers = Math.round(FINANCEURS.length * part);
+    for (let i = 0; i < dossiers; i++) {
+      const [financeur, dispositif, base] = FINANCEURS[i];
+      const demande = Math.round((base * (0.9 + r() * 0.3)) / 50) * 50;
+      const issue = close ? (chance(0.72) ? 'Versée' : 'Refusée') : i % 5 === 0 ? 'En instruction' : i % 7 === 3 ? 'Refusée' : chance(0.7) ? 'Versée' : 'Accordée';
+      const accorde = issue === 'Refusée' ? 0 : Math.round((demande * (0.6 + r() * 0.4)) / 50) * 50;
+      const depot = decalage(debut, entier(5, 90));
+      ajoute('subventions', {
+        saison, financeur, dispositif, demande, accorde,
+        statut: issue,
+        echeance: decalage(depot, entier(3, 20)),
+        dateDepot: depot,
+        dateVersement: issue === 'Versée' ? decalage(depot, entier(60, 190)) : '',
+        referent: choix(benevoles.slice(0, 4)),
+        notes: issue === 'Refusée' ? 'Dossier non retenu — à redéposer avec un budget prévisionnel détaillé.' : '',
+      });
+    }
+
+    /* -------- Boutique */
+    for (const [produit, categorie, prix, cout, vendusBase, stockBase] of ARTICLES.slice(0, Math.round(ARTICLES.length * part))) {
+      ajoute('boutique', {
+        saison, produit, categorie,
+        prixVente: prix, coutUnitaire: cout,
+        vendus: Math.round(vendusBase * part * (0.85 + r() * 0.3)),
+        stock: Math.round(stockBase * (0.7 + r() * 0.6)),
+        seuil: categorie === 'Maillot' ? 10 : 8,
+        fournisseur: categorie === 'Goodies' ? 'Objets Pub Nord' : 'Textile Pro Lille',
+        notes: '',
+      });
+    }
+
+    /* -------- Événements */
+    const journees = dimanches(saison);
+    journees.forEach((date, i) => {
+      const passe = date <= jour;
+      const equipes = 10 + Math.round(r() * 2);
+      ajoute('evenements', {
+        saison,
+        intitule: `Journée ${i + 1} — championnat SFL`,
+        type: 'Journée de championnat',
+        date,
+        lieu: SALLES[i % SALLES.length],
+        equipes,
+        participants: equipes * entier(8, 11),
+        recettes: entier(180, 330),
+        depenses: entier(150, 290),
+        statut: passe ? 'Réalisé' : chance(0.6) ? 'Confirmé' : 'Planifié',
+        responsable: choix(benevoles.slice(0, 8)),
+        notes: '',
+      });
+    });
+    const speciaux = [
+      ['Tournoi de Noël', 'Tournoi', `${an}-12-21`, 16, 1200, 800],
+      ['Plateau jeunes U11', 'Plateau jeunes', `${an + 1}-02-15`, 12, 320, 280],
+      ['Stage de perfectionnement', 'Stage', `${an + 1}-04-19`, 8, 850, 680],
+      ['Finale de la Sunday Five League', 'Tournoi', `${an + 1}-06-14`, 12, 1600, 1150],
+      ['Assemblée générale ordinaire', 'Assemblée générale', `${an + 1}-06-26`, 0, 0, 150],
+    ];
+    for (const [intitule, type, date, equipes, recettes, depenses] of speciaux) {
+      if (!close && date > decalage(jour, 120)) continue;
+      ajoute('evenements', {
+        saison, intitule, type, date,
+        lieu: type === 'Assemblée générale' ? 'Maison des associations, Roubaix' : SALLES[0],
+        equipes, participants: equipes * 9 + entier(20, 60),
+        recettes: Math.round(recettes * (0.9 + r() * 0.2)),
+        depenses: Math.round(depenses * (0.9 + r() * 0.2)),
+        statut: date <= jour ? 'Réalisé' : 'Confirmé',
+        responsable: choix(benevoles.slice(0, 6)),
+        notes: '',
+      });
+    }
+
+    /* -------- Prestations */
+    const affaires = Math.round(CLIENTS.length * part);
+    for (let i = 0; i < affaires; i++) {
+      const [client, prestation, base] = CLIENTS[i];
+      const date = decalage(debut, entier(20, 300));
+      const montant = Math.round((base * (0.9 + r() * 0.25)) / 10) * 10;
+      const statut = close ? (chance(0.9) ? 'Payée' : 'Annulée')
+        : date > jour ? (chance(0.5) ? 'Devis envoyé' : 'Confirmée')
+          : chance(0.7) ? 'Payée' : chance(0.6) ? 'Facturée' : 'Annulée';
+      ajoute('prestations', {
+        saison, client, prestation, date, montant, statut,
+        echeance: decalage(date, 30),
+        contact: `${choix(PRENOMS)} ${choix(NOMS)}`,
+        courriel: '',
+        notes: prestation === "Animation d'entreprise" ? 'Tournoi interne, 3 h, encadrement et arbitrage inclus.' : '',
+      });
+    }
+
+    /* -------- Partenariats */
+    const contrats = Math.round(PARTENAIRES.length * part);
+    for (let i = 0; i < contrats; i++) {
+      const [entreprise, type, base, nature] = PARTENAIRES[i];
+      const montant = Math.round((base * (0.9 + r() * 0.2)) / 50) * 50;
+      const enNego = !close && i % 6 === 5;
+      const fin = `${an + 1}-08-31`;
+      ajoute('partenariats', {
+        saison, entreprise, type, montant,
+        encaisse: enNego ? 0 : close ? montant : Math.round((montant * (chance(0.7) ? 1 : 0.5)) / 10) * 10,
+        statut: enNego ? 'En négociation' : close ? 'Terminé' : chance(0.35) ? 'À renouveler' : 'Actif',
+        debut: `${an}-09-01`, fin,
+        contact: `${choix(PRENOMS)} ${choix(NOMS)}`,
+        courriel: '',
+        nature,
+        notes: '',
+      });
+    }
+  }
+
+  /* -------- Amorce de la saison suivante : ce qui se prépare dès l'été. */
+  const suivante = '2026-2027';
+  ajoute('subventions', { saison: suivante, financeur: 'Agence nationale du Sport', dispositif: 'Projet Sportif Fédéral 2026-2027', demande: 4800, accorde: 0, statut: 'Déposé', echeance: '2026-09-15', dateDepot: '2026-08-04', dateVersement: '', referent: 'Karim Delcroix', notes: 'Accusé de réception reçu.' });
+  ajoute('subventions', { saison: suivante, financeur: 'Ville de Roubaix', dispositif: 'Subvention de fonctionnement 2027', demande: 2800, accorde: 0, statut: 'À déposer', echeance: '2026-10-31', dateDepot: '', dateVersement: '', referent: 'Nadia Bouchard', notes: 'Dossier à retirer en mairie début septembre.' });
+  ajoute('partenariats', { saison: suivante, entreprise: 'Garage Delcroix', type: 'Sponsor maillot', montant: 2400, encaisse: 0, statut: 'En négociation', debut: '2026-09-01', fin: '2027-08-31', contact: 'Julien Delcroix', courriel: '', nature: 'Reconduction avec logo dos du maillot en plus', notes: 'Rendez-vous fixé fin août.' });
+  ajoute('evenements', { saison: suivante, intitule: 'Tournoi de rentrée', type: 'Tournoi', date: '2026-09-06', lieu: SALLES[0], equipes: 12, participants: 120, recettes: 620, depenses: 430, statut: 'Confirmé', responsable: 'Karim Delcroix', notes: 'Ouverture de la saison, inscriptions ouvertes.' });
+
+  return { version: 1, saison: '', reglages: { ...REGLAGES_DEFAUT }, demo: true, donnees };
+}
+
+/* ================================================== store.js */
+/**
+ * Persistance. Toute la base tient dans une clé de `localStorage` : une
+ * association de cette taille manipule quelques milliers de lignes, très
+ * en deçà des 5 Mo du quota, et le prix à payer — aucun serveur, aucun
+ * compte, fonctionne hors ligne — est le bon à ce stade.
+ *
+ * Si le stockage est indisponible (navigation privée, page ouverte depuis
+ * un fichier local sur certains navigateurs), l'application continue de
+ * fonctionner en mémoire et le dit franchement plutôt que de laisser
+ * croire que les saisies sont conservées.
+ */
+
+
+
+
+const CLE = 'five-league.base.v1';
+const CLE_THEME = 'five-league.theme';
+
+let etatBase = null;
+let stockageActif = true;
+const abonnes = new Set();
+
+const baseVide = () => ({
+  version: 1,
+  saison: saisonDuJour(),
+  reglages: { ...REGLAGES_DEFAUT },
+  demo: false,
+  donnees: Object.fromEntries(MODULES.map((m) => [m.id, []])),
+});
+
+/** Complète une base lue sur disque : une version antérieure peut ignorer un
+ *  module ou un réglage ajouté depuis. */
+function normaliser(brute) {
+  const propre = baseVide();
+  if (!brute || typeof brute !== 'object') return propre;
+  propre.reglages = { ...REGLAGES_DEFAUT, ...(brute.reglages || {}) };
+  propre.demo = Boolean(brute.demo);
+  for (const m of MODULES) {
+    const lignes = Array.isArray(brute.donnees?.[m.id]) ? brute.donnees[m.id] : [];
+    propre.donnees[m.id] = lignes.filter((l) => l && typeof l === 'object').map((l) => ({ ...l, id: l.id || identifiant(m.id.slice(0, 3)) }));
+  }
+  propre.saison = brute.saison && saisonsConnues(propre).includes(brute.saison) ? brute.saison : saisonParDefaut(propre);
+  return propre;
+}
+
+function saisonsConnues(source = etatBase) {
+  const vues = new Set(SAISONS);
+  for (const m of MODULES) for (const l of source.donnees[m.id]) if (l.saison) vues.add(l.saison);
+  return [...vues].sort();
+}
+
+/** La saison ouverte par défaut est celle du jour si elle contient des
+ *  données, sinon la plus récente qui en contient. */
+function saisonParDefaut(source = etatBase) {
+  const courante = saisonDuJour();
+  const peuplees = new Set();
+  for (const m of MODULES) for (const l of source.donnees[m.id]) if (l.saison) peuplees.add(l.saison);
+  if (peuplees.has(courante) || !peuplees.size) return courante;
+  return [...peuplees].sort().pop();
+}
+
+function demarrerBase() {
+  let brute = null;
+  try {
+    const texte = localStorage.getItem(CLE);
+    brute = texte ? JSON.parse(texte) : null;
+  } catch (e) {
+    stockageActif = false;
+  }
+  if (!brute) {
+    etatBase = normaliser(baseDemo(aujourdhui()));
+    etatBase.saison = saisonParDefaut();
+    ecrire();
+  } else {
+    etatBase = normaliser(brute);
+  }
+  return etatBase;
+}
+
+function ecrire() {
+  if (!stockageActif) return false;
+  try {
+    localStorage.setItem(CLE, JSON.stringify(etatBase));
+    return true;
+  } catch (e) {
+    stockageActif = false;
+    return false;
+  }
+}
+
+const stockageDisponible = () => stockageActif;
+const laBase = () => etatBase;
+const reglagesActifs = () => etatBase.reglages;
+const estDemo = () => etatBase.demo;
+const saisons = () => saisonsConnues();
+const saisonActive = () => etatBase.saison;
+
+function abonner(fonction) {
+  abonnes.add(fonction);
+  return () => abonnes.delete(fonction);
+}
+
+function publier() {
+  ecrire();
+  for (const f of abonnes) f(etatBase);
+}
+
+/** Lignes d'un module, filtrées sur la saison ouverte sauf demande contraire. */
+function lignes(moduleId, { toutesSaisons = false, saison: choisie } = {}) {
+  const brutes = etatBase.donnees[moduleId] || [];
+  if (toutesSaisons) return brutes.slice();
+  const cible = choisie || etatBase.saison;
+  return brutes.filter((l) => (l.saison || etatBase.saison) === cible);
+}
+
+function ligneParId(moduleId, id) {
+  return (etatBase.donnees[moduleId] || []).find((l) => l.id === id) || null;
+}
+
+function ajouterLigne(moduleId, valeurs) {
+  const nouvelle = { id: identifiant(moduleId.slice(0, 3)), saison: etatBase.saison, ...valeurs, creeLe: aujourdhui(), majLe: aujourdhui() };
+  etatBase.donnees[moduleId].push(nouvelle);
+  etatBase.demo = false;
+  publier();
+  return nouvelle;
+}
+
+function modifierLigne(moduleId, id, valeurs) {
+  const cible = ligneParId(moduleId, id);
+  if (!cible) return null;
+  Object.assign(cible, valeurs, { majLe: aujourdhui() });
+  publier();
+  return cible;
+}
+
+function supprimerLigne(moduleId, id) {
+  const avant = etatBase.donnees[moduleId].length;
+  etatBase.donnees[moduleId] = etatBase.donnees[moduleId].filter((l) => l.id !== id);
+  if (etatBase.donnees[moduleId].length !== avant) publier();
+  return avant - etatBase.donnees[moduleId].length;
+}
+
+function ajouterLignes(moduleId, listeValeurs) {
+  for (const valeurs of listeValeurs) {
+    etatBase.donnees[moduleId].push({ id: identifiant(moduleId.slice(0, 3)), saison: etatBase.saison, ...valeurs, creeLe: aujourdhui(), majLe: aujourdhui() });
+  }
+  etatBase.demo = false;
+  publier();
+  return listeValeurs.length;
+}
+
+function definirSaison(valeur) {
+  etatBase.saison = valeur;
+  publier();
+}
+
+function majReglages(patch) {
+  Object.assign(etatBase.reglages, patch);
+  publier();
+}
+
+function reinitialiser({ demo = false } = {}) {
+  etatBase = demo ? normaliser(baseDemo(aujourdhui())) : baseVide();
+  etatBase.saison = saisonParDefaut();
+  publier();
+}
+
+/** Restauration d'une sauvegarde. Refuse un fichier qui n'a pas la forme
+ *  attendue plutôt que d'écraser la base par du vide. */
+function restaurer(texte) {
+  const brute = JSON.parse(texte);
+  if (!brute || typeof brute !== 'object' || !brute.donnees || typeof brute.donnees !== 'object') {
+    throw new Error('Ce fichier n’est pas une sauvegarde Five League.');
+  }
+  const connus = MODULES.filter((m) => Array.isArray(brute.donnees[m.id]));
+  if (!connus.length) throw new Error('Aucun module reconnu dans cette sauvegarde.');
+  etatBase = normaliser(brute);
+  publier();
+  return connus.length;
+}
+
+const exporterBase = () => JSON.stringify({ ...etatBase, exporteLe: new Date().toISOString() }, null, 2);
+
+/* -------------------------------------------------------------- Apparence */
+
+function themeEnregistre() {
+  try { return localStorage.getItem(CLE_THEME) || 'auto'; } catch (e) { return 'auto'; }
+}
+
+function definirTheme(valeur) {
+  try { localStorage.setItem(CLE_THEME, valeur); } catch (e) { /* sans stockage, le choix vaut pour la session */ }
+  appliquerTheme(valeur);
+}
+
+function appliquerTheme(valeur) {
+  const racine = document.documentElement;
+  if (valeur === 'auto') racine.removeAttribute('data-theme');
+  else racine.setAttribute('data-theme', valeur);
+}
+
+/* ================================================== stats.js */
+/**
+ * Agrégats du modèle socio-économique. Chaque module sait calculer sa
+ * contribution (`economie`) et ses flux datés (`flux`) ; ce fichier assemble
+ * ces réponses en une lecture d'ensemble : d'où vient l'argent, où il part,
+ * ce qui reste attendu, et ce qui demande une action cette semaine.
+ */
+
+
+
+
+/** Synthèse d'une saison, module par module. */
+function synthese(saison = saisonActive()) {
+  const r = reglagesActifs();
+  const parModule = MODULES.map((m) => {
+    const donnees = lignes(m.id, { saison });
+    const eco = m.economie ? m.economie(donnees, r) : { produits: 0, charges: 0, attendu: 0, valorisation: 0 };
+    return { module: m, lignes: donnees.length, ...eco };
+  });
+  const total = (cle) => parModule.reduce((t, p) => t + (p[cle] || 0), 0);
+  const produits = total('produits');
+  const charges = total('charges');
+  return {
+    saison,
+    parModule,
+    produits,
+    charges,
+    resultat: produits - charges,
+    attendu: total('attendu'),
+    valorisation: total('valorisation'),
+    sources: parModule.filter((p) => p.produits > 0).sort((a, b) => b.produits - a.produits),
+  };
+}
+
+function saisonPrecedente(saison) {
+  const a = Number(String(saison).split('-')[0]);
+  return `${a - 1}-${a}`;
+}
+
+/** Écart de produits avec la saison précédente, en pourcentage. */
+function evolutionProduits(saison = saisonActive()) {
+  const avant = synthese(saisonPrecedente(saison)).produits;
+  const maintenant = synthese(saison).produits;
+  if (!avant) return null;
+  return { avant, maintenant, ecart: ((maintenant - avant) / avant) * 100 };
+}
+
+/** Flux datés d'une saison, agrégés par mois — la boutique n'a pas de date
+ *  de vente et n'y figure donc pas (voir docs/architecture.md). */
+function fluxMensuels(saison = saisonActive()) {
+  const { debut, fin } = bornesSaison(saison);
+  const seaux = new Map();
+  for (let d = new Date(`${debut}T12:00:00Z`); d.toISOString().slice(0, 10) <= fin; d.setUTCMonth(d.getUTCMonth() + 1)) {
+    seaux.set(d.toISOString().slice(0, 7), { cle: d.toISOString().slice(0, 7), produits: 0, charges: 0 });
+  }
+  for (const m of MODULES) {
+    if (!m.flux) continue;
+    for (const l of lignes(m.id, { saison })) {
+      for (const f of m.flux(l)) {
+        if (!f.date || !f.montant) continue;
+        const seau = seaux.get(moisDe(f.date));
+        if (!seau) continue;
+        seau[f.sens === 'charge' ? 'charges' : 'produits'] += f.montant;
+      }
+    }
+  }
+  return [...seaux.values()];
+}
+
+/** Répartition d'un module par valeur d'un champ (camembert des modules). */
+function repartition(moduleId, champ, mesure) {
+  const groupes = new Map();
+  for (const l of lignes(moduleId)) {
+    const cle = l[champ] || '—';
+    groupes.set(cle, (groupes.get(cle) || 0) + (mesure ? mesure(l) : 1));
+  }
+  return [...groupes.entries()].map(([libelle, valeur]) => ({ libelle, valeur })).sort((a, b) => b.valeur - a.valeur);
+}
+
+const AJOUT = (liste, alerte) => { if (alerte) liste.push(alerte); };
+
+/**
+ * Points d'attention. Les échéances sont cherchées sur toutes les saisons :
+ * en juillet, les dates limites qui comptent sont celles de la saison
+ * suivante.
+ */
+function alertes() {
+  const liste = [];
+  const r = reglagesActifs();
+
+  const impayees = lignes('cotisations').filter((l) => etatCotisation(l) !== 'Payée');
+  const enRetard = impayees.filter((l) => l.echeance && joursRestants(l.echeance) < 0);
+  const du = impayees.reduce((t, l) => t + Math.max(0, (Number(l.montant) || 0) - (Number(l.regle) || 0)), 0);
+  if (impayees.length) {
+    AJOUT(liste, {
+      module: 'cotisations',
+      gravite: enRetard.length ? 'haute' : 'moyenne',
+      titre: `${nombre(impayees.length)} cotisation${impayees.length > 1 ? 's' : ''} à recouvrer`,
+      detail: `${euros(du)} restent dus, dont ${nombre(enRetard.length)} au-delà de l'échéance.`,
+    });
+  }
+
+  for (const l of lignes('subventions', { toutesSaisons: true })) {
+    if (!l.echeance || ['Versée', 'Refusée'].includes(l.statut)) continue;
+    const j = joursRestants(l.echeance);
+    if (j < 0 && l.statut === 'À déposer') {
+      AJOUT(liste, { module: 'subventions', gravite: 'haute', titre: `Dépôt manqué : ${l.financeur}`, detail: `${l.dispositif || 'Dossier'} — date limite dépassée depuis ${-j} jours.` });
+    } else if (j >= 0 && j <= 60 && l.statut === 'À déposer') {
+      AJOUT(liste, { module: 'subventions', gravite: j <= 21 ? 'haute' : 'moyenne', titre: `Dossier à déposer : ${l.financeur}`, detail: `${l.dispositif || 'Dossier'} — clôture dans ${j} jours (${euros(l.demande)} demandés).` });
+    }
+  }
+  const accordees = lignes('subventions', { toutesSaisons: true }).filter((l) => l.statut === 'Accordée');
+  if (accordees.length) {
+    AJOUT(liste, { module: 'subventions', gravite: 'basse', titre: `${nombre(accordees.length)} subvention${accordees.length > 1 ? 's' : ''} accordée${accordees.length > 1 ? 's' : ''} non versée${accordees.length > 1 ? 's' : ''}`, detail: `${euros(accordees.reduce((t, l) => t + (Number(l.accorde) || 0), 0))} à recevoir.` });
+  }
+
+  const stock = lignes('boutique').filter((l) => etatStock(l) !== 'En stock');
+  if (stock.length) {
+    AJOUT(liste, {
+      module: 'boutique',
+      gravite: stock.some((l) => etatStock(l) === 'Rupture') ? 'moyenne' : 'basse',
+      titre: `${nombre(stock.length)} article${stock.length > 1 ? 's' : ''} en tension de stock`,
+      detail: stock.map((l) => l.produit).slice(0, 3).join(', ') + (stock.length > 3 ? '…' : ''),
+    });
+  }
+
+  const prochains = lignes('evenements', { toutesSaisons: true })
+    .filter((l) => l.date && l.statut !== 'Annulé' && l.statut !== 'Réalisé' && joursRestants(l.date) >= 0 && joursRestants(l.date) <= 30)
+    .sort((a, b) => a.date.localeCompare(b.date));
+  if (prochains.length) {
+    const p = prochains[0];
+    AJOUT(liste, { module: 'evenements', gravite: 'basse', titre: `${nombre(prochains.length)} événement${prochains.length > 1 ? 's' : ''} sous 30 jours`, detail: `Prochain : ${p.intitule}, dans ${joursRestants(p.date)} jours à ${p.lieu || 'lieu à confirmer'}.` });
+  }
+
+  const facturesDues = lignes('prestations', { toutesSaisons: true }).filter((l) => l.statut === 'Facturée' && l.echeance && joursRestants(l.echeance) < 0);
+  if (facturesDues.length) {
+    AJOUT(liste, { module: 'prestations', gravite: 'haute', titre: `${nombre(facturesDues.length)} facture${facturesDues.length > 1 ? 's' : ''} échue${facturesDues.length > 1 ? 's' : ''}`, detail: `${euros(facturesDues.reduce((t, l) => t + (Number(l.montant) || 0), 0))} à relancer : ${facturesDues.map((l) => l.client).slice(0, 3).join(', ')}.` });
+  }
+
+  const aRenouveler = lignes('partenariats', { toutesSaisons: true }).filter((l) => (l.statut === 'Actif' || l.statut === 'À renouveler') && l.fin && joursRestants(l.fin) <= 90 && joursRestants(l.fin) >= -30);
+  if (aRenouveler.length) {
+    AJOUT(liste, { module: 'partenariats', gravite: 'moyenne', titre: `${nombre(aRenouveler.length)} partenariat${aRenouveler.length > 1 ? 's' : ''} arrive${aRenouveler.length > 1 ? 'nt' : ''} à échéance`, detail: `${euros(aRenouveler.reduce((t, l) => t + (Number(l.montant) || 0), 0))} de sponsoring à sécuriser avant le ${dateCourte(aRenouveler.map((l) => l.fin).sort()[0])}.` });
+  }
+
+  const heuresSaisies = lignes('rh').reduce((t, l) => t + (Number(l.heures) || 0), 0);
+  if (lignes('rh').length && !heuresSaisies) {
+    AJOUT(liste, { module: 'rh', gravite: 'basse', titre: 'Aucune heure de bénévolat saisie', detail: `Les heures valorisées à ${euros(r.tauxHoraire)} pèsent dans les dossiers de subvention.` });
+  }
+
+  const ordre = { haute: 0, moyenne: 1, basse: 2 };
+  return liste.sort((a, b) => ordre[a.gravite] - ordre[b.gravite]).map((a) => ({ ...a, moduleObjet: MODULE_PAR_ID[a.module] }));
+}
+
+/* ================================================== graphes.js */
+/**
+ * Graphiques. Du SVG écrit à la main : trois formes suffisent au besoin
+ * (anneau, histogramme, barres horizontales), elles se redimensionnent
+ * seules par le `viewBox`, s'impriment nettement et suivent le thème sombre
+ * parce que les couleurs de texte et de grille viennent des variables CSS.
+ *
+ * Chaque graphique est doublé d'un résumé textuel pour les lecteurs d'écran :
+ * un dessin sans équivalent n'informe personne.
+ */
+
+
+
+const TAU = Math.PI * 2;
+
+/** Anneau de répartition. Les segments sont dessinés au trait pointillé :
+ *  une seule primitive, aucun calcul d'arc, et un rendu net à toute taille. */
+function anneau(segments, { titre = 'Répartition', centreValeur, centreLibelle, taille = 240 } = {}) {
+  const total = segments.reduce((t, s) => t + s.valeur, 0);
+  const rayon = 70;
+  const circonference = TAU * rayon;
+  let depart = 0;
+  const svg = h('svg.graphe-anneau', { viewBox: '0 0 200 200', width: taille, height: taille, role: 'img', 'aria-label': `${titre} : ${segments.map((s) => `${s.libelle} ${pourcent(s.valeur, total)}`).join(', ')}` });
+  svg.appendChild(h('circle', { cx: 100, cy: 100, r: rayon, fill: 'none', stroke: 'var(--trait-graphe)', 'stroke-width': 26 }));
+  for (const s of segments) {
+    if (s.valeur <= 0) continue;
+    const part = total ? s.valeur / total : 0;
+    const arc = h('circle.anneau-part', {
+      cx: 100, cy: 100, r: rayon, fill: 'none', stroke: s.couleur, 'stroke-width': 26,
+      'stroke-dasharray': `${(part * circonference).toFixed(2)} ${circonference.toFixed(2)}`,
+      'stroke-dashoffset': (-depart * circonference).toFixed(2),
+      transform: 'rotate(-90 100 100)',
+    });
+    arc.appendChild(h('title', { text: `${s.libelle} — ${euros(s.valeur)} (${pourcent(s.valeur, total)})` }));
+    svg.appendChild(arc);
+    depart += part;
+  }
+  if (centreValeur !== undefined) {
+    svg.appendChild(h('text.anneau-valeur', { x: 100, y: 97, 'text-anchor': 'middle', text: centreValeur }));
+    svg.appendChild(h('text.anneau-libelle', { x: 100, y: 116, 'text-anchor': 'middle', text: centreLibelle || '' }));
+  }
+  return svg;
+}
+
+function legende(segments, total) {
+  return h('ul.legende', {}, segments.map((s) => h('li.legende-item', {},
+    h('span.legende-pastille', { style: { background: s.couleur } }),
+    h('span.legende-nom', { text: s.libelle }),
+    h('span.legende-valeur', { text: `${euros(s.valeur)}${total ? ` · ${pourcent(s.valeur, total)}` : ''}` }))));
+}
+
+/** Échelle « ronde » : on préfère 0 / 2 500 / 5 000 à 0 / 2 317 / 4 634. */
+function palier(max) {
+  if (max <= 0) return { haut: 100, pas: 25 };
+  const vise = max / 5;
+  const magnitude = 10 ** Math.floor(Math.log10(vise));
+  const pas = [1, 2, 2.5, 5, 10].map((f) => f * magnitude).find((p) => vise <= p) || magnitude * 10;
+  return { haut: Math.ceil(max / pas) * pas, pas };
+}
+
+/**
+ * Histogramme groupé. `series` : [{ libelle, couleur, valeurs: number[] }],
+ * `categories` : les étiquettes de l'axe horizontal.
+ *
+ * Le dessin est refait à la largeur réelle du conteneur plutôt qu'étiré
+ * depuis un `viewBox` fixe : une unité SVG vaut un pixel, donc les
+ * étiquettes d'axe gardent leur taille lisible sur un téléphone comme sur
+ * un écran large, et les barres ne se déforment pas.
+ */
+function histogramme(config) {
+  const cadre = h('div.graphe-cadre');
+  let largeurVue = 0;
+  const dessiner = () => {
+    const largeur = Math.max(300, Math.round(cadre.clientWidth || 720));
+    if (largeur === largeurVue) return;
+    largeurVue = largeur;
+    cadre.replaceChildren(dessinHistogramme({ ...config, largeur }));
+  };
+  if (typeof ResizeObserver === 'function') new ResizeObserver(dessiner).observe(cadre);
+  requestAnimationFrame(dessiner);
+  return cadre;
+}
+
+function dessinHistogramme({ categories, series, titre = 'Évolution', hauteur = 220, largeur = 720, format = eurosCourt }) {
+  const L = largeur;
+  const H = hauteur;
+  const margeG = 52;
+  const margeB = 24;
+  const margeH = 10;
+  const max = Math.max(0, ...series.flatMap((s) => s.valeurs));
+  const { haut, pas } = palier(max);
+  const aireH = H - margeB - margeH;
+  const largeurCase = (L - margeG) / Math.max(1, categories.length);
+  const largeurBarre = Math.max(3, Math.min(18, (largeurCase - 5) / series.length));
+  const y = (v) => margeH + aireH - (v / haut) * aireH;
+  // Une seule unité sur toute la graduation : mélanger « 2 500 € » et
+  // « 13 k€ » sur le même axe oblige le lecteur à convertir de tête.
+  const formatAxe = haut >= 10000
+    ? (v) => (v === 0 ? '0' : `${(v / 1000).toLocaleString('fr-FR')} k€`)
+    : format;
+  // Une étiquette sur deux, ou sur trois, quand la place manque.
+  const saut = Math.ceil(52 / Math.max(1, largeurCase));
+
+  const svg = h('svg.graphe-barres', { viewBox: `0 0 ${L} ${H}`, width: L, height: H, role: 'img', 'aria-label': `${titre} : ${series.map((s) => `${s.libelle}, total ${format(s.valeurs.reduce((a, b) => a + b, 0))}`).join(' ; ')}` });
+  for (let v = 0; v <= haut + 1; v += pas) {
+    svg.appendChild(h('line', { x1: margeG - 6, x2: L, y1: y(v), y2: y(v), stroke: 'var(--trait-graphe)', 'stroke-width': 1 }));
+    svg.appendChild(h('text.graphe-axe', { x: margeG - 10, y: y(v) + 4, 'text-anchor': 'end', text: formatAxe(v) }));
+  }
+  categories.forEach((cat, i) => {
+    const base = margeG + i * largeurCase + (largeurCase - largeurBarre * series.length) / 2;
+    series.forEach((s, j) => {
+      const valeur = s.valeurs[i] || 0;
+      const hauteurBarre = Math.max(valeur > 0 ? 2 : 0, aireH * (valeur / haut));
+      const rect = h('rect.barre', { x: base + j * largeurBarre, y: margeH + aireH - hauteurBarre, width: Math.max(2, largeurBarre - 2), height: hauteurBarre, rx: 2, fill: s.couleur });
+      rect.appendChild(h('title', { text: `${cat} — ${s.libelle} : ${format(valeur)}` }));
+      svg.appendChild(rect);
+    });
+    if (i % saut === 0) {
+      svg.appendChild(h('text.graphe-axe', { x: margeG + i * largeurCase + largeurCase / 2, y: H - 7, 'text-anchor': 'middle', text: cat }));
+    }
+  });
+  return svg;
+}
+
+/** Barres horizontales : pour comparer des catégories nommées. */
+function barresHorizontales(entrees, { couleur = 'var(--accent)', format = nombre, hauteurLigne = 30 } = {}) {
+  const max = Math.max(1, ...entrees.map((e) => e.valeur));
+  return h('ul.barres-h', {}, entrees.map((e) => h('li.barre-h', {},
+    h('span.barre-h-nom', { text: e.libelle }),
+    h('span.barre-h-piste', {}, h('span.barre-h-remplissage', { style: { width: `${Math.max(2, (e.valeur / max) * 100)}%`, background: e.couleur || couleur } })),
+    h('span.barre-h-valeur', { text: format(e.valeur) }))));
+}
+
+/** Jauge de progression vers un objectif. */
+function jaugeGraphe(part, { couleur = 'var(--accent)' } = {}) {
+  const p = Math.max(0, Math.min(1, part || 0));
+  return h('span.jauge', { role: 'img', 'aria-label': `${Math.round(p * 100)} %` },
+    h('span.jauge-remplissage', { style: { width: `${p * 100}%`, background: couleur } }));
+}
+
+/* ================================================== echange.js */
+/**
+ * Imports et exports.
+ *
+ * Le CSV est écrit au format que les tableurs français attendent : point-
+ * virgule en séparateur, BOM en tête, retours CRLF — sans quoi Excel colle
+ * toute la ligne dans la première colonne et casse les accents.
+ *
+ * Le XLSX est produit ici, sans bibliothèque : un classeur est une archive
+ * ZIP de quelques fichiers XML. L'archive est écrite en mode « stocké »
+ * (aucune compression), ce qui évite d'embarquer un compresseur pour des
+ * fichiers qui pèsent quelques dizaines de kilo-octets.
+ */
+
+
+/* ------------------------------------------------------------------- CSV */
+
+const echapper = (valeur) => {
+  const texte = valeur === null || valeur === undefined ? '' : String(valeur);
+  return /[";\n\r]/.test(texte) ? `"${texte.replace(/"/g, '""')}"` : texte;
+};
+
+function versCSV(entetes, lignes) {
+  const corps = [entetes, ...lignes].map((ligne) => ligne.map(echapper).join(';')).join('\r\n');
+  return `\ufeff${corps}\r\n`;
+}
+
+/** Analyse un CSV en tolérant les deux séparateurs courants et les guillemets. */
+function depuisCSV(texte) {
+  const propre = texte.replace(/^\ufeff/, '');
+  const premiereLigne = propre.split(/\r?\n/)[0] || '';
+  const separateur = premiereLigne.split(';').length >= premiereLigne.split(',').length ? ';' : ',';
+  const lignes = [];
+  let champ = '';
+  let ligne = [];
+  let entreGuillemets = false;
+  for (let i = 0; i < propre.length; i++) {
+    const c = propre[i];
+    if (entreGuillemets) {
+      if (c === '"' && propre[i + 1] === '"') { champ += '"'; i++; }
+      else if (c === '"') entreGuillemets = false;
+      else champ += c;
+      continue;
+    }
+    if (c === '"') entreGuillemets = true;
+    else if (c === separateur) { ligne.push(champ); champ = ''; }
+    else if (c === '\n') { ligne.push(champ); lignes.push(ligne); ligne = []; champ = ''; }
+    else if (c !== '\r') champ += c;
+  }
+  if (champ || ligne.length) { ligne.push(champ); lignes.push(ligne); }
+  return lignes.filter((l) => l.some((v) => v.trim() !== ''));
+}
+
+/* ------------------------------------------------------------------- ZIP */
+
+const TABLE_CRC = (() => {
+  const table = new Uint32Array(256);
+  for (let i = 0; i < 256; i++) {
+    let c = i;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    table[i] = c >>> 0;
+  }
+  return table;
+})();
+
+function crc32(octets) {
+  let c = 0xffffffff;
+  for (let i = 0; i < octets.length; i++) c = TABLE_CRC[(c ^ octets[i]) & 0xff] ^ (c >>> 8);
+  return (c ^ 0xffffffff) >>> 0;
+}
+
+/** Archive ZIP sans compression : en-tête local, données, annuaire central. */
+function archiveZip(fichiers) {
+  const encodeur = new TextEncoder();
+  const maintenant = new Date();
+  const heureDos = (maintenant.getHours() << 11) | (maintenant.getMinutes() << 5) | (maintenant.getSeconds() >> 1);
+  const dateDos = ((maintenant.getFullYear() - 1980) << 9) | ((maintenant.getMonth() + 1) << 5) | maintenant.getDate();
+  const entrees = fichiers.map((f) => ({ nom: encodeur.encode(f.nom), donnees: encodeur.encode(f.contenu) }));
+  const tailleTotale = entrees.reduce((t, e) => t + 30 + e.nom.length + e.donnees.length + 46 + e.nom.length, 0) + 22;
+  const tampon = new Uint8Array(tailleTotale);
+  const vue = new DataView(tampon.buffer);
+  let position = 0;
+  const ecrire32 = (v) => { vue.setUint32(position, v, true); position += 4; };
+  const ecrire16 = (v) => { vue.setUint16(position, v, true); position += 2; };
+  const ecrireOctets = (o) => { tampon.set(o, position); position += o.length; };
+
+  for (const e of entrees) {
+    e.decalage = position;
+    e.crc = crc32(e.donnees);
+    ecrire32(0x04034b50); ecrire16(20); ecrire16(0x0800); ecrire16(0);
+    ecrire16(heureDos); ecrire16(dateDos);
+    ecrire32(e.crc); ecrire32(e.donnees.length); ecrire32(e.donnees.length);
+    ecrire16(e.nom.length); ecrire16(0);
+    ecrireOctets(e.nom); ecrireOctets(e.donnees);
+  }
+  const debutAnnuaire = position;
+  for (const e of entrees) {
+    ecrire32(0x02014b50); ecrire16(20); ecrire16(20); ecrire16(0x0800); ecrire16(0);
+    ecrire16(heureDos); ecrire16(dateDos);
+    ecrire32(e.crc); ecrire32(e.donnees.length); ecrire32(e.donnees.length);
+    ecrire16(e.nom.length); ecrire16(0); ecrire16(0); ecrire16(0); ecrire16(0);
+    ecrire32(0); ecrire32(e.decalage);
+    ecrireOctets(e.nom);
+  }
+  const tailleAnnuaire = position - debutAnnuaire;
+  ecrire32(0x06054b50); ecrire16(0); ecrire16(0);
+  ecrire16(entrees.length); ecrire16(entrees.length);
+  ecrire32(tailleAnnuaire); ecrire32(debutAnnuaire); ecrire16(0);
+  return new Blob([tampon.subarray(0, position)], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+}
+
+/* ------------------------------------------------------------------ XLSX */
+
+const ENTITES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' };
+const xmlSafe = (v) => String(v === null || v === undefined ? '' : v)
+  .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, '')
+  .replace(/[&<>"]/g, (c) => ENTITES[c]);
+
+function colonne(index) {
+  let nom = '';
+  let n = index;
+  do { nom = String.fromCharCode(65 + (n % 26)) + nom; n = Math.floor(n / 26) - 1; } while (n >= 0);
+  return nom;
+}
+
+const nomFeuille = (nom) => (nom || 'Feuille').replace(/[\\/*?:[\]]/g, ' ').slice(0, 31);
+
+function feuilleXML(entetes, lignes) {
+  const rangee = (cellules, numero) => `<row r="${numero}">${cellules.map((valeur, i) => {
+    const ref = `${colonne(i)}${numero}`;
+    if (typeof valeur === 'number' && Number.isFinite(valeur)) return `<c r="${ref}"><v>${valeur}</v></c>`;
+    const texte = xmlSafe(valeur);
+    return texte === '' ? `<c r="${ref}"/>` : `<c r="${ref}" t="inlineStr"><is><t xml:space="preserve">${texte}</t></is></c>`;
+  }).join('')}</row>`;
+  const corps = [rangee(entetes, 1), ...lignes.map((l, i) => rangee(l, i + 2))].join('');
+  const largeurs = entetes.map((e, i) => `<col min="${i + 1}" max="${i + 1}" width="${Math.min(38, Math.max(12, String(e).length + 4))}" customWidth="1"/>`).join('');
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><cols>${largeurs}</cols><sheetData>${corps}</sheetData></worksheet>`;
+}
+
+/** Classeur multi-feuilles. `feuilles` : [{ nom, entetes, lignes }]. */
+function versXLSX(feuilles) {
+  const utiles = feuilles.filter((f) => f.entetes && f.entetes.length);
+  const types = ['<Default Extension="xml" ContentType="application/xml"/>',
+    '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>',
+    '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>',
+    ...utiles.map((f, i) => `<Override PartName="/xl/worksheets/sheet${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`)].join('');
+  const fichiers = [
+    { nom: '[Content_Types].xml', contenu: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">${types}</Types>` },
+    { nom: '_rels/.rels', contenu: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>' },
+    { nom: 'xl/workbook.xml', contenu: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>${utiles.map((f, i) => `<sheet name="${xmlSafe(nomFeuille(f.nom))}" sheetId="${i + 1}" r:id="rId${i + 1}"/>`).join('')}</sheets></workbook>` },
+    { nom: 'xl/_rels/workbook.xml.rels', contenu: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${utiles.map((f, i) => `<Relationship Id="rId${i + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i + 1}.xml"/>`).join('')}</Relationships>` },
+    ...utiles.map((f, i) => ({ nom: `xl/worksheets/sheet${i + 1}.xml`, contenu: feuilleXML(f.entetes, f.lignes) })),
+  ];
+  return archiveZip(fichiers);
+}
+
+/* ---------------------------------------------------- Tables d'un module */
+
+/** Entêtes et lignes d'un module, prêtes pour le CSV comme pour le XLSX. */
+function tableModule(module, lignes, reglages) {
+  const champs = CHAMPS_TOUS(module);
+  const entetes = champs.map((c) => c.libelle);
+  const corps = lignes.map((l) => champs.map((c) => {
+    const valeur = c.calcul ? c.calcul(l, reglages) : l[c.id];
+    if (['montant', 'nombre', 'heures'].includes(c.type)) return Number(valeur) || 0;
+    return valeur === null || valeur === undefined ? '' : valeur;
+  }));
+  return { nom: module.titre, entetes, lignes: corps, champs };
+}
+
+/* -------------------------------------------------------------- Livraison */
+
+function telecharger(nomFichier, contenu, type = 'text/plain;charset=utf-8') {
+  const blob = contenu instanceof Blob ? contenu : new Blob([contenu], { type });
+  const url = URL.createObjectURL(blob);
+  const lien = document.createElement('a');
+  lien.href = url;
+  lien.download = nomFichier;
+  document.body.appendChild(lien);
+  lien.click();
+  lien.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+
+async function copier(texte) {
+  try {
+    await navigator.clipboard.writeText(texte);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+const nomHorodate = (base, extension) => `${base}-${new Date().toISOString().slice(0, 10)}.${extension}`;
+
+/* ------------------------------------------------------------ Import CSV */
+
+const plier = (s) => String(s).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+/** Rapproche les entêtes d'un fichier importé des champs du module. */
+function correspondance(module, entetes) {
+  return entetes.map((entete) => {
+    const cible = plier(entete);
+    const trouve = module.champs.find((c) => plier(c.libelle) === cible) || module.champs.find((c) => plier(c.id) === cible);
+    return trouve ? trouve.id : null;
+  });
+}
+
+/** Convertit une ligne de fichier en enregistrement, selon la correspondance. */
+function ligneImportee(module, colonnes, valeurs) {
+  const ligne = {};
+  colonnes.forEach((champId, i) => {
+    if (!champId) return;
+    const champ = champParId(module, champId);
+    const brut = String(valeurs[i] === undefined ? '' : valeurs[i]).trim();
+    if (!champ || brut === '') return;
+    if (['montant', 'nombre', 'heures'].includes(champ.type)) {
+      const n = Number(brut.replace(/[\s\u20ac]/g, '').replace(',', '.'));
+      ligne[champId] = Number.isFinite(n) ? n : 0;
+    } else if (champ.type === 'date') {
+      const fr = brut.match(/^(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})$/);
+      ligne[champId] = fr ? `${fr[3]}-${fr[2].padStart(2, '0')}-${fr[1].padStart(2, '0')}` : brut;
+    } else {
+      ligne[champId] = brut;
+    }
+  });
+  return ligne;
+}
+
+/* ================================================== composants.js */
+/**
+ * Briques d'interface partagées par le tableau de bord et les sept pages :
+ * cartes d'indicateur, pastilles d'état, en-têtes, états vides.
+ */
+
+
+
+
+function carteKPI({ libelle, valeur, detail, jauge, ton, couleur }) {
+  return h(`article.kpi${ton === 'alerte' ? '.kpi--alerte' : ''}`, { style: couleur ? { '--kpi-accent': couleur } : null },
+    h('p.kpi-libelle', { text: libelle }),
+    h('p.kpi-valeur', { text: valeur }),
+    jauge !== undefined && jauge !== null ? jaugeGraphe(jauge, { couleur: couleur || 'var(--accent)' }) : null,
+    detail ? h('p.kpi-detail', { text: detail }) : null);
+}
+
+function pastille(etat) {
+  if (!etat) return h('span.pastille.pastille--gris', { text: '—' });
+  return h(`span.pastille.pastille--${TONS[etat] || 'gris'}`, { text: etat });
+}
+
+function carte({ titre, sousTitre, actions, contenu, classe = '' }) {
+  return h('section.carte', { class: classe },
+    titre ? h('header.carte-tete', {},
+      h('div', {}, h('h2.carte-titre', { text: titre }), sousTitre ? h('p.carte-sous-titre', { text: sousTitre }) : null),
+      actions ? h('div.carte-actions', {}, actions) : null) : null,
+    h('div.carte-corps', {}, contenu));
+}
+
+function etatVide({ titre, detail, action }) {
+  return h('div.vide', {},
+    icone('M12 3.5 20 8v8l-8 4.5L4 16V8zM4 8l8 4.5M20 8l-8 4.5M12 12.5V21', 34),
+    h('p.vide-titre', { text: titre }),
+    detail ? h('p.vide-detail', { text: detail }) : null,
+    action || null);
+}
+
+function bouton(libelle, { variante = '', icone: tracé, onclick, titre, type = 'button' } = {}) {
+  return h(`button.bouton${variante ? `.bouton--${variante}` : ''}`, { type, onclick, title: titre || null },
+    tracé ? icone(tracé, 18) : null, h('span', { text: libelle }));
+}
+
+/** Sélecteur de fichier. Le contrôle natif affiche « Choose File » dans la
+ *  langue du navigateur : le champ est masqué derrière un bouton étiqueté,
+ *  qui reste accessible au clavier puisque le label le pilote. */
+function champFichier(libelle, accepte, surFichier) {
+  const saisie = h('input.champ-fichier', { type: 'file', accept: accepte });
+  const nom = h('span.champ-fichier-nom', { text: 'Aucun fichier choisi' });
+  saisie.addEventListener('change', async () => {
+    const fichier = saisie.files[0];
+    if (!fichier) return;
+    nom.textContent = fichier.name;
+    await surFichier(fichier);
+    saisie.value = '';
+  });
+  return h('label.selecteur-fichier', {}, saisie, h('span.bouton', {}, icone(TRACE_ICONES.importer, 18), h('span', { text: libelle })), nom);
+}
+
+/** Marque de la ligue : un ballon stylisé, dessiné plutôt qu'importé. */
+function logo(taille = 44) {
+  const svg = h('svg.logo', { viewBox: '0 0 64 64', width: taille, height: taille, role: 'img', 'aria-label': 'Five League — Sunday Five League' });
+  svg.appendChild(h('circle', { cx: 32, cy: 32, r: 30, fill: 'var(--marque-fond)' }));
+  svg.appendChild(h('path', { d: 'M32 12.5 45.5 22.3 40.3 38.2H23.7L18.5 22.3z', fill: 'var(--marque-accent)' }));
+  svg.appendChild(h('path', { d: 'M32 12.5V4M45.5 22.3l8-2.7M40.3 38.2l5 6.6M23.7 38.2l-5 6.6M18.5 22.3l-8-2.7', stroke: 'var(--marque-accent)', 'stroke-width': 2.4, 'stroke-linecap': 'round', fill: 'none', opacity: 0.55 }));
+  svg.appendChild(h('text', { x: 32, y: 33.5, 'text-anchor': 'middle', 'font-size': 15, 'font-weight': 700, fill: 'var(--marque-fond)', 'font-family': 'inherit', text: '5' }));
+  svg.appendChild(h('path', { d: 'M20 48.5h24', stroke: 'var(--marque-accent)', 'stroke-width': 2, 'stroke-linecap': 'round' }));
+  return svg;
+}
+
+const TRACE_ICONES = {
+  plus: 'M12 5v14M5 12h14',
+  recherche: 'M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM20 20l-4-4',
+  exporter: 'M12 4v11M8 11l4 4 4-4M4 18v2h16v-2',
+  importer: 'M12 15V4M8 8l4-4 4 4M4 18v2h16v-2',
+  imprimer: 'M7 9V4h10v5M7 18H5v-6h14v6h-2M7 14h10v6H7z',
+  crayon: 'M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17z',
+  poubelle: 'M5 7h14M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3',
+  retour: 'M15 5l-7 7 7 7',
+  reglages: 'M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM19.4 13.5a7.6 7.6 0 0 0 0-3l1.7-1.3-2-3.4-2 .8a7.6 7.6 0 0 0-2.6-1.5L14.2 3H9.8l-.3 2.1a7.6 7.6 0 0 0-2.6 1.5l-2-.8-2 3.4 1.7 1.3a7.6 7.6 0 0 0 0 3l-1.7 1.3 2 3.4 2-.8a7.6 7.6 0 0 0 2.6 1.5l.3 2.1h4.4l.3-2.1a7.6 7.6 0 0 0 2.6-1.5l2 .8 2-3.4z',
+  rapport: 'M7 3h7l5 5v13H7zM14 3v5h5M10 13h6M10 17h6',
+  alerte: 'M12 4.5 21 20H3zM12 10v4M12 17h.01',
+  grille: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
+  soleil: 'M12 6.5a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+  lune: 'M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z',
+};
+
+/* ================================================== vue-module.js */
+/**
+ * Page d'un module. Une seule vue sert les sept domaines : tout ce qui les
+ * distingue — champs, colonnes, indicateurs, états — vient du schéma. Une
+ * page par module aurait signifié sept formulaires à corriger à chaque
+ * évolution.
+ */
+
+
+
+
+
+
+
+
+/** L'état de tri et de filtre survit à la navigation, le temps de la session. */
+const etats = new Map();
+const etatDe = (id) => {
+  if (!etats.has(id)) etats.set(id, { recherche: '', filtre: '', tri: null, sens: 1, toutesSaisons: false });
+  return etats.get(id);
+};
+
+const valeurAffichee = (ligne, champ, reglages) => {
+  const brute = champ.calcul ? champ.calcul(ligne, reglages) : ligne[champ.id];
+  switch (champ.type) {
+    case 'montant': return euros(brute);
+    case 'nombre': return nombre(brute);
+    case 'heures': return heures(brute);
+    case 'date': return dateCourte(brute);
+    default: return brute === undefined || brute === null || brute === '' ? '—' : String(brute);
+  }
+};
+
+const valeurTri = (ligne, champ, reglages) => (champ.calcul ? champ.calcul(ligne, reglages) : ligne[champ.id]);
+
+/* ------------------------------------------------------------ Formulaire */
+
+function champFormulaire(champ, valeur) {
+  const identifiantChamp = `champ-${champ.id}`;
+  let saisie;
+  if (champ.type === 'liste') {
+    saisie = h('select.saisie', { id: identifiantChamp, name: champ.id },
+      champ.requis ? null : h('option', { value: '', text: '—' }),
+      champ.options.map((o) => h('option', { value: o, text: o, selected: String(valeur) === o })));
+  } else if (champ.type === 'zone') {
+    saisie = h('textarea.saisie', { id: identifiantChamp, name: champ.id, rows: 3, value: valeur ?? '' });
+  } else {
+    const types = { montant: 'number', nombre: 'number', heures: 'number', date: 'date', courriel: 'email', tel: 'tel' };
+    saisie = h('input.saisie', {
+      id: identifiantChamp, name: champ.id, type: types[champ.type] || 'text',
+      value: valeur ?? '',
+      step: champ.type === 'montant' ? '0.01' : champ.type === 'nombre' || champ.type === 'heures' ? '1' : null,
+      min: ['montant', 'nombre', 'heures'].includes(champ.type) ? '0' : null,
+      inputmode: ['montant', 'nombre', 'heures'].includes(champ.type) ? 'decimal' : null,
+    });
+  }
+  if (champ.requis) saisie.setAttribute('required', '');
+  return h(`div.champ${champ.type === 'zone' ? '.champ--large' : ''}`, {},
+    h('label.champ-libelle', { for: identifiantChamp }, champ.libelle, champ.requis ? h('span.requis', { text: ' *', 'aria-hidden': 'true' }) : null),
+    saisie,
+    champ.aide ? h('p.champ-aide', { id: `${identifiantChamp}-aide`, text: champ.aide }) : null);
+}
+
+function ouvrirFormulaire(module, ligneExistante) {
+  const edition = Boolean(ligneExistante);
+  const valeurs = ligneExistante || Object.fromEntries(module.champs.filter((c) => c.defaut !== undefined).map((c) => [c.id, c.defaut]));
+  if (!edition) valeurs.saison = valeurs.saison || saisonActive();
+  const formulaire = h('form.formulaire', { id: 'formulaire-module', novalidate: true },
+    h('div.grille-champs', {}, module.champs.map((c) => champFormulaire(c, valeurs[c.id]))));
+
+  const enregistrer = (fermer) => {
+    const donnees = {};
+    for (const champ of module.champs) {
+      const saisie = formulaire.elements[champ.id];
+      let valeur = saisie ? saisie.value : '';
+      if (['montant', 'nombre', 'heures'].includes(champ.type)) valeur = valeur === '' ? 0 : Number(valeur);
+      donnees[champ.id] = valeur;
+      if (champ.requis && (valeur === '' || valeur === null || (typeof valeur === 'number' && Number.isNaN(valeur)))) {
+        saisie.focus();
+        saisie.setAttribute('aria-invalid', 'true');
+        toast(`${champ.libelle} : ce champ est obligatoire.`, 'erreur');
+        return;
+      }
+    }
+    if (edition) modifierLigne(module.id, ligneExistante.id, donnees);
+    else ajouterLigne(module.id, donnees);
+    fermer();
+    toast(edition ? 'Modification enregistrée.' : `${module.singulier.charAt(0).toUpperCase()}${module.singulier.slice(1)} ajouté${module.singulier.endsWith('e') ? 'e' : ''}.`);
+  };
+
+  const { boite } = modale({
+    titre: edition ? `Modifier — ${ligneExistante[module.champCle] || module.singulier}` : `Nouvel élément — ${module.titre}`,
+    corps: formulaire,
+    large: true,
+    actions: [
+      { libelle: 'Annuler' },
+      { libelle: 'Enregistrer', variante: 'primaire', action: enregistrer },
+    ],
+  });
+  formulaire.addEventListener('submit', (e) => { e.preventDefault(); });
+  boite.style.setProperty('--accent-module', module.couleur);
+}
+
+/* ---------------------------------------------------------------- Tableau */
+
+function tableau(module, lignes, etat, reglages) {
+  const colonnes = module.colonnes.map((id) => champParId(module, id)).filter(Boolean);
+  const tri = etat.tri ? champParId(module, etat.tri) : null;
+  const triees = lignes.slice();
+  if (tri) triees.sort((a, b) => comparer(valeurTri(a, tri, reglages), valeurTri(b, tri, reglages), tri.type) * etat.sens);
+
+  const enTete = h('tr', {}, colonnes.map((c) => {
+    const actif = etat.tri === c.id;
+    return h('th', { scope: 'col', class: ['montant', 'nombre', 'heures'].includes(c.type) ? 'aligne-droite' : '', 'aria-sort': actif ? (etat.sens === 1 ? 'ascending' : 'descending') : 'none' },
+      h('button.tri', {
+        type: 'button',
+        onclick: () => {
+          if (etat.tri === c.id) etat.sens = -etat.sens;
+          else { etat.tri = c.id; etat.sens = 1; }
+          rafraichir(module.id);
+        },
+      }, h('span', { text: c.libelle }), actif ? h('span.tri-fleche', { text: etat.sens === 1 ? '▲' : '▼' }) : null));
+  }).concat([h('th.colonne-actions', { scope: 'col' }, h('span.visuellement-cache', { text: 'Actions' }))]));
+
+  const corps = triees.map((ligne) => h('tr', {}, [
+    ...colonnes.map((c) => {
+      const cellule = h('td', { 'data-libelle': c.libelle, class: ['montant', 'nombre', 'heures'].includes(c.type) ? 'aligne-droite' : '' });
+      if (c.type === 'etat') cellule.appendChild(pastille(c.calcul(ligne)));
+      else if (c.id === module.champCle) cellule.appendChild(h('span.cellule-cle', { text: valeurAffichee(ligne, c, reglages) }));
+      else cellule.textContent = valeurAffichee(ligne, c, reglages);
+      return cellule;
+    }),
+    h('td.colonne-actions', {},
+      h('button.bouton-icone', { type: 'button', title: 'Modifier', 'aria-label': `Modifier ${ligne[module.champCle] || ''}`, onclick: () => ouvrirFormulaire(module, ligne) }, icone(TRACE_ICONES.crayon, 18)),
+      h('button.bouton-icone.bouton-icone--danger', {
+        type: 'button', title: 'Supprimer', 'aria-label': `Supprimer ${ligne[module.champCle] || ''}`,
+        onclick: async () => {
+          if (await confirmer(`Supprimer « ${ligne[module.champCle] || module.singulier} » ?`, 'La ligne sera retirée définitivement de la base.')) {
+            supprimerLigne(module.id, ligne.id);
+            toast('Ligne supprimée.', 'neutre');
+          }
+        },
+      }, icone(TRACE_ICONES.poubelle, 18))),
+  ]));
+
+  return h('div.tableau-cadre', {}, h('table.tableau', {},
+    h('caption.visuellement-cache', { text: `${module.titre} — ${lignes.length} ${module.pluriel}` }),
+    h('thead', {}, enTete),
+    h('tbody', {}, corps)));
+}
+
+/* ----------------------------------------------------------------- Export */
+
+function menuExport(module, lignes, reglages) {
+  const table = tableModule(module, lignes, reglages);
+  const nom = `five-league-${module.id}`;
+  const csv = versCSV(table.entetes, table.lignes);
+  modale({
+    titre: `Exporter — ${module.titre}`,
+    corps: h('div.pile', {},
+      h('p.texte-doux', { text: `${lignes.length} ${module.pluriel} sur la sélection en cours, ${table.entetes.length} colonnes.` }),
+      h('div.choix-export', {},
+        bouton('Classeur Excel (.xlsx)', { variante: 'primaire', icone: TRACE_ICONES.exporter, onclick: () => telecharger(nomHorodate(nom, 'xlsx'), versXLSX([table])) }),
+        bouton('Tableur CSV (.csv)', { icone: TRACE_ICONES.exporter, onclick: () => telecharger(nomHorodate(nom, 'csv'), csv, 'text/csv;charset=utf-8') }),
+        bouton('Imprimer ou enregistrer en PDF', { icone: TRACE_ICONES.imprimer, onclick: () => window.print() }),
+        bouton('Copier au format CSV', { onclick: async () => toast(await copier(csv) ? 'Données copiées dans le presse-papiers.' : 'Copie impossible sur ce navigateur.', 'neutre') })),
+      h('p.texte-doux.petit', { text: 'Le CSV est encodé en UTF-8 avec séparateur point-virgule : Excel et LibreOffice l’ouvrent sans réglage.' })),
+    actions: [{ libelle: 'Fermer' }],
+  });
+}
+
+function ouvrirImport(module) {
+  const zone = h('textarea.saisie.saisie--code', { rows: 6, placeholder: `${module.champs.slice(0, 3).map((c) => c.libelle).join(';')}\n…` });
+  const fichier = champFichier('Choisir un fichier CSV', '.csv,text/csv,text/plain', async (f) => { zone.value = await f.text(); apercu(); });
+  const resume = h('p.texte-doux', { text: 'Les colonnes sont reconnues par leur intitulé, dans n’importe quel ordre.' });
+  let aInserer = [];
+  const apercu = () => {
+    const lignes = depuisCSV(zone.value);
+    if (lignes.length < 2) { aInserer = []; resume.textContent = 'Collez un fichier CSV avec une ligne d’entêtes puis les données.'; return; }
+    const colonnes = correspondance(module, lignes[0]);
+    const reconnues = colonnes.filter(Boolean).length;
+    aInserer = lignes.slice(1).map((l) => ligneImportee(module, colonnes, l)).filter((l) => l[module.champCle]);
+    resume.textContent = `${reconnues} colonnes reconnues sur ${lignes[0].length}, ${aInserer.length} lignes prêtes à être ajoutées à la saison ${saisonActive()}.`;
+  };
+  zone.addEventListener('input', apercu);
+  modale({
+    titre: `Importer des ${module.pluriel}`,
+    large: true,
+    corps: h('div.pile', {},
+      h('p.texte-doux', { text: 'Exportez d’abord un fichier depuis ce module pour connaître les colonnes attendues : le format d’export est aussi le format d’import.' }),
+      fichier, zone, resume),
+    actions: [
+      { libelle: 'Annuler' },
+      { libelle: 'Importer', variante: 'primaire', action: (fermer) => {
+        if (!aInserer.length) { toast('Aucune ligne exploitable dans ce fichier.', 'erreur'); return; }
+        ajouterLignes(module.id, aInserer);
+        fermer();
+        toast(`${aInserer.length} lignes importées.`);
+      } },
+    ],
+  });
+}
+
+/* -------------------------------------------------------------------- Vue */
+
+let cadreCourant = null;
+let moduleCourant = null;
+
+function rafraichir(moduleId) {
+  if (!cadreCourant || moduleCourant !== moduleId) return;
+  remplacer(cadreCourant, contenu(MODULE_PAR_ID[moduleId]));
+}
+
+function contenu(module) {
+  const etat = etatDe(module.id);
+  const reglages = reglagesActifs();
+  const toutes = lignes(module.id, { toutesSaisons: etat.toutesSaisons });
+  const etatsPossibles = [...new Set(toutes.map((l) => module.etat && module.etat(l)).filter(Boolean))];
+  const filtrees = toutes.filter((l) => {
+    if (etat.filtre && module.etat(l) !== etat.filtre) return false;
+    if (!etat.recherche) return true;
+    return CHAMPS_TOUS(module).some((c) => contient(c.calcul ? c.calcul(l, reglages) : l[c.id], etat.recherche));
+  });
+
+  const recherche = h('input.saisie.saisie--recherche', {
+    type: 'search', value: etat.recherche, placeholder: `Rechercher parmi ${toutes.length} ${module.pluriel}…`, 'aria-label': 'Rechercher',
+    oninput: (e) => { etat.recherche = e.target.value; rafraichir(module.id); },
+  });
+
+  const groupes = module.groupe ? (() => {
+    const paniers = new Map();
+    for (const l of filtrees) {
+      const cle = l[module.groupe.champ] || '—';
+      paniers.set(cle, (paniers.get(cle) || 0) + module.groupe.mesure(l, reglages));
+    }
+    return [...paniers.entries()].map(([libelle, valeur]) => ({ libelle, valeur })).sort((a, b) => b.valeur - a.valeur);
+  })() : [];
+
+  return h('div.page', {},
+    h('header.page-tete', { style: { '--accent-module': module.couleur } },
+      h('div.page-tete-haut', {},
+        h('a.lien-retour', { href: '#/', 'aria-label': 'Retour au tableau de bord' }, icone(TRACE_ICONES.retour, 18), h('span', { text: 'Tableau de bord' })),
+        h('span.puce-module', {}, icone(module.icone, 18), h('span', { text: module.court }))),
+      h('h1.page-titre', { text: module.titre }),
+      h('p.page-resume', { text: module.resume })),
+
+    h('div.kpis', {}, module.kpis(lignes(module.id), { reglages, saison: saisonActive() }).map((k) => carteKPI({ ...k, couleur: module.couleur }))),
+
+    h('div.barre-outils', {},
+      h('div.barre-outils-gauche', {}, recherche,
+        etatsPossibles.length > 1 ? h('select.saisie.saisie--filtre', { 'aria-label': 'Filtrer par état', onchange: (e) => { etat.filtre = e.target.value; rafraichir(module.id); } },
+          h('option', { value: '', text: 'Tous les états', selected: !etat.filtre }),
+          etatsPossibles.map((s) => h('option', { value: s, text: s, selected: etat.filtre === s }))) : null,
+        h('label.bascule', {},
+          h('input', { type: 'checkbox', checked: etat.toutesSaisons, onchange: (e) => { etat.toutesSaisons = e.target.checked; rafraichir(module.id); } }),
+          h('span', { text: 'Toutes saisons' }))),
+      h('div.barre-outils-droite', {},
+        bouton('Importer', { icone: TRACE_ICONES.importer, onclick: () => ouvrirImport(module) }),
+        bouton('Exporter', { icone: TRACE_ICONES.exporter, onclick: () => menuExport(module, filtrees, reglages) }),
+        bouton('Ajouter', { variante: 'primaire', icone: TRACE_ICONES.plus, onclick: () => ouvrirFormulaire(module) }))),
+
+    filtrees.length
+      ? h('div.colonnes-module', {},
+        carte({ titre: `${nombre(filtrees.length)} ${filtrees.length > 1 ? module.pluriel : module.singulier}`, sousTitre: etat.toutesSaisons ? 'toutes saisons confondues' : `saison ${saisonActive()}`, contenu: tableau(module, filtrees, etat, reglages), classe: 'carte--tableau' }),
+        module.groupe && groupes.length ? carte({ titre: module.groupe.titre, contenu: barresHorizontales(groupes, { couleur: module.couleur, format: module.groupe.format }), classe: 'carte--cote' }) : null)
+      : carte({ contenu: etatVide({
+        titre: toutes.length ? 'Aucun résultat pour cette recherche' : `Aucune donnée pour la saison ${saisonActive()}`,
+        detail: toutes.length ? 'Modifiez la recherche ou le filtre d’état.' : `Ajoutez ${module.pluriel} une à une, ou importez un fichier CSV existant.`,
+        action: toutes.length ? null : bouton(`Ajouter ${module.singulier}`, { variante: 'primaire', icone: TRACE_ICONES.plus, onclick: () => ouvrirFormulaire(module) }),
+      }) }));
+}
+
+function vueModule(moduleId) {
+  const module = MODULE_PAR_ID[moduleId];
+  moduleCourant = moduleId;
+  cadreCourant = h('div.cadre-module');
+  remplacer(cadreCourant, contenu(module));
+  return cadreCourant;
+}
+
+function quitterModule() {
+  cadreCourant = null;
+  moduleCourant = null;
+}
+
+/* ================================================== vue-hub.js */
+/**
+ * Tableau de bord. Le hub radiatif est la porte d'entrée : sept domaines
+ * disposés autour de la marque, chacun portant son indicateur clé, pour que
+ * l'état du modèle socio-économique se lise avant tout clic.
+ *
+ * Sous 900 px le cercle devient une grille : sur un téléphone, sept pastilles
+ * en rosace seraient trop petites pour être touchées de façon fiable.
+ */
+
+
+
+
+
+
+
+
+/** Positions du hub : sept sommets d'un cercle, le premier au nord. */
+function positions(nombreModules, rayon = 37) {
+  return Array.from({ length: nombreModules }, (_, i) => {
+    const angle = (i / nombreModules) * Math.PI * 2 - Math.PI / 2;
+    return { x: 50 + Math.cos(angle) * rayon, y: 50 + Math.sin(angle) * rayon };
+  });
+}
+
+function hubRadiatif(bilan) {
+  const points = positions(MODULES.length);
+  const liens = h('svg.hub-liens', { viewBox: '0 0 100 100', 'aria-hidden': 'true', preserveAspectRatio: 'none' });
+  points.forEach((p, i) => {
+    liens.appendChild(h('line', { x1: 50, y1: 50, x2: p.x, y2: p.y, stroke: MODULES[i].couleur, 'stroke-width': 0.4, 'stroke-dasharray': '1.6 1.6', opacity: 0.55 }));
+  });
+  liens.appendChild(h('circle', { cx: 50, cy: 50, r: 37, fill: 'none', stroke: 'var(--trait-graphe)', 'stroke-width': 0.3 }));
+
+  const noeuds = MODULES.map((module, i) => {
+    const donnees = lignes(module.id);
+    return h('a.hub-noeud', {
+      href: `#/module/${module.route}`,
+      style: { '--x': `${points[i].x}%`, '--y': `${points[i].y}%`, '--couleur-module': module.couleur },
+      'aria-label': `${module.titre} — ${module.pastille(donnees)}`,
+    },
+      h('span.hub-noeud-icone', {}, icone(module.icone, 22)),
+      h('span.hub-noeud-titre', { text: module.court }),
+      h('span.hub-noeud-valeur', { text: module.pastille(donnees) }));
+  });
+
+  return h('div.hub', {},
+    liens,
+    h('div.hub-centre', {},
+      logo(52),
+      h('p.hub-centre-nom', { text: reglagesActifs().association }),
+      h('p.hub-centre-ligue', { text: reglagesActifs().ligue }),
+      h('p.hub-centre-valeur', { text: euros(bilan.produits) }),
+      h('p.hub-centre-detail', { text: `produits · ${bilan.saison}` })),
+    noeuds);
+}
+
+function bandeauAlertes() {
+  const liste = alertes();
+  if (!liste.length) {
+    return carte({ titre: 'Points d’attention', contenu: h('p.texte-doux', { text: 'Rien à signaler : cotisations à jour, échéances tenues, stocks suffisants.' }) });
+  }
+  return carte({
+    titre: 'Points d’attention',
+    sousTitre: `${liste.length} sujets à traiter`,
+    contenu: h('ul.alertes', {}, liste.map((a) => h('li', {},
+      h('a.alerte', { href: `#/module/${a.moduleObjet.route}`, class: `alerte--${a.gravite}`, style: { '--couleur-module': a.moduleObjet.couleur } },
+        h('span.alerte-icone', {}, icone(TRACE_ICONES.alerte, 18)),
+        h('span.alerte-texte', {}, h('span.alerte-titre', { text: a.titre }), h('span.alerte-detail', { text: a.detail })),
+        h('span.alerte-module', { text: a.moduleObjet.court }))))),
+  });
+}
+
+function syntheseTableau(bilan) {
+  const rangs = bilan.parModule.slice().sort((a, b) => b.produits - a.produits);
+  return h('div.tableau-cadre', {}, h('table.tableau.tableau--synthese', {},
+    h('caption.visuellement-cache', { text: `Synthèse par domaine, saison ${bilan.saison}` }),
+    h('thead', {}, h('tr', {},
+      h('th', { scope: 'col', text: 'Domaine' }),
+      h('th.aligne-droite', { scope: 'col', text: 'Produits' }),
+      h('th.aligne-droite', { scope: 'col', text: 'Attendu' }),
+      h('th.aligne-droite', { scope: 'col', text: 'Charges' }),
+      h('th.aligne-droite', { scope: 'col', text: 'Part' }))),
+    h('tbody', {}, rangs.map((p) => h('tr', {},
+      h('td', { 'data-libelle': 'Domaine' }, h('a.lien-domaine', { href: `#/module/${p.module.route}` },
+        h('span.point', { style: { background: p.module.couleur } }), h('span', { text: p.module.titre }))),
+      h('td.aligne-droite', { 'data-libelle': 'Produits', text: euros(p.produits) }),
+      h('td.aligne-droite', { 'data-libelle': 'Attendu', text: p.attendu ? euros(p.attendu) : '—' }),
+      h('td.aligne-droite', { 'data-libelle': 'Charges', text: p.charges ? euros(p.charges) : '—' }),
+      h('td.aligne-droite', { 'data-libelle': 'Part', text: pourcent(p.produits, bilan.produits) })))),
+    h('tfoot', {}, h('tr', {},
+      h('th', { scope: 'row', text: 'Total' }),
+      h('td.aligne-droite', { text: euros(bilan.produits) }),
+      h('td.aligne-droite', { text: euros(bilan.attendu) }),
+      h('td.aligne-droite', { text: euros(bilan.charges) }),
+      h('td.aligne-droite', { text: '100 %' })))));
+}
+
+function vueHub() {
+  const bilan = synthese();
+  const evolution = evolutionProduits();
+  const flux = fluxMensuels();
+  const segments = bilan.sources.map((s) => ({ libelle: s.module.court, valeur: s.produits, couleur: s.module.couleur }));
+
+  const indicateurs = [
+    { libelle: 'Produits de la saison', valeur: euros(bilan.produits), detail: evolution ? `${evolution.ecart >= 0 ? '+' : ''}${evolution.ecart.toFixed(0).replace('-0', '0')} % par rapport à ${saisonPrecedente(bilan.saison)}` : 'première saison suivie', jauge: reglagesActifs().objectifProduits ? bilan.produits / reglagesActifs().objectifProduits : null },
+    { libelle: 'Charges directes', valeur: euros(bilan.charges), detail: 'achats boutique et organisation des événements' },
+    { libelle: 'Résultat', valeur: euros(bilan.resultat), detail: bilan.resultat >= 0 ? 'excédent avant frais généraux' : 'déficit avant frais généraux', ton: bilan.resultat < 0 ? 'alerte' : null },
+    { libelle: 'Reste à percevoir', valeur: euros(bilan.attendu), detail: 'subventions accordées, factures et cotisations en attente' },
+    { libelle: 'Bénévolat valorisé', valeur: euros(bilan.valorisation), detail: `contribution volontaire, hors budget monétaire` },
+  ];
+
+  return h('div.page.page--hub', {},
+    h('header.hub-tete', {},
+      h('div', {},
+        h('p.sur-titre', { text: `Saison ${bilan.saison} · ${reglagesActifs().territoire}` }),
+        h('h1.page-titre', { text: 'Modèle socio-économique' }),
+        h('p.page-resume', { text: 'Sept domaines, une seule lecture : ce que la ligue produit, ce qu’elle dépense, et ce qui reste à sécuriser.' })),
+      h('div.hub-tete-actions', {},
+        bouton('Rapport de saison', { icone: TRACE_ICONES.rapport, onclick: () => { window.location.hash = '#/rapport'; } }),
+        bouton('Réglages et données', { icone: TRACE_ICONES.reglages, onclick: () => { window.location.hash = '#/reglages'; } }))),
+
+    h('div.kpis.kpis--large', {}, indicateurs.map(carteKPI)),
+
+    hubRadiatif(bilan),
+
+    h('div.grille-deux', {},
+      carte({
+        titre: 'Répartition des produits',
+        sousTitre: `${bilan.sources.length} sources actives`,
+        contenu: h('div.anneau-bloc', {},
+          anneau(segments, { titre: 'Répartition des produits par domaine', centreValeur: eurosCourt(bilan.produits), centreLibelle: 'produits' }),
+          legende(segments, bilan.produits)),
+      }),
+      carte({
+        titre: 'Encaissements et dépenses par mois',
+        sousTitre: 'flux datés de la saison',
+        contenu: h('div.pile', {},
+          histogramme({
+            categories: flux.map((f) => moisEtiquette(f.cle)),
+            series: [
+              { libelle: 'Produits', couleur: 'var(--accent)', valeurs: flux.map((f) => f.produits) },
+              { libelle: 'Charges', couleur: 'var(--rouge)', valeurs: flux.map((f) => f.charges) },
+            ],
+          }),
+          h('div.legende-plate', {},
+            h('span.legende-item', {}, h('span.legende-pastille', { style: { background: 'var(--accent)' } }), h('span', { text: 'Produits' })),
+            h('span.legende-item', {}, h('span.legende-pastille', { style: { background: 'var(--rouge)' } }), h('span', { text: 'Charges' }))),
+          h('p.texte-doux.petit', { text: 'La boutique n’est pas datée à la vente : son chiffre d’affaires figure dans la répartition annuelle, pas dans ce graphique.' })),
+      })),
+
+    h('div.grille-deux.grille-deux--inverse', {},
+      bandeauAlertes(),
+      carte({ titre: 'Synthèse par domaine', sousTitre: `saison ${bilan.saison}`, contenu: syntheseTableau(bilan), classe: 'carte--tableau' })));
+}
+
+/* ================================================== vue-rapport.js */
+/**
+ * Rapport de saison. Une seule page, pensée pour l'impression : c'est le
+ * document que l'on joint à un dossier de subvention ou que l'on projette
+ * en assemblée générale. « Enregistrer en PDF » depuis la boîte d'impression
+ * du navigateur produit un fichier propre, sans dépendance à un générateur
+ * de PDF embarqué.
+ */
+
+
+
+
+
+
+
+
+function vueRapport() {
+  const bilan = synthese();
+  const r = reglagesActifs();
+  const evolution = evolutionProduits();
+  const segments = bilan.sources.map((s) => ({ libelle: s.module.titre, valeur: s.produits, couleur: s.module.couleur }));
+  const attention = alertes();
+
+  return h('div.page.page--rapport', {},
+    h('div.rapport-actions', {},
+      h('a.lien-retour', { href: '#/' }, 'Retour au tableau de bord'),
+      bouton('Imprimer ou enregistrer en PDF', { variante: 'primaire', icone: TRACE_ICONES.imprimer, onclick: () => window.print() })),
+
+    h('article.rapport', {},
+      h('header.rapport-tete', {},
+        logo(56),
+        h('div', {},
+          h('h1', { text: `${r.association} — rapport de saison` }),
+          h('p.rapport-sous-titre', { text: `${r.ligue} · saison ${bilan.saison} · ${r.territoire}` }),
+          h('p.rapport-date', { text: `Édité le ${dateCourte(aujourdhui())}` }))),
+
+      h('section.rapport-section', {},
+        h('h2', { text: 'Équilibre de la saison' }),
+        h('div.rapport-chiffres', {},
+          h('div.rapport-chiffre', {}, h('span.rapport-chiffre-valeur', { text: euros(bilan.produits) }), h('span.rapport-chiffre-libelle', { text: 'produits' })),
+          h('div.rapport-chiffre', {}, h('span.rapport-chiffre-valeur', { text: euros(bilan.charges) }), h('span.rapport-chiffre-libelle', { text: 'charges directes' })),
+          h('div.rapport-chiffre', {}, h('span.rapport-chiffre-valeur', { text: euros(bilan.resultat) }), h('span.rapport-chiffre-libelle', { text: 'résultat' })),
+          h('div.rapport-chiffre', {}, h('span.rapport-chiffre-valeur', { text: euros(bilan.attendu) }), h('span.rapport-chiffre-libelle', { text: 'reste à percevoir' })),
+          h('div.rapport-chiffre', {}, h('span.rapport-chiffre-valeur', { text: euros(bilan.valorisation) }), h('span.rapport-chiffre-libelle', { text: 'bénévolat valorisé' }))),
+        h('p.rapport-texte', {
+          text: evolution
+            ? `Les produits de la saison ${bilan.saison} s'établissent à ${euros(bilan.produits)}, contre ${euros(evolution.avant)} en ${saisonPrecedente(bilan.saison)}, soit une évolution de ${evolution.ecart >= 0 ? '+' : ''}${evolution.ecart.toFixed(1).replace('.', ',')} %. Le bénévolat, valorisé au taux de ${euros(r.tauxHoraire)} de l'heure, représente ${euros(bilan.valorisation)} de contribution volontaire en nature, à mentionner en annexe des comptes.`
+            : `Les produits de la saison ${bilan.saison} s'établissent à ${euros(bilan.produits)}. Le bénévolat, valorisé au taux de ${euros(r.tauxHoraire)} de l'heure, représente ${euros(bilan.valorisation)} de contribution volontaire en nature.`,
+        })),
+
+      h('section.rapport-section.rapport-section--repartition', {},
+        h('h2', { text: 'Répartition des produits' }),
+        h('div.rapport-anneau', {},
+          anneau(segments, { titre: 'Répartition des produits', centreValeur: euros(bilan.produits), centreLibelle: 'produits', taille: 200 }),
+          legende(segments, bilan.produits))),
+
+      h('section.rapport-section', {},
+        h('h2', { text: 'Détail par domaine' }),
+        h('table.tableau.tableau--rapport', {},
+          h('thead', {}, h('tr', {},
+            h('th', { scope: 'col', text: 'Domaine' }),
+            h('th', { scope: 'col', text: 'Volume' }),
+            h('th.aligne-droite', { scope: 'col', text: 'Produits' }),
+            h('th.aligne-droite', { scope: 'col', text: 'Charges' }),
+            h('th.aligne-droite', { scope: 'col', text: 'Part' }))),
+          h('tbody', {}, bilan.parModule.map((p) => h('tr', {},
+            h('th', { scope: 'row' }, h('span.point', { style: { background: p.module.couleur } }), h('span', { text: p.module.titre })),
+            h('td', { text: `${nombre(p.lignes)} ${p.lignes > 1 ? p.module.pluriel : p.module.singulier}` }),
+            h('td.aligne-droite', { text: euros(p.produits) }),
+            h('td.aligne-droite', { text: p.charges ? euros(p.charges) : '—' }),
+            h('td.aligne-droite', { text: pourcent(p.produits, bilan.produits) })))))),
+
+      h('section.rapport-section', {},
+        h('h2', { text: 'Indicateurs clés' }),
+        h('div.rapport-grille', {}, MODULES.map((module) => {
+          const kpis = module.kpis(lignes(module.id), { reglages: r, saison: bilan.saison });
+          return h('div.rapport-bloc', { style: { '--couleur-module': module.couleur } },
+            h('h3', { text: module.titre }),
+            h('ul.rapport-liste', {}, kpis.map((k) => h('li', {}, h('span.rapport-liste-libelle', { text: k.libelle }), h('span.rapport-liste-valeur', { text: k.valeur })))));
+        }))),
+
+      attention.length ? h('section.rapport-section', {},
+        h('h2', { text: 'Points de vigilance' }),
+        h('ul.rapport-vigilance', {}, attention.map((a) => h('li', {}, h('strong', { text: `${a.titre} — ` }), a.detail)))) : null,
+
+      h('footer.rapport-pied', {},
+        h('p', { text: `${r.association} · ${r.ligue} · document généré depuis l'outil de gestion interne.` }))));
+}
+
+/* ================================================== vue-reglages.js */
+/**
+ * Réglages, sauvegarde et restauration. Tout ce qui touche à la base entière
+ * est réuni ici plutôt que dispersé : effacer, restaurer et recharger le jeu
+ * de démonstration sont des gestes rares et lourds de conséquences, ils
+ * méritent un seul endroit et une confirmation.
+ */
+
+
+
+
+
+
+
+const CHAMPS_REGLAGES = [
+  { id: 'association', libelle: 'Nom de l’association', type: 'text' },
+  { id: 'ligue', libelle: 'Nom de la ligue', type: 'text' },
+  { id: 'territoire', libelle: 'Territoire', type: 'text' },
+  { id: 'tauxHoraire', libelle: 'Taux de valorisation du bénévolat (€/h)', type: 'number', aide: 'Sert au calcul des contributions volontaires en nature.' },
+  { id: 'objectifProduits', libelle: 'Objectif de produits (€)', type: 'number' },
+  { id: 'adherentsAttendus', libelle: 'Objectif d’adhérents', type: 'number' },
+];
+
+function classeurComplet() {
+  const r = reglagesActifs();
+  return versXLSX(MODULES.map((m) => tableModule(m, lignes(m.id, { toutesSaisons: true }), r)));
+}
+
+function vueReglages() {
+  const r = reglagesActifs();
+  const total = MODULES.reduce((t, m) => t + lignes(m.id, { toutesSaisons: true }).length, 0);
+  const poids = new Blob([exporterBase()]).size;
+
+  const formulaire = h('form.formulaire', { onsubmit: (e) => e.preventDefault() },
+    h('div.grille-champs', {}, CHAMPS_REGLAGES.map((c) => h('div.champ', {},
+      h('label.champ-libelle', { for: `reglage-${c.id}`, text: c.libelle }),
+      h('input.saisie', {
+        id: `reglage-${c.id}`, type: c.type, value: r[c.id], min: c.type === 'number' ? '0' : null,
+        onchange: (e) => {
+          const valeur = c.type === 'number' ? Number(e.target.value) || 0 : e.target.value.trim();
+          majReglages({ [c.id]: valeur });
+          toast('Réglage enregistré.');
+        },
+      }),
+      c.aide ? h('p.champ-aide', { text: c.aide }) : null))));
+
+  const restaurationFichier = h('input', { type: 'file', accept: 'application/json,.json', class: 'saisie' });
+  restaurationFichier.addEventListener('change', async () => {
+    const f = restaurationFichier.files[0];
+    if (!f) return;
+    try {
+      const nb = restaurer(await f.text());
+      toast(`Sauvegarde restaurée : ${nb} modules.`);
+    } catch (e) {
+      toast(e.message || 'Fichier illisible.', 'erreur');
+    }
+    restaurationFichier.value = '';
+  });
+
+  return h('div.page', {},
+    h('header.page-tete', {},
+      h('a.lien-retour', { href: '#/' }, 'Tableau de bord'),
+      h('h1.page-titre', { text: 'Réglages et données' }),
+      h('p.page-resume', { text: 'Identité de l’association, objectifs de la saison, et gestion de la base.' })),
+
+    h('div.grille-deux', {},
+      carte({ titre: 'Association et objectifs', sousTitre: 'les objectifs alimentent les jauges du tableau de bord', contenu: formulaire }),
+
+      carte({
+        titre: 'Base de données',
+        sousTitre: stockageDisponible() ? 'enregistrée dans ce navigateur' : 'stockage indisponible — session en mémoire',
+        contenu: h('div.pile', {},
+          h('dl.definitions', {},
+            h('dt', { text: 'Lignes enregistrées' }), h('dd', { text: nombre(total) }),
+            h('dt', { text: 'Saisons couvertes' }), h('dd', { text: saisons().join(', ') }),
+            h('dt', { text: 'Poids de la base' }), h('dd', { text: `${(poids / 1024).toFixed(0)} Ko` }),
+            h('dt', { text: 'Jeu de données' }), h('dd', { text: estDemo() ? 'démonstration' : 'données de l’association' })),
+          h('div.choix-export', {},
+            bouton('Classeur Excel complet', { variante: 'primaire', icone: TRACE_ICONES.exporter, onclick: () => telecharger(nomHorodate('five-league-base', 'xlsx'), classeurComplet()) }),
+            bouton('Sauvegarde JSON', { icone: TRACE_ICONES.exporter, onclick: () => telecharger(nomHorodate('five-league-sauvegarde', 'json'), exporterBase(), 'application/json') })),
+          h('p.champ-libelle', { text: 'Restaurer une sauvegarde' }),
+          restaurationFichier,
+          h('p.texte-doux.petit', { text: 'La restauration remplace intégralement la base actuelle.' })),
+      })),
+
+    carte({
+      titre: 'Saison et apparence',
+      contenu: h('div.pile', {},
+        h('div.champ', {},
+          h('label.champ-libelle', { for: 'reglage-saison', text: 'Saison affichée' }),
+          h('select.saisie', { id: 'reglage-saison', onchange: (e) => definirSaison(e.target.value) },
+            [...new Set([...SAISONS, ...saisons()])].sort().map((s) => h('option', { value: s, text: s, selected: s === saisonActive() })))),
+        h('div.champ', {},
+          h('label.champ-libelle', { for: 'reglage-theme', text: 'Thème' }),
+          h('select.saisie', { id: 'reglage-theme', onchange: (e) => definirTheme(e.target.value) },
+            [['auto', 'Selon le système'], ['clair', 'Clair'], ['sombre', 'Sombre']].map(([v, t]) => h('option', { value: v, text: t, selected: themeEnregistre() === v }))))),
+    }),
+
+    carte({
+      titre: 'Opérations sensibles',
+      classe: 'carte--danger',
+      contenu: h('div.pile', {},
+        h('p.texte-doux', { text: 'Ces actions remplacent la base entière. Exportez une sauvegarde avant de les lancer.' }),
+        h('div.choix-export', {},
+          bouton('Recharger le jeu de démonstration', {
+            onclick: async () => {
+              if (await confirmer('Recharger la démonstration ?', 'Les données actuelles seront remplacées par l’association fictive de démonstration.')) {
+                reinitialiser({ demo: true });
+                toast('Jeu de démonstration rechargé.');
+              }
+            },
+          }),
+          bouton('Vider la base', {
+            variante: 'danger',
+            onclick: async () => {
+              if (await confirmer('Vider toute la base ?', 'Les sept modules seront remis à zéro pour toutes les saisons.')) {
+                reinitialiser({ demo: false });
+                toast('Base vidée.', 'neutre');
+              }
+            },
+          }))),
+    }),
+
+    carte({
+      titre: 'Ce que l’outil ne fait pas (encore)',
+      contenu: h('ul.liste-notes', {},
+        h('li', { text: 'Les données vivent dans ce navigateur, sur cet appareil. Deux personnes qui saisissent chacune de leur côté travaillent sur deux bases distinctes : la sauvegarde JSON sert à les transmettre.' }),
+        h('li', { text: 'Aucun compte ni mot de passe : un écran de connexion posé sur des données locales protégerait de la curiosité, pas d’un accès à la machine. Une vraie authentification suppose un serveur, et c’est l’étape suivante.' }),
+        h('li', { text: 'La boutique décrit un catalogue, pas un journal de ventes daté : le chiffre d’affaires est donc annuel, non ventilé par mois.' })),
+    }));
+}
+
+function ouvrirAide() {
+  modale({
+    titre: 'Prise en main',
+    large: true,
+    corps: h('div.pile', {},
+      h('p', { text: 'Chaque domaine du modèle socio-économique a sa page : cliquez sur un secteur du hub, ou utilisez le menu en haut.' }),
+      h('ul.liste-notes', {},
+        h('li', { text: 'Ajouter, modifier, supprimer : les boutons se trouvent dans la barre d’outils de chaque module et au bout de chaque ligne.' }),
+        h('li', { text: 'Tout est enregistré dans le navigateur au fil de la saisie ; aucune connexion n’est nécessaire.' }),
+        h('li', { text: 'La saison se change en haut à droite : les tableaux et les indicateurs suivent.' }),
+        h('li', { text: 'Exports : CSV et Excel par module, classeur complet et sauvegarde JSON dans les réglages, PDF par l’impression du rapport de saison.' })),
+      h('p.texte-doux', { text: `Valorisation du bénévolat au taux de ${euros(reglagesActifs().tauxHoraire)} de l’heure — modifiable dans les réglages.` })),
+    actions: [{ libelle: 'Fermer' }],
+  });
+}
+
+/* ================================================== app.js */
+/**
+ * Coquille et routage. L'adresse porte l'état de navigation (`#/module/rh`) :
+ * une page de module se partage par lien, le bouton « précédent » du
+ * navigateur fonctionne, et l'impression d'un rapport garde son adresse.
+ */
+
+
+
+
+
+
+
+
+
+
+
+const MODULE_PAR_ROUTE = Object.fromEntries(MODULES.map((m) => [m.route, m]));
+
+function routeCourante() {
+  const brut = (window.location.hash || '#/').replace(/^#/, '');
+  const morceaux = brut.split('/').filter(Boolean);
+  if (morceaux[0] === 'module' && MODULE_PAR_ROUTE[morceaux[1]]) return { nom: 'module', module: MODULE_PAR_ROUTE[morceaux[1]] };
+  if (morceaux[0] === 'rapport') return { nom: 'rapport' };
+  if (morceaux[0] === 'reglages') return { nom: 'reglages' };
+  return { nom: 'hub' };
+}
+
+function enTete() {
+  const selecteurSaison = h('select.saisie.saisie--saison', {
+    'aria-label': 'Saison affichée',
+    onchange: (e) => definirSaison(e.target.value),
+  }, [...new Set([...SAISONS, ...saisons()])].sort().map((s) => h('option', { value: s, text: s, selected: s === saisonActive() })));
+
+  const boutonTheme = h('button.bouton-icone', {
+    type: 'button',
+    'aria-label': 'Changer de thème',
+    title: 'Clair, sombre ou automatique',
+    onclick: () => {
+      const suite = { auto: 'clair', clair: 'sombre', sombre: 'auto' };
+      const suivant = suite[themeEnregistre()] || 'clair';
+      definirTheme(suivant);
+      toast(`Thème : ${{ auto: 'automatique', clair: 'clair', sombre: 'sombre' }[suivant]}.`, 'neutre');
+      rendre();
+    },
+  }, icone(themeEnregistre() === 'sombre' ? TRACE_ICONES.lune : TRACE_ICONES.soleil, 20));
+
+  const route = routeCourante();
+  return h('header.entete', {},
+    h('a.marque', { href: '#/', 'aria-label': 'Tableau de bord Five League' },
+      logo(38),
+      h('span.marque-texte', {},
+        h('span.marque-nom', { text: reglagesActifs().association }),
+        h('span.marque-ligue', { text: reglagesActifs().ligue }))),
+    h('nav.nav-modules', { 'aria-label': 'Domaines' },
+      h('a.nav-lien', { href: '#/', class: route.nom === 'hub' ? 'nav-lien--actif' : '' }, icone(TRACE_ICONES.grille, 17), h('span', { text: 'Hub' })),
+      MODULES.map((m) => h('a.nav-lien', {
+        href: `#/module/${m.route}`,
+        class: route.nom === 'module' && route.module.id === m.id ? 'nav-lien--actif' : '',
+        style: { '--couleur-module': m.couleur },
+      }, icone(m.icone, 17), h('span', { text: m.court })))),
+    h('div.entete-outils', {},
+      selecteurSaison,
+      h('button.bouton-icone', { type: 'button', 'aria-label': 'Aide', title: 'Prise en main', onclick: ouvrirAide }, icone('M12 17h.01M9.5 9.2a2.6 2.6 0 1 1 3.3 2.5c-.6.2-.8.7-.8 1.3v.5M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z', 20)),
+      boutonTheme,
+      h('a.bouton-icone', { href: '#/reglages', 'aria-label': 'Réglages', title: 'Réglages et données' }, icone(TRACE_ICONES.reglages, 20))));
+}
+
+function bandeaux() {
+  const messages = [];
+  if (!stockageDisponible()) {
+    messages.push(h('div.bandeau.bandeau--alerte', {}, icone(TRACE_ICONES.alerte, 18),
+      h('span', { text: 'Ce navigateur refuse le stockage local : les saisies de cette session ne seront pas conservées. Exportez une sauvegarde avant de fermer l’onglet.' })));
+  }
+  if (estDemo()) {
+    messages.push(h('div.bandeau', {}, icone(TRACE_ICONES.alerte, 18),
+      h('span', {}, 'Données de démonstration — une association fictive, pour explorer l’outil. '),
+      h('a', { href: '#/reglages', text: 'Vider la base et saisir les vôtres' })));
+  }
+  return messages.length ? h('div.bandeaux', {}, messages) : null;
+}
+
+function corps() {
+  const route = routeCourante();
+  if (route.nom !== 'module') quitterModule();
+  switch (route.nom) {
+    case 'module': return vueModule(route.module.id);
+    case 'rapport': return vueRapport();
+    case 'reglages': return vueReglages();
+    default: return vueHub();
+  }
+}
+
+let racine = null;
+
+function rendre({ hautDePage = false } = {}) {
+  const route = routeCourante();
+  document.title = route.nom === 'module'
+    ? `${route.module.titre} — ${reglagesActifs().association}`
+    : `${reglagesActifs().association} — ${reglagesActifs().ligue}`;
+  remplacer(racine, enTete(), bandeaux(), h('main.contenu', { id: 'contenu' }, corps()), piedDePage());
+  if (hautDePage) window.scrollTo({ top: 0, behavior: 'instant' });
+}
+
+function piedDePage() {
+  return h('footer.pied', {},
+    h('p', { text: `${reglagesActifs().association} — outil de gestion interne. Données enregistrées sur cet appareil.` }),
+    h('p', {}, h('a', { href: '#/rapport', text: 'Rapport de saison' }), ' · ', h('a', { href: '#/reglages', text: 'Réglages et données' })));
+}
+
+function demarrerApplication() {
+  appliquerTheme(themeEnregistre());
+  demarrerBase();
+  racine = h('div.application');
+  document.body.appendChild(racine);
+  rendre();
+  window.addEventListener('hashchange', () => rendre({ hautDePage: true }));
+  abonner(() => rendre());
+  /* Point d'entrée unique pour les bancs d'essai : ils pilotent l'application
+     par cette surface plutôt que par le DOM, qui change avec le design. */
+  window.FiveLeague = {
+    MODULES, rendre, route: routeCourante,
+    laBase, lignes, ajouterLigne, supprimerLigne, reinitialiser, exporterBase,
+    saisonActive, saisons, definirSaison, reglagesActifs, estDemo, stockageDisponible,
+    synthese, alertes, fluxMensuels, versXLSX, versCSV, tableModule,
+  };
+}
+
+
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', demarrerApplication);
+else demarrerApplication();
+})();
+</script>
+</body>
+</html>
