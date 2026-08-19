@@ -142,9 +142,13 @@ Rendu en **temps réel** : le tampon traité alimente un
 plus rapide pour l'audio seul, mais l'encodage reste temps réel de toute façon,
 et un seul chemin pour l'audio et la vidéo vaut mieux que deux.
 
-Le calage des versets est **réparti au prorata du nombre de signes**. C'est une
-estimation, annoncée comme telle. Un alignement forcé sur la voix — ou un
-pointage manuel pendant une écoute — reste à faire.
+Le calage des versets n'est plus estimé : il est **posé par le récitant**. Pendant
+la captation, un glissement vers le haut — ou un appui, ou le bouton — passe au
+verset suivant et horodate le passage. Le rendu suit donc la voix exactement.
+
+L'estimation au prorata des signes subsiste comme repli : pour un enregistrement
+importé, qui n'a pas de repères, et pour compléter la fin quand le récitant
+n'a pas fait défiler jusqu'au dernier verset.
 
 La composition vidéo est entièrement exprimée en multiples de `k = largeur/1080`,
 de sorte que l'aperçu basse définition et l'export 1080×1920 donnent exactement

@@ -59,21 +59,27 @@ await page.waitForTimeout(400);
 for (const i of [0, 1]) await page.click(`.verse >> nth=${i} >> [data-act="pick"]`);
 await page.click('[data-act="to-prompter"]');
 await page.waitForTimeout(400);
-t('télépromptage prêt', (await page.locator('#tp .tp-verse').count()) === 2);
+t('télépromptage prêt', (await page.locator('.deck-card').count()) === 2);
 await page.screenshot({ path: join(OUT, 'studio-prompteur.png') });
 
 // --- captation réelle via le micro synthétique
 await page.click('[data-act="rec-toggle"]');
 await page.waitForTimeout(2900);                      // décompte 3-2-1
-const recording = await page.getAttribute('.rec-main', 'data-state');
+const recording = await page.getAttribute('.rec-orb', 'data-state');
 t('enregistrement en cours après le décompte', recording === 'recording', String(recording));
-await page.waitForTimeout(2500);
+await page.waitForTimeout(1400);
+// on passe au verset suivant en pleine récitation : c est le geste à vérifier
+await page.click('[data-act="deck-next"]');
+await page.waitForTimeout(1200);
 await page.click('[data-act="rec-toggle"]');
 await page.waitForTimeout(2500);
 const onReview = await page.locator('#wave').count();
 t('la prise est décodée et l’écoute s’ouvre', onReview === 1);
 const dur = await page.evaluate(() => window.TalawaStudio.state.take && window.TalawaStudio.state.take.duration);
 t('durée de prise plausible', dur > 1 && dur < 12, dur ? dur.toFixed(2) + ' s' : 'aucune');
+const cues = await page.evaluate(() => window.TalawaStudio.state.take?.cues || null);
+t('les repères posés pendant la récitation sont gardés', Array.isArray(cues) && cues.length >= 1 && cues[0] === 0,
+  cues ? cues.map((c) => c.toFixed(2)).join(' / ') : 'aucun');
 
 // --- effets
 await page.click('[data-act="preset"][data-v="grande"]');

@@ -16,58 +16,60 @@
    1. Jetons — registre clair
    -------------------------------------------------------------------------- */
 :root {
-  /* Fonds, du plus profond au plus proche */
-  --bg-grouped: #EFEFEC;
-  --bg: #FBFBF9;
-  --bg-raised: #FFFFFF;
+  /* Monochrome strict. Le blanc et le noir sont purs : c'est ce qui donne
+     au verre sa lisibilité — un fond teinté trouble la réfraction. */
+  --bg-grouped: #FFFFFF;
+  --bg: #FFFFFF;
+  --bg-raised: #F4F4F4;
 
-  /* Rôles de texte : les trois passent 4,5:1 sur les trois fonds */
-  --label: #111716;
-  --label-2: #4B534F;
-  --label-3: #626964;
+  --label: #000000;
+  --label-2: #545454;
+  --label-3: #6B6B6B;
 
-  /* Remplissages non textuels */
-  --fill: rgba(17, 23, 22, .05);
-  --fill-2: rgba(17, 23, 22, .08);
-  --fill-3: rgba(17, 23, 22, .12);
-  --separator: rgba(17, 23, 22, .14);
-  --separator-opaque: #DEDED9;
+  --fill: rgba(0, 0, 0, .045);
+  --fill-2: rgba(0, 0, 0, .07);
+  --fill-3: rgba(0, 0, 0, .11);
+  --separator: rgba(0, 0, 0, .09);
+  --separator-opaque: #E4E4E4;
 
-  /* Teinte et accents */
-  --tint: #7A5A18;
-  --tint-bg: #F0E9D9;
-  --myrtle: #245247;
-  --myrtle-bg: #DFE9E5;
-  --madder: #8C3225;
-  --madder-bg: #F3E0DC;
+  /* Pas de couleur d'accent : le contraste et le poids font l'affordance.
+     La seule couleur de l'application est celle des règles de tajwid. */
+  --tint: #000000;
+  --tint-bg: rgba(0, 0, 0, .06);
+  --myrtle: #1B5E3F;
+  --myrtle-bg: rgba(27, 94, 63, .1);
+  --madder: #B3261E;
+  --madder-bg: rgba(179, 38, 30, .1);
 
-  /* Tajwid — vérifiés sur fond clair et fond sombre */
-  --tj-madd: #8C3225;
-  --tj-ghunna: #1F5B41;
-  --tj-qalqala: #204D74;
+  --tj-madd: #B3261E;
+  --tj-ghunna: #1B5E3F;
+  --tj-qalqala: #1A4F7A;
   --tj-ikhfa: #6B4E0C;
   --tj-iqlab: #5C3378;
-  --tj-silent: #626964;
+  --tj-silent: #6B6B6B;
 
-  /* Matériau des barres */
-  --material: rgba(251, 251, 249, .82);
-  --material-border: rgba(17, 23, 22, .1);
+  /* Recette du verre : un fond translucide, une arête supérieure éclairée qui
+     imite la réfraction sur le bord d'une lentille, une arête inférieure
+     assombrie, et une ombre portée douce qui décolle la surface du contenu. */
+  --glass: rgba(255, 255, 255, .62);
+  --glass-strong: rgba(255, 255, 255, .78);
+  --glass-sheen: rgba(255, 255, 255, .9);
+  --glass-edge: rgba(0, 0, 0, .06);
+  --glass-shadow: rgba(0, 0, 0, .14);
+  --glass-blur: blur(32px) saturate(180%);
 
-  /* Ombres, discrètes : le relief vient du fond, pas de l'ombre */
-  --shadow-1: 0 1px 2px rgba(17, 23, 22, .05);
-  --shadow-2: 0 4px 16px rgba(17, 23, 22, .08);
-  --shadow-3: 0 12px 44px rgba(17, 23, 22, .16);
+  --material: rgba(255, 255, 255, .72);
+  --material-border: rgba(0, 0, 0, .07);
 
-  /* Polices : le système pour l'interface, Amiri Quran pour le texte sacré */
+  /* Polices : le système pour l interface, Amiri Quran pour le texte sacré. */
   --ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
         "Segoe UI", system-ui, "Helvetica Neue", Arial, sans-serif;
   --arabic: "Amiri Quran", "Amiri", "Scheherazade New", "Noto Naskh Arabic", serif;
   --editorial: "Spectral", ui-serif, Georgia, serif;   /* page de présentation seulement */
 
-  /* Échelle typographique iOS. En rem : la racine porte la mise à l'échelle
-     du texte, ce qui laisse la place au Dynamic Type. */
-  /* Chaque pas est exprimé en calc pour tomber sur la valeur en points exacte :
-     .647rem donnerait 10,999 px et manquerait le plancher de 11. */
+  /* Échelle typographique iOS. Chaque pas est exprimé en calc pour tomber sur
+     la valeur en points exacte : .647rem donnerait 10,999 px et manquerait le
+     plancher de 11. */
   --t-large-title: calc(34rem / 17);  --lh-large-title: calc(41rem / 17);
   --t-title1: calc(28rem / 17);       --lh-title1: calc(34rem / 17);
   --t-title2: calc(22rem / 17);       --lh-title2: calc(28rem / 17);
@@ -83,90 +85,102 @@
   --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
   --sp-5: 20px; --sp-6: 24px; --sp-8: 32px; --sp-10: 40px;
 
-  /* Rayons : 10 pt pour les listes groupées, comme le système */
-  --r-list: 10px;
-  --r-card: 14px;
-  --r-control: 12px;
-  --r-sheet: 20px;
+  /* Rayons généreux : le verre liquide n a pas d angles vifs. */
+  --r-list: 20px;
+  --r-card: 20px;
+  --r-control: 999px;
+  --r-sheet: 28px;
 
   --hit: 44px;               /* cible tactile minimale */
-  --margin: 16px;            /* marge d'écran en largeur compacte */
+  --margin: 16px;            /* marge d écran en largeur compacte */
 
   --screen-w: 393px;
   --screen-h: 852px;
+
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, .05);
+  --shadow-2: 0 6px 24px rgba(0, 0, 0, .09);
+  --shadow-3: 0 20px 60px rgba(0, 0, 0, .2);
 }
 
-/* --------------------------------------------------------------------------
-   2. Jetons — registre sombre
-   -------------------------------------------------------------------------- */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg-grouped: #070B0B;
-    --bg: #0F1514;
-    --bg-raised: #171F1E;
+    --bg-grouped: #000000;
+    --bg: #000000;
+    --bg-raised: #121212;
 
-    --label: #F1EFE7;
-    --label-2: #B5BDB8;
-    --label-3: #8E9691;
+    --label: #FFFFFF;
+    --label-2: #A8A8A8;
+    --label-3: #8E8E8E;
 
-    --fill: rgba(241, 239, 231, .07);
-    --fill-2: rgba(241, 239, 231, .11);
-    --fill-3: rgba(241, 239, 231, .16);
-    --separator: rgba(241, 239, 231, .16);
-    --separator-opaque: #2A3332;
+    --fill: rgba(255, 255, 255, .07);
+    --fill-2: rgba(255, 255, 255, .11);
+    --fill-3: rgba(255, 255, 255, .16);
+    --separator: rgba(255, 255, 255, .11);
+    --separator-opaque: #262626;
 
-    --tint: #D8B778;
-    --tint-bg: #2B2517;
-    --myrtle: #7FB6A2;
-    --myrtle-bg: #16241F;
-    --madder: #E0897A;
-    --madder-bg: #2B1714;
+    --tint: #FFFFFF;
+    --tint-bg: rgba(255, 255, 255, .1);
+    --myrtle: #6FD79B;
+    --myrtle-bg: rgba(111, 215, 155, .13);
+    --madder: #FF8A7A;
+    --madder-bg: rgba(255, 138, 122, .14);
 
-    --tj-madd: #E58F7C;
-    --tj-ghunna: #7FC79C;
-    --tj-qalqala: #8FB8E0;
-    --tj-ikhfa: #DCBB6C;
-    --tj-iqlab: #C3A6E0;
-    --tj-silent: #8E9691;
+    --tj-madd: #FF8A7A;
+    --tj-ghunna: #6FD79B;
+    --tj-qalqala: #7FB5F0;
+    --tj-ikhfa: #E8C46A;
+    --tj-iqlab: #C9A6F0;
+    --tj-silent: #8E8E8E;
 
-    --material: rgba(15, 21, 20, .78);
-    --material-border: rgba(241, 239, 231, .12);
+    --glass: rgba(255, 255, 255, .08);
+    --glass-strong: rgba(255, 255, 255, .13);
+    --glass-sheen: rgba(255, 255, 255, .22);
+    --glass-edge: rgba(0, 0, 0, .5);
+    --glass-shadow: rgba(0, 0, 0, .7);
 
-    --shadow-1: 0 1px 2px rgba(0, 0, 0, .5);
-    --shadow-2: 0 4px 16px rgba(0, 0, 0, .5);
-    --shadow-3: 0 12px 44px rgba(0, 0, 0, .62);
+    --material: rgba(20, 20, 20, .72);
+    --material-border: rgba(255, 255, 255, .1);
+
+    --shadow-1: 0 1px 2px rgba(0, 0, 0, .6);
+    --shadow-2: 0 6px 24px rgba(0, 0, 0, .6);
+    --shadow-3: 0 20px 60px rgba(0, 0, 0, .8);
   }
 }
 
 :root[data-theme="dark"] {
-  --bg-grouped: #070B0B;
-  --bg: #0F1514;
-  --bg-raised: #171F1E;
-  --label: #F1EFE7;
-  --label-2: #B5BDB8;
-  --label-3: #8E9691;
-  --fill: rgba(241, 239, 231, .07);
-  --fill-2: rgba(241, 239, 231, .11);
-  --fill-3: rgba(241, 239, 231, .16);
-  --separator: rgba(241, 239, 231, .16);
-  --separator-opaque: #2A3332;
-  --tint: #D8B778;
-  --tint-bg: #2B2517;
-  --myrtle: #7FB6A2;
-  --myrtle-bg: #16241F;
-  --madder: #E0897A;
-  --madder-bg: #2B1714;
-  --tj-madd: #E58F7C;
-  --tj-ghunna: #7FC79C;
-  --tj-qalqala: #8FB8E0;
-  --tj-ikhfa: #DCBB6C;
-  --tj-iqlab: #C3A6E0;
-  --tj-silent: #8E9691;
-  --material: rgba(15, 21, 20, .78);
-  --material-border: rgba(241, 239, 231, .12);
-  --shadow-1: 0 1px 2px rgba(0, 0, 0, .5);
-  --shadow-2: 0 4px 16px rgba(0, 0, 0, .5);
-  --shadow-3: 0 12px 44px rgba(0, 0, 0, .62);
+  --bg-grouped: #000000;
+  --bg: #000000;
+  --bg-raised: #121212;
+  --label: #FFFFFF;
+  --label-2: #A8A8A8;
+  --label-3: #8E8E8E;
+  --fill: rgba(255, 255, 255, .07);
+  --fill-2: rgba(255, 255, 255, .11);
+  --fill-3: rgba(255, 255, 255, .16);
+  --separator: rgba(255, 255, 255, .11);
+  --separator-opaque: #262626;
+  --tint: #FFFFFF;
+  --tint-bg: rgba(255, 255, 255, .1);
+  --myrtle: #6FD79B;
+  --myrtle-bg: rgba(111, 215, 155, .13);
+  --madder: #FF8A7A;
+  --madder-bg: rgba(255, 138, 122, .14);
+  --tj-madd: #FF8A7A;
+  --tj-ghunna: #6FD79B;
+  --tj-qalqala: #7FB5F0;
+  --tj-ikhfa: #E8C46A;
+  --tj-iqlab: #C9A6F0;
+  --tj-silent: #8E8E8E;
+  --glass: rgba(255, 255, 255, .08);
+  --glass-strong: rgba(255, 255, 255, .13);
+  --glass-sheen: rgba(255, 255, 255, .22);
+  --glass-edge: rgba(0, 0, 0, .5);
+  --glass-shadow: rgba(0, 0, 0, .7);
+  --material: rgba(20, 20, 20, .72);
+  --material-border: rgba(255, 255, 255, .1);
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, .6);
+  --shadow-2: 0 6px 24px rgba(0, 0, 0, .6);
+  --shadow-3: 0 20px 60px rgba(0, 0, 0, .8);
 }
 
 /* Accessibilité système : trois réglages qu'iOS expose et qu'on respecte. */
@@ -788,3 +802,234 @@ input[type="range"] { flex: 1; accent-color: var(--tint); height: var(--hit); }
   }
   .tp-scroll { scroll-behavior: auto; }
 }
+
+/* ==========================================================================
+   11. Verre liquide
+   --------------------------------------------------------------------------
+   La recette tient en trois couches : un fond translucide qui laisse passer
+   le contenu, une arête supérieure éclairée qui imite la réfraction sur le
+   bord d'une lentille, et une ombre portée qui décolle la surface. Le reflet
+   spéculaire est un pseudo-élément séparé, pour qu'il ne suive pas le contenu.
+   ========================================================================== */
+.glass {
+  position: relative;
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  box-shadow:
+    inset 0 1px 0 var(--glass-sheen),
+    inset 0 -1px 0 var(--glass-edge),
+    0 10px 40px var(--glass-shadow);
+  isolation: isolate;
+}
+.glass::after {
+  content: "";
+  position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(160deg, var(--glass-sheen) 0%, transparent 38%, transparent 100%);
+  opacity: .5; mix-blend-mode: overlay;
+}
+/* Sans transparence, le verre devient une surface pleine : même géométrie,
+   même lisibilité, aucun flou. */
+@media (prefers-reduced-transparency: reduce) {
+  .glass { background: var(--bg-raised); -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .glass::after { display: none; }
+}
+
+/* --------------------------------------------------------------------------
+   12. Le deck de récitation
+   -------------------------------------------------------------------------- */
+.stage-deck {
+  position: relative; flex: 1; min-height: 0;
+  display: flex; flex-direction: column;
+  background: var(--bg);
+}
+
+.deck-rail {
+  flex: none; display: flex; gap: 4px;
+  padding: var(--sp-3) var(--margin) var(--sp-2);
+}
+.rail-dot {
+  flex: 1; height: 3px; border-radius: 2px;
+  background: var(--fill-3);
+  transition: background .28s ease;
+}
+.rail-dot[data-on="1"] { background: var(--label); }
+
+.deck-window {
+  flex: 1; min-height: 0; overflow: hidden;
+  touch-action: pan-x;                 /* le glissement vertical nous revient */
+  cursor: grab;
+}
+.deck-window:active { cursor: grabbing; }
+.deck {
+  height: 100%;
+  transition: transform .42s cubic-bezier(.32, .72, 0, 1);
+}
+@media (prefers-reduced-motion: reduce) { .deck { transition: none; } }
+
+.deck-card {
+  height: 100%;
+  display: flex; flex-direction: column; justify-content: center; gap: var(--sp-5);
+  padding: var(--sp-5) var(--sp-6);
+  opacity: .18;
+  transition: opacity .34s ease;
+}
+.deck-card[data-active="1"] { opacity: 1; }
+
+.deck-ref {
+  margin: 0; text-align: center;
+  font-size: var(--t-footnote); line-height: var(--lh-footnote);
+  letter-spacing: .12em; text-transform: uppercase;
+  color: var(--label-3); font-weight: 600;
+}
+.deck-ar {
+  margin: 0;
+  font-family: var(--arabic); direction: rtl; text-align: center;
+  /* Le verset occupe l'écran : c'est lui qu'on lit en récitant. */
+  font-size: clamp(26px, 7.4vw, 40px); line-height: 2.15;
+  color: var(--label);
+}
+.deck-ar.plain span { color: inherit !important; }
+.deck-tr {
+  margin: 0; text-align: center; text-wrap: pretty;
+  font-size: var(--t-subhead); line-height: 1.5; color: var(--label-3);
+}
+
+.deck-hint {
+  flex: none; margin: 0; padding: 0 var(--margin) var(--sp-3);
+  text-align: center; font-size: var(--t-footnote); color: var(--label-3);
+  opacity: 0; transition: opacity .5s ease .6s;
+  pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
+   13. La barre de commandes en verre
+   -------------------------------------------------------------------------- */
+.glass-bar {
+  flex: none; margin: 0 var(--sp-3) calc(var(--sp-4) + env(safe-area-inset-bottom, 0px));
+  padding: var(--sp-4) var(--sp-4) var(--sp-4);
+  border-radius: 34px;
+  display: flex; flex-direction: column; gap: var(--sp-3);
+  position: relative;
+  background: var(--glass-strong);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  box-shadow:
+    inset 0 1px 0 var(--glass-sheen),
+    inset 0 -1px 0 var(--glass-edge),
+    0 10px 40px var(--glass-shadow);
+}
+.glass-bar::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(160deg, var(--glass-sheen) 0%, transparent 40%, transparent 100%);
+  opacity: .45; mix-blend-mode: overlay;
+}
+@media (prefers-reduced-transparency: reduce) {
+  .glass-bar { background: var(--bg-raised); -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .glass-bar::after { display: none; }
+}
+
+.glass-row {
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+}
+.deck-pos {
+  font-size: var(--t-footnote); color: var(--label-3);
+  font-variant-numeric: tabular-nums;
+}
+.rec-clock {
+  text-align: center;
+  font-size: var(--t-title2); font-weight: 600; letter-spacing: -.02em;
+  color: var(--label); font-variant-numeric: tabular-nums;
+}
+.rec-state { justify-self: end; display: flex; align-items: center; }
+.rec-state .live {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--madder); animation: pulse 1.4s ease-in-out infinite;
+}
+
+.glass-controls {
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+}
+
+/* De gros boutons : en récitant, on ne vise pas. */
+.glass-btn {
+  width: 56px; height: 56px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--fill); color: var(--label);
+  transition: background .15s ease, opacity .15s ease, transform .12s ease;
+}
+.glass-btn:first-child { justify-self: start; }
+.glass-btn:last-child { justify-self: end; }
+.glass-btn svg { width: 24px; height: 24px; }
+.glass-btn:active { transform: scale(.92); }
+.glass-btn:disabled { opacity: .28; }
+
+.rec-orb {
+  width: 88px; height: 88px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--fill);
+  box-shadow: inset 0 0 0 2px var(--separator);
+  transition: transform .14s ease;
+}
+.rec-orb:active { transform: scale(.94); }
+.rec-orb .core {
+  width: 66px; height: 66px; border-radius: 50%;
+  background: var(--madder);
+  transition: border-radius .24s cubic-bezier(.32,.72,0,1), width .24s cubic-bezier(.32,.72,0,1), height .24s cubic-bezier(.32,.72,0,1);
+}
+.rec-orb[data-state="recording"] .core { width: 32px; height: 32px; border-radius: 9px; }
+
+/* --------------------------------------------------------------------------
+   14. Ajustements « épuré » : capsules, grandes cibles, moins de texte
+   -------------------------------------------------------------------------- */
+.btn {
+  min-height: 52px;
+  border-radius: 999px;
+  font-weight: 600;
+  letter-spacing: -.01em;
+}
+.btn-filled { background: var(--label); color: var(--bg); }
+.btn-tinted { background: var(--fill-2); color: var(--label); }
+
+.chip { min-height: 46px; font-weight: 500; }
+.chip[aria-pressed="true"] { background: var(--label); color: var(--bg); }
+
+.card { border-radius: 20px; }
+.list { border-radius: 20px; }
+.tile { border-radius: 20px; }
+.tile[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--label); background: var(--fill); }
+
+.navbar, .tabbar {
+  background: var(--material);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+}
+.row-lead { background: var(--fill); color: var(--label); }
+.ayah-mark, .ayah-ref { color: var(--label-3); }
+.basmala { color: var(--label-2); }
+
+/* --------------------------------------------------------------------------
+   15. Immersion : pendant la récitation, l'écran ne montre que le verset
+   -------------------------------------------------------------------------- */
+.device-screen[data-immersive="1"] .navbar,
+.device-screen[data-immersive="1"] .tabbar { display: none; }
+
+/* La taille du verset se mesure sur la largeur de l'appareil, pas sur celle de
+   la fenêtre : sinon le texte rétrécit dans le châssis de présentation. */
+.device-screen { container-type: inline-size; }
+.deck-ar { font-size: clamp(28px, 9.6cqw, 48px); }
+.deck-rail { padding-top: calc(var(--sp-3) + env(safe-area-inset-top, 0px)); }
+
+/* Halo de niveau : il remplace le vumètre à barres. Un seul élément, qui
+   respire avec la voix, et qui se durcit à la saturation. */
+.rec-orb { position: relative; }
+.rec-orb::before {
+  content: ""; position: absolute; inset: -12px; border-radius: 50%;
+  border: 2px solid var(--label);
+  opacity: calc(var(--level, 0) * .55);
+  transform: scale(calc(1 + var(--level, 0) * .1));
+  transition: opacity .09s linear, transform .09s linear;
+  pointer-events: none;
+}
+.rec-orb[data-clip="1"]::before { border-color: var(--madder); opacity: .9; }
+@media (prefers-reduced-motion: reduce) { .rec-orb::before { transform: none; } }

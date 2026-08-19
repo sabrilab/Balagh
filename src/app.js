@@ -866,6 +866,27 @@
     return i;
   };
 
+  /**
+   * Repères effectifs d'une prise.
+   *
+   * Ceux posés à la main pendant la récitation priment : ils suivent la voix.
+   * L'estimation au prorata des signes ne sert que de repli, et complète la
+   * fin quand le récitant n'a pas fait défiler jusqu'au dernier verset.
+   */
+  function cuesFor(take) {
+    const n = take.verses.length;
+    if (!take.cues || !take.cues.length) return autoCues(take.verses, take.duration);
+    const out = take.cues.slice(0, n);
+    out[0] = 0;
+    if (out.length < n) {
+      const last = out[out.length - 1];
+      const remaining = Math.max(0.1, take.duration - last);
+      const missing = n - out.length;
+      for (let k = 1; k <= missing; k++) out.push(last + (remaining * k) / (missing + 1));
+    }
+    return out;
+  }
+
   async function renderMedia(config) {
     const { buffer, preset, opts, verses, cues, styleId, translationLang, watermark, video, onProgress } = config;
     const duration = buffer.duration;
@@ -1001,6 +1022,7 @@
     trash: SVG('M5 7h14M9.5 7V5.5h5V7M6.7 7l.8 12.5h9l.8-12.5'),
     dot: SVG('', '<circle cx="12" cy="12" r="6"/>'),
     chevron: SVG('M9.5 5.5L16 12l-6.5 6.5'),
+    chevronDown: SVG('M5.5 9.5L12 16l6.5-6.5'),
   };
 
   /* ======================================================================
@@ -1025,7 +1047,6 @@
     videoStyle: 'nuit',
     format: 'video',
     premium: false,
-    prompterSpeed: 26,
     rendered: null,
     progress: 0,
     busy: null,
@@ -1212,7 +1233,43 @@
      13. Écrans — Studio
      ====================================================================== */
 
-  const REC = { state: 'idle', startedAt: 0, timer: 0, scroll: 0, handle: null };
+  const REC = { state: 'idle', startedAt: 0, timer: 0, index: 0, cues: [] };
+
+  /** Temps écoulé depuis le début de la prise, en secondes. */
+  const recElapsed = () => (REC.state === 'recording' ? (performance.now() - REC.startedAt) / 1000 : 0);
+
+  /**
+   * Passe au verset suivant et horodate le passage.
+   *
+   * C'est le cœur du dispositif : le repère n'est plus estimé au prorata du
+   * nombre de signes, il est posé par le récitant lui-même, à l'instant où il
+   * change de verset. Le rendu vidéo suit alors la voix exactement.
+   */
+  function advanceVerse(delta) {
+    const n = S.selection.length;
+    const next = clamp(REC.index + delta, 0, n - 1);
+    if (next === REC.index) return;
+    REC.index = next;
+    if (REC.state === 'recording') {
+      // Un retour en arrière corrige le dernier repère plutôt que d'en ajouter.
+      if (delta > 0) REC.cues[next] = recElapsed();
+      else REC.cues.length = Math.max(1, next + 1);
+    }
+    paintDeck();
+  }
+
+  /** Redessine le deck sans reconstruire l'écran : l'enregistrement continue. */
+  function paintDeck() {
+    const deck = $('#deck');
+    if (!deck) return;
+    deck.style.transform = `translateY(${-REC.index * 100}%)`;
+    $$('.deck-card', deck).forEach((el, i) => el.setAttribute('data-active', i === REC.index ? '1' : '0'));
+    $$('#rail .rail-dot').forEach((el, i) => el.setAttribute('data-on', i <= REC.index ? '1' : '0'));
+    const pos = $('#deck-pos');
+    if (pos) pos.textContent = `${REC.index + 1} / ${S.selection.length}`;
+    const hint = $('#deck-hint');
+    if (hint) hint.style.opacity = REC.index === 0 && REC.state === 'recording' ? '1' : '0';
+  }
 
   function screenPassage() {
     const has = S.selection.length > 0;
@@ -1244,20 +1301,6 @@
           </div>
         `}
 
-        <div class="group">
-          ${groupHeader('Captation')}
-          <div class="card">
-            <div class="slider-row">
-              <label for="sp">Défilement</label>
-              <input id="sp" type="range" min="0" max="70" step="2" value="${S.prompterSpeed}" data-input="speed">
-              <output>${S.prompterSpeed ? S.prompterSpeed : 'off'}</output>
-            </div>
-            <p style="margin:var(--sp-2) 0 0;font-size:var(--t-footnote);line-height:var(--lh-footnote);color:var(--label-3)">
-              Vitesse du télépromptage en pixels par seconde. À zéro, le texte reste fixe et vous faites défiler vous-même.
-            </p>
-          </div>
-        </div>
-
         ${micBlocked ? `
           <div class="notice notice-madder">
             ${ICONS.info}
@@ -1274,36 +1317,37 @@
   }
 
   function screenPrompter() {
+    const n = S.selection.length;
     return `
-      <div class="teleprompter">
-        <div class="tp-mask top"></div>
-        <div class="tp-scroll" id="tp">
-          ${S.selection.map((v, i) => `
-            <div class="tp-verse" data-active="${i === 0 ? 1 : 0}" data-i="${i}">
-              <div class="ayah-ref" style="margin-bottom:var(--sp-3)">${esc(refLabel(v.s, v.a))}</div>
-              <p class="ayah-ar ${S.mode === 'plain' ? 'plain' : ''}">${S.mode === 'tajwid' ? tajwidHTML(verseAr(v.s, v.a)) : plainHTML(verseAr(v.s, v.a))}<span class="ayah-mark">﴿${arNum(v.a)}﴾</span></p>
-              ${S.tr === 'none' ? '' : `<p class="ayah-tr">${esc(verseTr(v.s, v.a, S.tr))}</p>`}
-            </div>`).join('')}
-          <div style="height:140px"></div>
+      <div class="stage-deck">
+        <div class="deck-rail" id="rail" aria-hidden="true">
+          ${S.selection.map((_, i) => `<i class="rail-dot" data-on="${i === 0 ? 1 : 0}"></i>`).join('')}
         </div>
-        <div class="tp-mask bot"></div>
-        <div class="rec-bar">
-          <div class="rec-meta">
-            <span class="rec-time" id="rec-time">0:00.0</span>
-            <span id="rec-status">${REC.state === 'recording'
-              ? '<span class="rec-live"><i></i>Enregistrement</span>'
-              : '<span class="rec-idle">Prêt à enregistrer</span>'}</span>
+
+        <div class="deck-window" id="deck-window">
+          <div class="deck" id="deck">
+            ${S.selection.map((v, i) => `
+              <article class="deck-card" data-active="${i === 0 ? 1 : 0}">
+                <p class="deck-ref">${esc(refLabel(v.s, v.a))}</p>
+                <p class="deck-ar ${S.mode === 'plain' ? 'plain' : ''}">${S.mode === 'tajwid' ? tajwidHTML(verseAr(v.s, v.a)) : plainHTML(verseAr(v.s, v.a))}</p>
+                ${S.tr === 'none' ? '' : `<p class="deck-tr">${esc(verseTr(v.s, v.a, S.tr))}</p>`}
+              </article>`).join('')}
           </div>
-          <div class="meter" id="meter" aria-hidden="true">${Array.from({ length: 28 }, () => '<i style="height:2px"></i>').join('')}</div>
-          <div class="rec-controls">
-            <span class="rec-side">
-              <button class="btn btn-plain" data-act="studio" data-v="passage" ${REC.state === 'recording' ? 'disabled' : ''}>Passage</button>
-            </span>
-            <button class="rec-main" data-act="rec-toggle" data-state="${REC.state}"
+        </div>
+
+        <p class="deck-hint" id="deck-hint">Glissez vers le haut pour le verset suivant</p>
+
+        <div class="glass-bar">
+          <div class="glass-row">
+            <span class="deck-pos" id="deck-pos">1 / ${n}</span>
+            <span class="rec-clock" id="rec-time">0:00</span>
+            <span class="rec-state" id="rec-status">${REC.state === 'recording' ? '<i class="live"></i>' : ''}</span>
+          </div>
+          <div class="glass-controls">
+            <button class="glass-btn" data-act="studio" data-v="passage" ${REC.state === 'recording' ? 'disabled' : ''} aria-label="Revenir au passage">${ICONS.left}</button>
+            <button class="rec-orb" data-act="rec-toggle" data-state="${REC.state}"
               aria-label="${REC.state === 'recording' ? 'Arrêter l’enregistrement' : 'Démarrer l’enregistrement'}"><span class="core"></span></button>
-            <span class="rec-side end">
-              <button class="btn btn-plain" data-act="studio" data-v="review" ${S.take ? '' : 'disabled'}>Écoute</button>
-            </span>
+            <button class="glass-btn" data-act="deck-next" ${REC.index >= n - 1 ? 'disabled' : ''} aria-label="Verset suivant">${ICONS.chevronDown}</button>
           </div>
         </div>
       </div>`;
@@ -1558,7 +1602,9 @@
       const steps = { passage: 'Passage', prompter: 'Télépromptage', review: 'Écoute', export: 'Export' };
       title = steps[S.screen] || 'Studio';
       const prev = { prompter: 'passage', review: 'prompter', export: 'review' }[S.screen];
-      if (prev) back = `<button class="navbar-btn" data-act="studio" data-v="${prev}" ${REC.state === 'recording' ? 'disabled' : ''}>${ICONS.left}${esc(steps[prev])}</button>`;
+      // En mode immersif la barre est masquée : ne pas rendre son bouton évite
+      // un second élément portant la même action, invisible et injoignable.
+      if (prev && S.screen !== 'prompter') back = `<button class="navbar-btn" data-act="studio" data-v="${prev}" ${REC.state === 'recording' ? 'disabled' : ''}>${ICONS.left}${esc(steps[prev])}</button>`;
     } else if (S.tab === 'recitations') { title = 'Prises'; }
     else { title = 'Compte'; }
     return `${back || '<span class="navbar-slot"></span>'}<div class="navbar-title">${esc(title)}</div><span class="navbar-slot"></span>`;
@@ -1598,6 +1644,9 @@
     $('#tabbar').innerHTML = tabbarHTML();
 
     const isPrompter = S.tab === 'studio' && S.screen === 'prompter';
+    // Pendant la récitation, l écran se vide : ni barre de navigation ni
+    // onglets. On récite, on ne navigue pas.
+    $('.device-screen').dataset.immersive = isPrompter ? '1' : '0';
     scr.classList.toggle('no-pad', isPrompter);
     scr.style.overflowY = isPrompter ? 'hidden' : 'auto';
     scr.innerHTML = screenHTML();
@@ -1647,12 +1696,50 @@
       }
     }
 
-    const tp = $('#tp');
-    if (tp) tp.addEventListener('scroll', syncActiveVerse, { passive: true });
+    wireDeck();
 
     const scr = $('#screen');
     if (scr) { scr.addEventListener('scroll', syncNavbar, { passive: true }); syncNavbar(); }
   }
+
+  /**
+   * Gestes du deck. Glisser vers le haut avance, vers le bas revient, et un
+   * appui simple avance aussi : en pleine récitation, une grande cible vaut
+   * mieux qu'un geste précis. Les flèches du clavier font la même chose.
+   */
+  function wireDeck() {
+    const win = $('#deck-window');
+    if (!win || win.dataset.wired) return;
+    win.dataset.wired = '1';
+    paintDeck();
+
+    let y0 = 0, t0 = 0, moved = false;
+    win.addEventListener('pointerdown', (e) => {
+      y0 = e.clientY; t0 = performance.now(); moved = false;
+      try { win.setPointerCapture(e.pointerId); } catch (err) { /* souris hors capture */ }
+    });
+    win.addEventListener('pointermove', (e) => { if (Math.abs(e.clientY - y0) > 8) moved = true; });
+    win.addEventListener('pointerup', (e) => {
+      const dy = e.clientY - y0;
+      if (!moved && performance.now() - t0 < 400) { advanceVerse(1); return; }
+      if (dy < -50) advanceVerse(1);
+      else if (dy > 50) advanceVerse(-1);
+    });
+
+    let wheelLock = 0;
+    win.addEventListener('wheel', (e) => {
+      const now = performance.now();
+      if (now - wheelLock < 420 || Math.abs(e.deltaY) < 12) return;
+      wheelLock = now;
+      advanceVerse(e.deltaY > 0 ? 1 : -1);
+    }, { passive: true });
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (!(S.tab === 'studio' && S.screen === 'prompter')) return;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); advanceVerse(1); }
+    if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { e.preventDefault(); advanceVerse(-1); }
+  });
 
   function syncActiveVerse() {
     const tp = $('#tp');
@@ -1672,20 +1759,21 @@
      17. Enregistrement
      ====================================================================== */
 
+  /**
+   * Le niveau d'entrée se lit sur le halo de l'orbe, pas sur un vumètre à
+   * barres : un seul élément, qui respire avec la voix. La saturation se
+   * signale par un halo net plutôt que par une couleur d'alerte.
+   */
   function updateMeter(rms, peak) {
-    const meter = $('#meter');
-    if (!meter) return;
-    const bars = meter.children;
-    const level = clamp(rms * 3.4, 0, 1);
-    for (let i = bars.length - 1; i > 0; i--) bars[i].style.height = bars[i - 1].style.height;
-    bars[0].style.height = Math.max(2, level * 34) + 'px';
-    for (const b of bars) b.classList.toggle('hot', parseFloat(b.style.height) > 30);
-    if (peak > 0.985) { /* saturation : la barre passe au rouge via .hot */ }
+    const orb = $('.rec-orb');
+    if (!orb) return;
+    orb.style.setProperty('--level', clamp(rms * 3.4, 0, 1).toFixed(3));
+    orb.dataset.clip = peak > 0.985 ? '1' : '0';
   }
 
   function tickTime() {
     const el = $('#rec-time');
-    if (el) el.textContent = fmtTime((performance.now() - REC.startedAt) / 1000);
+    if (el) el.textContent = fmtShort((performance.now() - REC.startedAt) / 1000);
   }
 
   async function recToggle() {
@@ -1721,26 +1809,23 @@
     }
     REC.state = 'recording';
     REC.startedAt = performance.now();
+    REC.index = 0;
+    REC.cues = [0];            // le premier verset commence à l'instant zéro
     render();
     REC.timer = setInterval(tickTime, 100);
-    if (S.prompterSpeed > 0) {
-      REC.scroll = setInterval(() => {
-        const tp = $('#tp');
-        if (tp) { tp.scrollTop += S.prompterSpeed / 10; syncActiveVerse(); }
-      }, 100);
-    }
   }
 
   async function stopRec() {
-    clearInterval(REC.timer); clearInterval(REC.scroll);
-    REC.timer = REC.scroll = 0;
+    clearInterval(REC.timer);
+    REC.timer = 0;
+    const cues = REC.cues.slice();
     const blob = await AudioEngine.stopRecording();
     AudioEngine.releaseMic();
     REC.state = 'idle';
     if (!blob || !blob.size) { render(); toast('Aucun son capté.'); return; }
     try {
       const buffer = await AudioEngine.decode(blob);
-      makeTake(blob, buffer, S.selection.slice());
+      makeTake(blob, buffer, S.selection.slice(), cues);
       S.screen = 'review';
       render();
     } catch (err) {
@@ -1762,7 +1847,7 @@
     return `${refLabel(first.s, first.a)} et ${list.length - 1} autre${list.length > 2 ? 's' : ''}`;
   }
 
-  function makeTake(blob, buffer, verses) {
+  function makeTake(blob, buffer, verses, cues) {
     const list = verses && verses.length ? verses : S.selection.slice();
     const label = list.length ? passageLabel(list) : 'Enregistrement importé';
     const take = {
@@ -1772,6 +1857,7 @@
       blob, buffer,
       duration: buffer.duration,
       verses: list.length ? list : [{ s: S.surah, a: 1 }],
+      cues: cues && cues.length ? cues : null,
     };
     S.takes.unshift(take);
     S.take = take;
@@ -1835,7 +1921,7 @@
         preset,
         opts: { wet: S.wet == null ? preset.wet : S.wet, presence: S.presence },
         verses: t.verses,
-        cues: autoCues(t.verses, t.duration),
+        cues: cuesFor(t),
         styleId: S.videoStyle,
         translationLang: S.tr,
         watermark: !S.premium,
@@ -1901,6 +1987,7 @@
       render();
     },
     'rec-toggle'() { recToggle(); },
+    'deck-next'() { advanceVerse(1); },
     'play-toggle'() { togglePlay(); },
     preset(el) { S.preset = el.dataset.v; S.wet = null; S.rendered = null; if (S.playing) { stopPlayback(); } render(); },
     vstyle(el) { S.videoStyle = el.dataset.v; S.rendered = null; render(); },
@@ -1953,7 +2040,6 @@
       if (field) { field.focus(); field.setSelectionRange(field.value.length, field.value.length); }
       scr.scrollTop = top;
     } else if (k === 'query') { S.query = el.value; }
-    else if (k === 'speed') { S.prompterSpeed = +el.value; el.nextElementSibling.textContent = S.prompterSpeed ? String(S.prompterSpeed) : 'off'; }
     else if (k === 'wet') { S.wet = +el.value / 100; S.rendered = null; el.nextElementSibling.textContent = el.value + '%'; }
     else if (k === 'presence') { S.presence = +el.value; S.rendered = null; el.nextElementSibling.textContent = (S.presence > 0 ? '+' : '') + S.presence; }
   });

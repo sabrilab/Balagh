@@ -88,6 +88,23 @@ défilait derrière l application en emportant la barre d onglets. Sur télépho
 l application est désormais fixe et plein écran ; le rail de notes reste au
 grand écran, là où il a du sens.
 
+## Le registre « verre liquide »
+
+Le premier habillage était chaud — calcaire, laiton, myrte. Il a laissé place à
+un monochrome strict : blanc pur ou noir pur, surfaces de verre translucide,
+grandes capsules, texte réduit au nécessaire.
+
+Le blanc et le noir sont **purs**, sans nuance : c'est ce qui donne au verre sa
+lisibilité, un fond teinté troublant la réfraction. La recette tient en trois
+couches — un fond translucide qui laisse passer le contenu, une arête
+supérieure éclairée qui imite le bord d'une lentille, une ombre portée qui
+décolle la surface.
+
+La conséquence la plus intéressante : **la seule couleur de l'application est
+celle des règles de tajwid**. Plus d'accent décoratif, plus de teinte de marque.
+Là où il y a de la couleur, il y a du sens. Le rouge de l'enregistrement fait
+exception, parce que c'est une convention universelle.
+
 ## Typographie
 
 **Amiri Quran** pour le texte sacré. Ce n'est pas un choix d'ambiance : c'est la

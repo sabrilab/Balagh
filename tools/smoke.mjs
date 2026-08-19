@@ -87,7 +87,10 @@ await page.waitForTimeout(400);
 t('le studio recoit la selection', (await page.locator('[data-act="to-prompter"]').count()) > 0);
 await page.click('[data-act="to-prompter"]');
 await page.waitForTimeout(500);
-t('telepromptage affiche', (await page.locator('#tp .tp-verse').count()) > 0);
+t('telepromptage affiche le deck', (await page.locator('.deck-card').count()) > 0);
+// Le mode immersif masque les onglets : il faut sortir du deck pour naviguer.
+await page.click('[data-act="studio"][data-v="passage"]');
+await page.waitForTimeout(400);
 
 await page.click('[data-act="tab"][data-v="compte"]');
 await page.waitForTimeout(300);
