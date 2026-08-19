@@ -11,11 +11,13 @@
     "data": "node tools/build-data.mjs",
     "build": "node tools/build.mjs",
     "all": "npm run fetch && npm run fonts && npm run data && npm run icons && npm run build",
-    "test": "node tools/smoke.mjs && node tools/smoke-studio.mjs && node tools/audit-hig.mjs && node tools/verify-core.mjs && node tools/sync-native.mjs --check",
+    "test": "node tools/verify-edit.mjs && node tools/verify-segments.mjs && node tools/smoke.mjs && node tools/smoke-studio.mjs && node tools/audit-hig.mjs && node tools/verify-core.mjs && node tools/sync-native.mjs --check",
     "audit": "node tools/audit-hig.mjs",
     "sync": "node tools/sync-native.mjs",
     "verify:sync": "node tools/sync-native.mjs --check",
-    "verify:core": "node tools/verify-core.mjs"
+    "verify:core": "node tools/verify-core.mjs",
+    "verify:edit": "node tools/verify-edit.mjs",
+    "verify:segments": "node tools/verify-segments.mjs"
   },
   "license": "UNLICENSED",
   "engines": {

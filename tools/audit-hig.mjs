@@ -132,25 +132,62 @@ const AUDIT = () => {
   return { small, tiny, lowContrast, overflow };
 };
 
-const browser = await chromium.launch();
-const page = await browser.newPage({ viewport: { width: 1360, height: 1180 }, deviceScaleFactor: 2 });
+// Micro synthétique : le télépromptage et le montage ne s'atteignent qu'avec
+// une vraie prise, et ce sont les deux écrans les plus denses en commandes.
+const browser = await chromium.launch({
+  args: [
+    '--autoplay-policy=no-user-gesture-required',
+    '--use-fake-ui-for-media-stream',
+    '--use-fake-device-for-media-stream',
+  ],
+});
+const ctx = await browser.newContext({ viewport: { width: 1360, height: 1180 }, deviceScaleFactor: 2, permissions: ['microphone'] });
+const page = await ctx.newPage();
 await page.goto(URL_, { waitUntil: 'load' });
 await page.waitForFunction(() => window.TalawaStudio, null, { timeout: 20000 });
 await page.evaluate(() => document.fonts.ready);
 await page.waitForTimeout(700);
 
 const screens = [
-  ['Accueil / liste des sourates', async () => {}],
-  ['Lecture d une sourate', async () => { await page.click('[data-act="open-surah"][data-s="112"]'); }],
-  ['Recherche', async () => { await page.click('[data-act="tab"][data-v="chercher"]'); await page.click('.chip-row .chip >> nth=0'); }],
-  ['Studio — passage', async () => { await page.click('[data-act="tab"][data-v="studio"]'); }],
-  ['Compte', async () => { await page.click('[data-act="tab"][data-v="compte"]'); }],
+  ['Accueil / liste des sourates', '[data-act="open-surah"]', async () => {}],
+  ['Lecture d une sourate', '.verse', async () => { await page.click('[data-act="open-surah"][data-s="112"]'); }],
+  ['Recherche', '.chip-row .chip', async () => { await page.click('[data-act="tab"][data-v="chercher"]'); await page.click('.chip-row .chip >> nth=0'); }],
+  ['Studio — passage', '[data-input="import"]', async () => { await page.click('[data-act="tab"][data-v="studio"]'); }],
+  ['Compte', '[data-act="premium"]', async () => { await page.click('[data-act="tab"][data-v="compte"]'); }],
+  ['Studio — télépromptage', '.deck-card', async () => {
+    await page.evaluate(() => { window.TalawaStudio.state.selection = [{ s: 2, a: 255 }]; });
+    await page.click('[data-act="tab"][data-v="studio"]');
+    await page.waitForTimeout(300);
+    await page.click('[data-act="to-prompter"]');
+  }],
+  ['Studio — montage', '[data-act="ed-pick"]', async () => {
+    // Une vraie prise de deux secondes, puis une coupe : toutes les commandes
+    // du montage sont alors à l'écran.
+    await page.click('[data-act="rec-toggle"]');
+    await page.waitForTimeout(2900);
+    await page.waitForTimeout(1400);
+    await page.click('[data-act="deck-next"]');
+    await page.waitForTimeout(1100);
+    await page.click('[data-act="rec-toggle"]');
+    await page.waitForTimeout(2500);
+    await page.evaluate(() => { window.TalawaStudio.state.playAt = 1.2; });
+    await page.click('[data-act="ed-cut"]');
+    await page.waitForTimeout(400);
+  }],
 ];
 
 const all = { small: new Map(), tiny: new Map(), lowContrast: new Map(), overflow: new Map() };
-for (const [name, go] of screens) {
+let unreached = 0;
+for (const [name, marker, go] of screens) {
   await go();
   await page.waitForTimeout(500);
+  // Un écran qu'on n'atteint pas ne produit aucun écart : sans ce témoin,
+  // l'audit annoncerait « 0 » en n'ayant rien mesuré.
+  if (!(await page.locator(marker).count())) {
+    console.error(`  écran non atteint : ${name} (témoin ${marker} absent)`);
+    unreached++;
+    continue;
+  }
   const r = await page.evaluate(AUDIT);
   for (const x of r.small) all.small.set(`${x.cls}|${x.w}x${x.h}`, { ...x, screen: name });
   for (const x of r.tiny) all.tiny.set(`${x.cls}|${x.size}`, { ...x, screen: name });
@@ -177,4 +214,5 @@ console.log(`\n■ Débordement hors du cadre — ${O.length} type(s)`);
 O.sort((a, b) => b.over - a.over).slice(0, 10)
   .forEach((x) => console.log(`   +${String(x.over).padStart(4)} px  ${x.cls.padEnd(28)} « ${x.txt} »`));
 
-console.log(`\nTotal : ${S.length + T.length + C.length + O.length} écarts.`);
+console.log(`\nTotal : ${S.length + T.length + C.length + O.length} écarts sur ${screens.length - unreached}/${screens.length} écrans.`);
+if (unreached) process.exit(1);

@@ -375,114 +375,18 @@
      volume acoustique, elles n'ajoutent aucune note.
      ====================================================================== */
 
-  const PRESETS = [
-    { id: 'nue', name: 'Voix nue', desc: 'Aucune réverbération, simple mise au net', rt: 0, wet: 0, pre: 0, tone: 6000 },
-    { id: 'salle', name: 'Petite salle', desc: '0,9 s — pièce de travail', rt: 0.9, wet: 0.20, pre: 0.010, tone: 4200 },
-    { id: 'quartier', name: 'Mosquée de quartier', desc: '1,8 s — salle carrelée', rt: 1.8, wet: 0.28, pre: 0.018, tone: 3400 },
-    { id: 'grande', name: 'Grande mosquée', desc: '3,4 s — nef haute', rt: 3.4, wet: 0.34, pre: 0.030, tone: 2900 },
-    { id: 'dome', name: 'Sous le dôme', desc: '5,2 s — coupole, queue longue', rt: 5.2, wet: 0.40, pre: 0.045, tone: 3200 },
-    { id: 'veillee', name: 'Veillée', desc: '0,6 s et un écho lointain', rt: 0.6, wet: 0.18, pre: 0.008, tone: 3000, delay: 0.34, fb: 0.26, dw: 0.16 },
-    { id: 'haram', name: 'Très grand volume', desc: '6,8 s — vaste esplanade couverte', premium: true, rt: 6.8, wet: 0.44, pre: 0.060, tone: 2600 },
-    { id: 'plaine', name: 'Plaine ouverte', desc: 'Échos larges, sans queue', premium: true, rt: 1.2, wet: 0.20, pre: 0.020, tone: 2400, delay: 0.62, fb: 0.34, dw: 0.22 },
-  ];
-  const presetById = (id) => PRESETS.find((p) => p.id === id) || PRESETS[0];
-
   /**
-   * Réponse impulsionnelle synthétique : bruit blanc passe-bas, enveloppe
-   * exponentielle calée sur le RT60 demandé, plus quelques réflexions
-   * précoces qui donnent sa taille au volume.
+   * Acoustiques, chaîne d'effets et analyse viennent de `core/audio.mjs`, le
+   * même fichier qu'importe l'application native : une acoustique corrigée ici
+   * l'est là-bas, sans transcription. Le build l'insère sous `Core.audio`.
    */
-  function makeIR(ctx, preset) {
-    const sr = ctx.sampleRate;
-    const tail = Math.max(0.05, preset.rt);
-    const pre = preset.pre || 0;
-    const len = Math.max(1, Math.floor(sr * (tail + pre)));
-    const buf = ctx.createBuffer(2, len, sr);
-    const start = Math.floor(sr * pre);
-    const a = Math.exp((-2 * Math.PI * preset.tone) / sr);   // pole du passe-bas 1er ordre
-
-    for (let ch = 0; ch < 2; ch++) {
-      const d = buf.getChannelData(ch);
-      let lp = 0;
-      for (let i = start; i < len; i++) {
-        const t = (i - start) / (len - start);
-        const env = Math.exp(-6.908 * t) * (1 - t);          // -60 dB au bout de RT60
-        lp = (Math.random() * 2 - 1) * (1 - a) + lp * a;
-        d[i] = lp * env;
-      }
-      // Reflexions précoces : quelques echos discrets, décorrélés entre canaux.
-      const taps = [0.011, 0.019, 0.027, 0.041, 0.058];
-      taps.forEach((tap, k) => {
-        const pos = start + Math.floor(sr * tap * (1 + ch * 0.07));
-        if (pos < len) d[pos] += (k % 2 ? -1 : 1) * 0.42 * Math.exp(-2.4 * tap * (10 / Math.max(0.5, tail)));
-      });
-    }
-    return buf;
-  }
-
-  const irCache = new Map();
-  function getIR(ctx, preset) {
-    const key = `${preset.id}@${ctx.sampleRate}`;
-    if (!irCache.has(key)) irCache.set(key, makeIR(ctx, preset));
-    return irCache.get(key);
-  }
-
-  /**
-   * Construit la chaîne de traitement et renvoie {input, output}.
-   * source -> coupe-bas -> chaleur -> presence -> compresseur -> [direct | reverb | echo] -> sortie
-   */
-  function buildChain(ctx, preset, opts) {
-    const o = opts || {};
-    const input = ctx.createGain();
-
-    const hp = ctx.createBiquadFilter();
-    hp.type = 'highpass'; hp.frequency.value = 85; hp.Q.value = 0.7;
-
-    const warmth = ctx.createBiquadFilter();
-    warmth.type = 'lowshelf'; warmth.frequency.value = 220; warmth.gain.value = -1.5;
-
-    const presence = ctx.createBiquadFilter();
-    presence.type = 'peaking'; presence.frequency.value = 3200; presence.Q.value = 0.9;
-    presence.gain.value = o.presence != null ? o.presence : 2.5;
-
-    const comp = ctx.createDynamicsCompressor();
-    comp.threshold.value = -22; comp.knee.value = 22; comp.ratio.value = 2.8;
-    comp.attack.value = 0.006; comp.release.value = 0.22;
-
-    const out = ctx.createGain();
-    out.gain.value = 1;
-
-    input.connect(hp); hp.connect(warmth); warmth.connect(presence); presence.connect(comp);
-
-    const wetAmount = o.wet != null ? o.wet : preset.wet;
-    const dry = ctx.createGain();
-    dry.gain.value = 1 - wetAmount * 0.45;
-    comp.connect(dry); dry.connect(out);
-
-    if (preset.rt > 0 && wetAmount > 0) {
-      const conv = ctx.createConvolver();
-      conv.normalize = true;
-      conv.buffer = getIR(ctx, preset);
-      const wet = ctx.createGain();
-      wet.gain.value = wetAmount;
-      comp.connect(conv); conv.connect(wet); wet.connect(out);
-    }
-
-    if (preset.delay) {
-      const dl = ctx.createDelay(2);
-      dl.delayTime.value = preset.delay;
-      const fb = ctx.createGain();
-      fb.gain.value = preset.fb || 0.25;
-      const damp = ctx.createBiquadFilter();
-      damp.type = 'lowpass'; damp.frequency.value = 2200;
-      const dg = ctx.createGain();
-      dg.gain.value = (preset.dw || 0.18) * (wetAmount > 0 ? 1 : 0.6);
-      comp.connect(dl); dl.connect(damp); damp.connect(fb); fb.connect(dl);
-      dl.connect(dg); dg.connect(out);
-    }
-
-    return { input, output: out };
-  }
+  const { PRESETS, presetById, buildChain, rmsEnvelope, detectSilence, trimEdges } = Core.audio;
+  const peaksOf = Core.audio.peaks;
+  const { segmentPassage, WAQF } = Core.segments;
+  const {
+    newRegion, totalDuration, regionLength, splitAt, removeRegion, moveRegion,
+    cutSpan, renderRegions, playSchedule, editedToSource,
+  } = Core.edit;
 
   const AudioEngine = {
     ctx: null,
@@ -583,19 +487,21 @@
     },
 
     /** Lecture temps réel du tampon a travers la chaîne. Renvoie un handle. */
-    play(buffer, preset, opts, onEnd) {
+    play(buffer, preset, opts, onEnd, offset) {
       const ctx = this.ensureCtx();
       const src = ctx.createBufferSource();
       src.buffer = buffer;
       const chain = buildChain(ctx, preset, opts);
       src.connect(chain.input);
       chain.output.connect(ctx.destination);
+      const from = clamp(offset || 0, 0, Math.max(0, buffer.duration - 0.01));
       const startedAt = ctx.currentTime;
       src.onended = () => { if (onEnd) onEnd(); };
-      src.start();
+      src.start(0, from);
       return {
+        cancelled: false,
         stop() { try { src.stop(); } catch (e) { /* déjà arrêté */ } },
-        elapsed: () => ctx.currentTime - startedAt,
+        elapsed: () => from + (ctx.currentTime - startedAt),
       };
     },
 
@@ -615,38 +521,81 @@
     },
   };
 
-  /** Enveloppe de crête pour le dessin de forme d'onde. */
-  function peaks(buffer, count) {
-    const data = buffer.getChannelData(0);
-    const block = Math.max(1, Math.floor(data.length / count));
-    const out = new Float32Array(count);
-    for (let i = 0; i < count; i++) {
-      let max = 0;
-      const start = i * block;
-      const end = Math.min(data.length, start + block);
-      for (let j = start; j < end; j++) { const v = Math.abs(data[j]); if (v > max) max = v; }
-      out[i] = max;
-    }
-    return out;
-  }
+  const peaks = (buffer, count) => peaksOf(buffer.getChannelData(0), count);
 
-  function drawWave(canvas, buffer, progress, colors) {
+  const timelineColors = () => {
+    const cs = getComputedStyle(document.documentElement);
+    const v = (nom, repli) => cs.getPropertyValue(nom).trim() || repli;
+    return {
+      played: v('--label', '#111716'),
+      idle: v('--fill-3', '#DEDED9'),
+      sel: v('--fill-2', 'rgba(0,0,0,.12)'),
+      cut: v('--madder', '#8C3225'),
+      cue: v('--label-3', '#8A8A82'),
+      head: v('--tint', '#7A5A18'),
+    };
+  };
+
+  /**
+   * La barre de montage.
+   *
+   * Une seule surface porte tout ce qui compte : la forme d'onde du montage,
+   * la limite de chaque morceau, les passages d'un segment de texte au suivant,
+   * et la tête de lecture. On y pointe pour se placer, on y glisse pour
+   * parcourir — le geste des lecteurs iOS.
+   */
+  function drawTimeline(canvas, t, colors) {
     const dpr = window.devicePixelRatio || 1;
-    const w = canvas.clientWidth, hgt = canvas.clientHeight;
-    if (!w || !hgt) return;
-    canvas.width = w * dpr; canvas.height = hgt * dpr;
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    if (!w || !h) return;
+    canvas.width = w * dpr; canvas.height = h * dpr;
     const g = canvas.getContext('2d');
-    g.scale(dpr, dpr);
-    g.clearRect(0, 0, w, hgt);
-    const n = Math.floor(w / 3);
-    const p = peaks(buffer, n);
-    const mid = hgt / 2;
-    const cut = (progress || 0) * n;
-    for (let i = 0; i < n; i++) {
-      const amp = Math.max(1.2, p[i] * (hgt / 2 - 3));
-      g.fillStyle = i <= cut ? colors.played : colors.idle;
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.clearRect(0, 0, w, h);
+
+    const regions = takeRegions(t);
+    const total = Math.max(0.05, takeDuration(t));
+    const x = (sec) => (sec / total) * w;
+
+    // Le morceau sélectionné se distingue par son fond, pas par sa couleur :
+    // la forme d'onde reste lisible.
+    if (regions.length > 1) {
+      let acc = 0;
+      for (const r of regions) {
+        if (r.id === S.region) {
+          g.fillStyle = colors.sel;
+          g.fillRect(x(acc), 0, Math.max(3, x(regionLength(r))), h);
+        }
+        acc += regionLength(r);
+      }
+    }
+
+    const p = peaks(editedBuffer(t), Math.max(8, Math.floor(w / 3)));
+    const mid = h / 2, tete = x(S.playAt || 0);
+    for (let i = 0; i < p.length; i++) {
+      const amp = Math.max(1.2, p[i] * (h / 2 - 6));
+      g.fillStyle = i * 3 <= tete ? colors.played : colors.idle;
       g.fillRect(i * 3, mid - amp, 2, amp * 2);
     }
+
+    // Passages d'un segment au suivant : deux encoches, en haut et en bas,
+    // pour ne pas couper la forme d'onde en son milieu.
+    g.save();
+    g.globalAlpha = 0.5;
+    g.fillStyle = colors.cue;
+    for (const e of playSchedule(regions, cuesFor(t)).slice(1)) {
+      g.fillRect(x(e.start), 0, 1, h * 0.26);
+      g.fillRect(x(e.start), h * 0.74, 1, h * 0.26);
+    }
+    g.restore();
+
+    // Coupes du montage : un trait franc, sur toute la hauteur.
+    g.fillStyle = colors.cut;
+    let acc = 0;
+    for (const r of regions.slice(0, -1)) { acc += regionLength(r); g.fillRect(x(acc) - 1, 0, 2, h); }
+
+    g.fillStyle = colors.head;
+    g.fillRect(clamp(tete - 1, 0, w - 2), 0, 2, h);
   }
 
   /* ======================================================================
@@ -741,7 +690,7 @@
 
   /** Dessine une image de la video a l'instant t. */
   function drawFrame(g, W, H, opts) {
-    const { styleId, verse, translation, label, t, duration, level, watermark } = opts;
+    const { styleId, verse, translation, label, t, duration, level, watermark, marks } = opts;
     const pal = PAL[styleId] || PAL.nuit;
 
     const grad = g.createLinearGradient(0, 0, W * 0.4, H);
@@ -793,6 +742,9 @@
     g.textBaseline = 'alphabetic';
     g.font = ar.css;
     g.fillStyle = pal.ink;
+    // Le texte respire avec l'enveloppe de la voix. Tres legerement : une
+    // pulsation visible ferait du verset un effet, ce qu'il n'est pas.
+    g.globalAlpha = 0.92 + level * 0.08;
     let y = top + ar.lh * 0.82;
     for (const line of ar.lines) { g.fillText(line, W / 2, y); y += ar.lh; }
     g.restore();
@@ -803,8 +755,9 @@
     g.strokeStyle = pal.rule;
     g.lineWidth = 2 * k;
     g.beginPath();
-    g.moveTo(W / 2 - 66 * k, arBottom + RULE_GAP);
-    g.lineTo(W / 2 + 66 * k, arBottom + RULE_GAP);
+    const demi = (66 + level * 26) * k;
+    g.moveTo(W / 2 - demi, arBottom + RULE_GAP);
+    g.lineTo(W / 2 + demi, arBottom + RULE_GAP);
     g.stroke();
     g.fillStyle = pal.gold;
     g.font = REF_CSS;
@@ -831,6 +784,15 @@
     const barY = H - 160 * k;
     g.fillStyle = pal.rule;
     g.fillRect(pad, barY, boxW, 4 * k);
+    // Les passages d'un segment au suivant sont marques : on voit venir la
+    // coupe, comme les chapitres d'une piste.
+    if (marks && marks.length > 1) {
+      g.save();
+      g.globalAlpha = 0.75;
+      g.fillStyle = pal.sub;
+      for (const m of marks.slice(1)) g.fillRect(pad + boxW * clamp(m, 0, 1) - k, barY - 5 * k, 2 * k, 14 * k);
+      g.restore();
+    }
     g.fillStyle = pal.gold;
     g.fillRect(pad, barY, boxW * clamp(t / Math.max(0.1, duration), 0, 1), 4 * k);
 
@@ -849,22 +811,27 @@
      7. Export
      ====================================================================== */
 
-  /** Répartition estimée des versets sur la durée, au prorata du nombre de signes. */
-  function autoCues(verses, duration) {
-    const weights = verses.map((v) => Math.max(8, verseAr(v.s, v.a).length));
+  /** Répartition estimée des segments sur la durée, au prorata du nombre de signes. */
+  function autoCues(segments, duration) {
+    const weights = segments.map((g) => Math.max(8, g.text.length));
     const total = weights.reduce((a, b) => a + b, 0);
     let acc = 0;
-    return verses.map((v, i) => {
+    return segments.map((g, i) => {
       const start = (acc / total) * duration;
       acc += weights[i];
       return start;
     });
   }
-  const cueIndex = (cues, t) => {
-    let i = 0;
-    for (let k = 0; k < cues.length; k++) if (t >= cues[k]) i = k;
-    return i;
+  /** Segment a l'ecran a l'instant `t` du MONTAGE. */
+  const scheduleAt = (schedule, t) => {
+    for (let k = 0; k < schedule.length; k++) if (t >= schedule[k].start && t < schedule[k].end) return schedule[k].index;
+    return schedule.length ? schedule[schedule.length - 1].index : 0;
   };
+
+  /** Segments d'une prise — les prises d'avant le découpage n'en ont pas. */
+  const takeSegments = (take) => (take.segments && take.segments.length ? take.segments : take.verses.map((v) => ({
+    s: v.s, a: v.a, text: verseAr(v.s, v.a), mark: null, technique: false, part: 1, parts: 1,
+  })));
 
   /**
    * Repères effectifs d'une prise.
@@ -874,8 +841,9 @@
    * fin quand le récitant n'a pas fait défiler jusqu'au dernier verset.
    */
   function cuesFor(take) {
-    const n = take.verses.length;
-    if (!take.cues || !take.cues.length) return autoCues(take.verses, take.duration);
+    const list = takeSegments(take);
+    const n = list.length;
+    if (!take.cues || !take.cues.length) return autoCues(list, take.duration);
     const out = take.cues.slice(0, n);
     out[0] = 0;
     if (out.length < n) {
@@ -888,19 +856,25 @@
   }
 
   async function renderMedia(config) {
-    const { buffer, preset, opts, verses, cues, styleId, translationLang, watermark, video, onProgress } = config;
+    const { buffer, preset, opts, segments, schedule, styleId, translationLang, watermark, video, onProgress } = config;
     const duration = buffer.duration;
     const { stream: audioStream, source } = AudioEngine.renderToStream(buffer, preset, opts);
 
     let tracks = audioStream.getAudioTracks();
-    let canvas = null, g = null, envelope = null, W = 1080, Hh = 1920;
+    let canvas = null, g = null, envelope = null, marks = null, W = 1080, Hh = 1920;
 
     if (video) {
       await (document.fonts && document.fonts.ready);
       canvas = document.createElement('canvas');
       canvas.width = W; canvas.height = Hh;
       g = canvas.getContext('2d');
-      envelope = peaks(buffer, Math.max(2, Math.ceil(duration * 30)));
+      // L'enveloppe RMS suit l'energie percue la ou la crete suit les
+      // accidents : le texte respire avec la voix, il ne sursaute pas.
+      const brut = rmsEnvelope(buffer.getChannelData(0), buffer.sampleRate, 1000 / 30);
+      const tries = Array.from(brut).filter((v) => v > 1e-4).sort((a, b) => a - b);
+      const haut = tries.length ? tries[Math.floor(tries.length * 0.92)] : 1;
+      envelope = Float32Array.from(brut, (v) => clamp(v / Math.max(1e-4, haut), 0, 1));
+      marks = schedule.map((e) => e.start / Math.max(0.1, duration));
       const vstream = canvas.captureStream(30);
       tracks = [...vstream.getVideoTracks(), ...tracks];
     }
@@ -927,15 +901,16 @@
       const loop = () => {
         const t = (performance.now() - t0) / 1000;
         if (video) {
-          const i = cueIndex(cues, t);
-          const v = verses[i];
+          const gseg = segments[clamp(scheduleAt(schedule, t), 0, segments.length - 1)];
           const level = envelope[clamp(Math.floor(t * 30), 0, envelope.length - 1)] || 0;
           drawFrame(g, W, Hh, {
             styleId,
-            verse: verseAr(v.s, v.a),
-            translation: translationLang === 'none' ? '' : verseTr(v.s, v.a, translationLang),
-            label: refLabel(v.s, v.a),
-            t, duration, level, watermark,
+            verse: gseg.text,
+            // La traduction appartient au VERSET, pas au fragment : la decouper
+            // reviendrait a inventer un alignement entre l'arabe et le francais.
+            translation: translationLang === 'none' ? '' : verseTr(gseg.s, gseg.a, translationLang),
+            label: segLabel(gseg),
+            t, duration, level, watermark, marks,
           });
         }
         if (onProgress) onProgress(clamp(t / duration, 0, 1));
@@ -1022,6 +997,11 @@
     trash: SVG('M5 7h14M9.5 7V5.5h5V7M6.7 7l.8 12.5h9l.8-12.5'),
     dot: SVG('', '<circle cx="12" cy="12" r="6"/>'),
     chevron: SVG('M9.5 5.5L16 12l-6.5 6.5'),
+    toStart: SVG('M18.5 5.5v13M17 12L8.5 6.2v11.6z'),
+    rew: SVG('M12.2 6.6V3.4L7.4 6.6l4.8 3.2V6.6a5.6 5.6 0 1 1-5.6 5.6'),
+    fwd: SVG('M11.8 6.6V3.4l4.8 3.2-4.8 3.2V6.6a5.6 5.6 0 1 0 5.6 5.6'),
+    cut: SVG('M7.7 16.3L18 6M16.3 16.3L6 6', '<circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="18" r="2.5"/>'),
+    undo: SVG('M4.5 9.5h9a5.5 5.5 0 0 1 0 11H8M4.5 9.5L8.5 5.5M4.5 9.5l4 4'),
     chevronDown: SVG('M5.5 9.5L12 16l6.5-6.5'),
   };
 
@@ -1039,6 +1019,10 @@
     query: '',
     results: null,
     selection: [],
+    // Les cartes du télépromptage : un verset court en fait une, un verset
+    // long en fait plusieurs, coupées aux signes de pause du mushaf.
+    segments: null,
+    maxLignes: 3,
     take: null,
     takes: [],
     preset: 'quartier',
@@ -1049,6 +1033,9 @@
     premium: false,
     rendered: null,
     progress: 0,
+    region: null,          // région du montage sélectionnée
+    playAt: 0,             // tête de lecture, en temps de montage
+    silences: null,
     busy: null,
     sheet: null,
     toast: null,
@@ -1059,6 +1046,7 @@
 
   const inSelection = (s, a) => S.selection.some((v) => v.s === s && v.a === a);
   function toggleSelection(s, a) {
+    S.segments = null;
     const i = S.selection.findIndex((v) => v.s === s && v.a === a);
     if (i >= 0) S.selection.splice(i, 1);
     else {
@@ -1246,7 +1234,7 @@
    * change de verset. Le rendu vidéo suit alors la voix exactement.
    */
   function advanceVerse(delta) {
-    const n = S.selection.length;
+    const n = deckList().length;
     const next = clamp(REC.index + delta, 0, n - 1);
     if (next === REC.index) return;
     REC.index = next;
@@ -1258,6 +1246,81 @@
     paintDeck();
   }
 
+  const WAQF_BY_CODE = Object.entries(WAQF).reduce((m, [signe, info]) => {
+    m[info.code] = Object.assign({ signe }, info);
+    return m;
+  }, {});
+
+  /**
+   * Prédicat « ce fragment tient dans le cadre ».
+   *
+   * On ne compte pas les caractères : l'arabe vocalisé a des largeurs très
+   * inégales — une même longueur tient sur deux lignes ici et sur trois là.
+   * On mesure donc le rendu réel, dans une copie invisible de la carte, et on
+   * compare à la hauteur de `maxLignes` lignes. La sonde vit dans le même
+   * conteneur que le deck : la taille de police en `cqw` y vaut la même chose.
+   */
+  function makeFits(maxLignes) {
+    const hote = $('#screen') || document.body;
+    const sonde = document.createElement('div');
+    sonde.className = 'deck-probe';
+    sonde.setAttribute('aria-hidden', 'true');
+    sonde.innerHTML = '<p class="deck-ar"></p>';
+    hote.appendChild(sonde);
+    const p = sonde.firstChild;
+    const mesure = (texte) => { p.textContent = texte; return p.offsetHeight; };
+
+    const uneLigne = mesure('ا') || 1;
+    const budget = uneLigne * (maxLignes + 0.35);   // tolère une ligne à peine entamée
+    const vu = new Map();
+    const test = (texte) => {
+      if (!vu.has(texte)) vu.set(texte, mesure(texte) <= budget);
+      return vu.get(texte);
+    };
+    test.dispose = () => sonde.remove();
+    return test;
+  }
+
+  /**
+   * Recalcule les cartes du deck à partir de la sélection.
+   *
+   * Le découpage ne réécrit jamais le texte : il ne fait que choisir où poser
+   * la coupe, en priorité sur un signe de pause du mushaf, et il refuse les
+   * signes qui interdisent l'arrêt.
+   */
+  function computeSegments() {
+    if (!S.selection.length) { S.segments = null; return null; }
+    const fits = makeFits(S.maxLignes);
+    try {
+      S.segments = segmentPassage(S.selection, verseAr, fits);
+    } finally {
+      fits.dispose();
+    }
+    REC.index = 0;
+    return S.segments;
+  }
+
+  /** Les cartes affichées : les segments s'ils sont calculés, sinon les versets. */
+  const deckList = () => (S.segments && S.segments.length ? S.segments : S.selection.map((v) => ({
+    s: v.s, a: v.a, text: verseAr(v.s, v.a), mark: null, technique: false, part: 1, parts: 1,
+  })));
+
+  /** « An-Nur 24:35 » ou « An-Nur 24:35 · 2/3 » pour un fragment de verset. */
+  const segLabel = (g) => (g.parts > 1 ? `${refLabel(g.s, g.a)} · ${g.part}/${g.parts}` : refLabel(g.s, g.a));
+
+  /**
+   * Signe de pause au pied de la carte. Le fragment s'arrête là parce que le
+   * mushaf l'autorise, et le récitant doit savoir lequel. Faute de signe
+   * disponible, la coupe de confort le dit franchement plutôt que de laisser
+   * croire à un arrêt canonique.
+   */
+  function waqfBadge(g) {
+    if (g.technique) return '<p class="deck-waqf" data-tech="1"><i>···</i>coupe de confort</p>';
+    const w = g.mark ? WAQF_BY_CODE[g.mark] : null;
+    if (!w) return '';
+    return `<p class="deck-waqf"><i>${esc(w.signe)}</i>${esc(w.nom)}</p>`;
+  }
+
   /** Redessine le deck sans reconstruire l'écran : l'enregistrement continue. */
   function paintDeck() {
     const deck = $('#deck');
@@ -1266,7 +1329,7 @@
     $$('.deck-card', deck).forEach((el, i) => el.setAttribute('data-active', i === REC.index ? '1' : '0'));
     $$('#rail .rail-dot').forEach((el, i) => el.setAttribute('data-on', i <= REC.index ? '1' : '0'));
     const pos = $('#deck-pos');
-    if (pos) pos.textContent = `${REC.index + 1} / ${S.selection.length}`;
+    if (pos) pos.textContent = `${REC.index + 1} / ${deckList().length}`;
     const hint = $('#deck-hint');
     if (hint) hint.style.opacity = REC.index === 0 && REC.state === 'recording' ? '1' : '0';
   }
@@ -1317,25 +1380,27 @@
   }
 
   function screenPrompter() {
-    const n = S.selection.length;
+    const list = deckList();
+    const n = list.length;
     return `
       <div class="stage-deck">
         <div class="deck-rail" id="rail" aria-hidden="true">
-          ${S.selection.map((_, i) => `<i class="rail-dot" data-on="${i === 0 ? 1 : 0}"></i>`).join('')}
+          ${list.map((_, i) => `<i class="rail-dot" data-on="${i === 0 ? 1 : 0}"></i>`).join('')}
         </div>
 
         <div class="deck-window" id="deck-window">
           <div class="deck" id="deck">
-            ${S.selection.map((v, i) => `
+            ${list.map((g, i) => `
               <article class="deck-card" data-active="${i === 0 ? 1 : 0}">
-                <p class="deck-ref">${esc(refLabel(v.s, v.a))}</p>
-                <p class="deck-ar ${S.mode === 'plain' ? 'plain' : ''}">${S.mode === 'tajwid' ? tajwidHTML(verseAr(v.s, v.a)) : plainHTML(verseAr(v.s, v.a))}</p>
-                ${S.tr === 'none' ? '' : `<p class="deck-tr">${esc(verseTr(v.s, v.a, S.tr))}</p>`}
+                <p class="deck-ref">${esc(segLabel(g))}</p>
+                <p class="deck-ar ${S.mode === 'plain' ? 'plain' : ''}">${S.mode === 'tajwid' ? tajwidHTML(g.text) : plainHTML(g.text)}</p>
+                ${waqfBadge(g)}
+                ${S.tr === 'none' ? '' : `<p class="deck-tr" data-fragment="${g.parts > 1 ? 1 : 0}">${esc(verseTr(g.s, g.a, S.tr))}</p>`}
               </article>`).join('')}
           </div>
         </div>
 
-        <p class="deck-hint" id="deck-hint">Glissez vers le haut pour le verset suivant</p>
+        <p class="deck-hint" id="deck-hint">Glissez vers le haut pour la suite</p>
 
         <div class="glass-bar">
           <div class="glass-row">
@@ -1360,16 +1425,7 @@
     return `
       ${largeTitle('Écoute', 'Étape 3 sur 4 · les effets')}
       <div class="screen-pad">
-        <div class="card" style="display:flex;flex-direction:column;gap:var(--sp-3)">
-          <div style="display:flex;align-items:center;gap:var(--sp-3)">
-            <div style="flex:1;min-width:0">
-              <div class="row-title">${esc(t.name)}</div>
-              <div class="row-sub">${esc(t.label)} · ${fmtShort(t.duration)}</div>
-            </div>
-            <button class="btn" data-act="play-toggle">${S.playing ? ICONS.pause : ICONS.play}${S.playing ? 'Pause' : 'Écouter'}</button>
-          </div>
-          <canvas class="wave" id="wave"></canvas>
-        </div>
+        ${editorHTML(t)}
 
         <div class="group">
           ${groupHeader('Acoustique')}
@@ -1404,6 +1460,69 @@
         </div>
 
         <button class="btn btn-filled btn-block" data-act="studio" data-v="export">${ICONS.down}Exporter</button>
+      </div>`;
+  }
+
+  /**
+   * Le montage.
+   *
+   * Une prise ne sort jamais parfaite : on veut retirer le raclement de gorge
+   * du début, le blanc au milieu, et remettre un morceau à sa place. Rien
+   * n'est destructif — la prise d'origine reste entière, seule la liste des
+   * morceaux change, et « Rétablir » la ramène d'un geste.
+   */
+  function editorHTML(t) {
+    const regions = takeRegions(t);
+    const total = takeDuration(t);
+    const i = regionIndex(t);
+    const multi = regions.length > 1;
+    const { plages } = silencesOf(t);
+    const interieurs = plages.filter((p) => !p.bord);
+    return `
+      <div class="card editor">
+        <div class="editor-head">
+          <div style="min-width:0">
+            <div class="row-title">${esc(t.name)}</div>
+            <div class="row-sub">${esc(t.label)}${multi ? ` · ${regions.length} morceaux` : ''}</div>
+          </div>
+          <span class="editor-time" id="ed-time">${fmtShort(S.playAt || 0)} / ${fmtShort(total)}</span>
+        </div>
+
+        <canvas class="wave" id="wave" role="slider" tabindex="0"
+          aria-label="Tête de lecture" aria-valuemin="0" aria-valuemax="${total.toFixed(1)}"
+          aria-valuenow="${(S.playAt || 0).toFixed(1)}" aria-valuetext="${fmtShort(S.playAt || 0)}"></canvas>
+
+        <div class="transport">
+          <button class="glass-btn" data-act="ed-home" aria-label="Revenir au début">${ICONS.toStart}</button>
+          <button class="glass-btn" data-act="ed-rew" aria-label="Reculer de cinq secondes">${ICONS.rew}</button>
+          <button class="orb-play" data-act="play-toggle" aria-label="${S.playing ? 'Mettre en pause' : 'Écouter'}">${S.playing ? ICONS.pause : ICONS.play}</button>
+          <button class="glass-btn" data-act="ed-fwd" aria-label="Avancer de cinq secondes">${ICONS.fwd}</button>
+          <button class="glass-btn" data-act="ed-cut" aria-label="Couper à la tête de lecture">${ICONS.cut}</button>
+        </div>
+
+        ${multi ? `
+          <div class="chip-row" role="group" aria-label="Morceaux du montage">
+            ${regions.map((r, k) => `<button class="chip chip-sm" data-act="ed-pick" data-id="${r.id}" aria-pressed="${r.id === S.region}">${k + 1} · ${fmtShort(regionLength(r))}</button>`).join('')}
+          </div>
+          <div class="editor-acts">
+            <button class="btn" data-act="ed-left" ${i <= 0 ? 'disabled' : ''} aria-label="Avancer ce morceau dans l’ordre">${ICONS.left}</button>
+            <button class="btn" data-act="ed-del">${ICONS.trash}Supprimer</button>
+            <button class="btn" data-act="ed-right" ${i < 0 || i >= regions.length - 1 ? 'disabled' : ''} aria-label="Reculer ce morceau dans l’ordre">${ICONS.chevron}</button>
+          </div>` : ''}
+
+        <div class="editor-acts">
+          <button class="btn btn-plain" data-act="ed-trim">Rogner les bords</button>
+          ${multi || total < t.duration - 0.05 ? `<button class="btn btn-plain" data-act="ed-reset">${ICONS.undo}Rétablir</button>` : ''}
+        </div>
+
+        ${interieurs.length ? `
+          <div class="editor-gaps">
+            <p class="editor-gaps-title">${interieurs.length} pause${interieurs.length > 1 ? 's' : ''} dans la récitation</p>
+            <div class="chip-row">
+              ${interieurs.map((p) => `<button class="chip chip-sm" data-act="ed-gap" data-a="${p.start.toFixed(3)}" data-b="${p.end.toFixed(3)}">${fmtShort(p.start)} · ${(p.end - p.start).toFixed(1)} s</button>`).join('')}
+            </div>
+            <p class="editor-gaps-note">Touchez une pause pour la retirer du montage.</p>
+          </div>` : ''}
       </div>`;
   }
 
@@ -1449,7 +1568,7 @@
               <span>Rendu en temps réel…</span><span style="font-variant-numeric:tabular-nums">${Math.round(S.progress * 100)} %</span>
             </div>
             <div class="progress"><i style="width:${S.progress * 100}%"></i></div>
-            <p style="margin:0;font-size:var(--t-footnote);line-height:var(--lh-footnote);color:var(--label-3)">Le rendu suit la durée réelle de la récitation (${fmtShort(t.duration)}). Gardez cet écran affiché.</p>
+            <p style="margin:0;font-size:var(--t-footnote);line-height:var(--lh-footnote);color:var(--label-3)">Le rendu suit la durée réelle du montage (${fmtShort(takeDuration(t))}). Gardez cet écran affiché.</p>
           </div>
         ` : S.rendered ? `
           <div class="card" style="display:flex;flex-direction:column;gap:var(--sp-3)">
@@ -1503,7 +1622,7 @@
               <span class="row-lead">${ICONS.play}</span>
               <button class="row-body" data-act="open-take" data-id="${t.id}" style="text-align:left;min-height:var(--hit);justify-content:center">
                 <span class="row-title">${esc(t.name)}</span>
-                <span class="row-sub">${esc(t.label)} · ${fmtShort(t.duration)}</span>
+                <span class="row-sub">${esc(t.label)} · ${fmtShort(takeDuration(t))}</span>
               </button>
               <button class="icon-btn" data-act="del-take" data-id="${t.id}" aria-label="Supprimer ${esc(t.name)}">${ICONS.trash}</button>
             </div>`).join('')}
@@ -1661,11 +1780,6 @@
     afterRender();
   }
 
-  const waveColors = () => {
-    const cs = getComputedStyle(document.documentElement);
-    return { played: cs.getPropertyValue('--tint').trim() || '#7A5A18', idle: cs.getPropertyValue('--separator-opaque').trim() || '#DEDED9' };
-  };
-
   /** Le titre compact prend le relais du titre large dès qu'il sort du cadre. */
   function syncNavbar() {
     const scr = $('#screen');
@@ -1678,20 +1792,24 @@
 
   function afterRender() {
     const wave = $('#wave');
-    if (wave && S.take) drawWave(wave, S.take.buffer, S.playProgress || 0, waveColors());
+    if (wave && S.take) { drawTimeline(wave, S.take, timelineColors()); wireTimeline(wave); }
 
     const prev = $('#vprev');
     if (prev && S.take) {
       const W = 540, Hh = 960;
       prev.width = W; prev.height = Hh;
-      const v = S.selection[0] || S.take.verses[0];
-      if (v) {
+      const list = takeSegments(S.take);
+      const gseg = list[0];
+      if (gseg) {
+        const cues = cuesFor(S.take);
+        const duree = takeDuration(S.take);
         drawFrame(prev.getContext('2d'), W, Hh, {
           styleId: S.videoStyle,
-          verse: verseAr(v.s, v.a),
-          translation: S.tr === 'none' ? '' : verseTr(v.s, v.a, S.tr),
-          label: refLabel(v.s, v.a),
-          t: 0, duration: S.take.duration, level: 0.3, watermark: !S.premium,
+          verse: gseg.text,
+          translation: S.tr === 'none' ? '' : verseTr(gseg.s, gseg.a, S.tr),
+          label: segLabel(gseg),
+          t: 0, duration: duree, level: 0.3, watermark: !S.premium,
+          marks: playSchedule(takeRegions(S.take), cues).map((e) => e.start / Math.max(0.1, duree)),
         });
       }
     }
@@ -1700,6 +1818,40 @@
 
     const scr = $('#screen');
     if (scr) { scr.addEventListener('scroll', syncNavbar, { passive: true }); syncNavbar(); }
+  }
+
+  /**
+   * Gestes de la barre de montage : pointer pour se placer, glisser pour
+   * parcourir. Les flèches du clavier déplacent la tête d'une seconde, ce qui
+   * rend la barre utilisable sans souris.
+   */
+  function wireTimeline(el) {
+    if (el.dataset.wired) return;
+    el.dataset.wired = '1';
+
+    const posDe = (e) => {
+      const t = S.take;
+      if (!t) return 0;
+      const r = el.getBoundingClientRect();
+      return (clamp(e.clientX - r.left, 0, r.width) / Math.max(1, r.width)) * takeDuration(t);
+    };
+    let glisse = false;
+    el.addEventListener('pointerdown', (e) => {
+      glisse = true;
+      try { el.setPointerCapture(e.pointerId); } catch (err) { /* souris hors capture */ }
+      seekTo(posDe(e));
+    });
+    el.addEventListener('pointermove', (e) => { if (glisse) seekTo(posDe(e)); });
+    const fin = () => { glisse = false; };
+    el.addEventListener('pointerup', fin);
+    el.addEventListener('pointercancel', fin);
+
+    el.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') { e.preventDefault(); seekTo((S.playAt || 0) - 1); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); seekTo((S.playAt || 0) + 1); }
+      if (e.key === 'Home') { e.preventDefault(); seekTo(0); }
+      if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); togglePlay(); }
+    });
   }
 
   /**
@@ -1825,7 +1977,7 @@
     if (!blob || !blob.size) { render(); toast('Aucun son capté.'); return; }
     try {
       const buffer = await AudioEngine.decode(blob);
-      makeTake(blob, buffer, S.selection.slice(), cues);
+      makeTake(blob, buffer, S.selection.slice(), cues, S.segments);
       S.screen = 'review';
       render();
     } catch (err) {
@@ -1847,22 +1999,69 @@
     return `${refLabel(first.s, first.a)} et ${list.length - 1} autre${list.length > 2 ? 's' : ''}`;
   }
 
-  function makeTake(blob, buffer, verses, cues) {
+  function makeTake(blob, buffer, verses, cues, segments) {
     const list = verses && verses.length ? verses : S.selection.slice();
     const label = list.length ? passageLabel(list) : 'Enregistrement importé';
+    const versets = list.length ? list : [{ s: S.surah, a: 1 }];
     const take = {
       id: ++takeSeq,
       name: `Prise ${takeSeq}`,
       label,
       blob, buffer,
-      duration: buffer.duration,
-      verses: list.length ? list : [{ s: S.surah, a: 1 }],
+      duration: buffer.duration,          // durée de la SOURCE, jamais réécrite
+      verses: versets,
+      // Le découpage utilisé à la récitation : c'est lui que suit la vidéo.
+      segments: (segments && segments.length ? segments : null)
+        || versets.map((v) => ({ s: v.s, a: v.a, text: verseAr(v.s, v.a), mark: null, technique: false, part: 1, parts: 1 })),
       cues: cues && cues.length ? cues : null,
+      // Montage non destructif : une seule région couvrant toute la prise.
+      regions: [newRegion(0, buffer.duration)],
     };
     S.takes.unshift(take);
     S.take = take;
     S.rendered = null;
+    S.region = take.regions[0].id;
+    S.playAt = 0;
+    S.silences = null;
     return take;
+  }
+
+  /* ----------------------------------------------------------- Montage */
+
+  const takeRegions = (t) => {
+    if (!t.regions || !t.regions.length) t.regions = [newRegion(0, t.duration)];
+    return t.regions;
+  };
+  const takeDuration = (t) => totalDuration(takeRegions(t));
+  const editSig = (regions) => regions.map((r) => `${r.id}:${r.start.toFixed(4)}:${r.end.toFixed(4)}`).join('|');
+
+  /**
+   * Tampon effectivement lu et exporté.
+   *
+   * La prise d'origine n'est jamais touchée : on assemble les régions à la
+   * demande, et on garde le résultat tant que le montage ne bouge pas. Un
+   * montage intact ne coûte rien — on rend le tampon source tel quel.
+   */
+  function editedBuffer(t) {
+    const regions = takeRegions(t);
+    const sig = editSig(regions);
+    if (t.editedSig === sig && t.edited) return t.edited;
+    const intact = regions.length === 1 && regions[0].start <= 0.001 && regions[0].end >= t.duration - 0.001;
+    t.edited = intact ? t.buffer : renderRegions(AudioEngine.ensureCtx(), t.buffer, regions);
+    t.editedSig = sig;
+    return t.edited;
+  }
+
+  /** Le montage a changé : le rendu précédent ne vaut plus. */
+  function editChanged(regions) {
+    const t = S.take;
+    if (!t) return;
+    t.regions = regions;
+    if (!regions.some((r) => r.id === S.region)) S.region = (regions[0] || {}).id || null;
+    S.playAt = clamp(S.playAt, 0, takeDuration(t));
+    S.rendered = null;
+    stopPlayback();
+    render();
   }
 
   /* ======================================================================
@@ -1870,31 +2069,177 @@
      ====================================================================== */
 
   let player = null, playRaf = 0;
+  /** Arrête la lecture SANS bouger la tête : mettre en pause, c'est rester là. */
   function stopPlayback() {
-    if (player) { player.stop(); player = null; }
+    if (player) { player.cancelled = true; player.stop(); player = null; }
     cancelAnimationFrame(playRaf);
+    playRaf = 0;
     S.playing = false;
-    S.playProgress = 0;
+  }
+
+  function startPlayback(from) {
+    const t = S.take;
+    if (!t) return;
+    const total = takeDuration(t);
+    const at = clamp(from == null ? S.playAt || 0 : from, 0, Math.max(0, total - 0.05));
+    const preset = presetById(S.preset);
+    const opts = { wet: S.wet == null ? preset.wet : S.wet, presence: S.presence };
+
+    // `stop()` déclenche aussi `onended` : sans ce drapeau, une pause serait
+    // prise pour une fin de lecture et ramènerait la tête au début.
+    const handle = AudioEngine.play(editedBuffer(t), preset, opts, () => {
+      if (handle.cancelled) return;
+      stopPlayback();
+      S.playAt = 0;
+      render();
+    }, at);
+    player = handle;
+    S.playAt = at;
+    S.playing = true;
+    render();
+
+    const loop = () => {
+      if (!player) return;
+      S.playAt = clamp(player.elapsed(), 0, total);
+      const tl = $('#wave');
+      if (tl) drawTimeline(tl, t, timelineColors());
+      const pos = $('#ed-time');
+      if (pos) pos.textContent = `${fmtShort(S.playAt)} / ${fmtShort(total)}`;
+      playRaf = requestAnimationFrame(loop);
+    };
+    playRaf = requestAnimationFrame(loop);
   }
 
   function togglePlay() {
     if (S.playing) { stopPlayback(); render(); return; }
+    startPlayback();
+  }
+
+  /** Déplace la tête de lecture. La lecture reprend là si elle était en cours. */
+  function seekTo(sec) {
     const t = S.take;
     if (!t) return;
-    const preset = presetById(S.preset);
-    player = AudioEngine.play(t.buffer, preset, { wet: S.wet == null ? preset.wet : S.wet, presence: S.presence }, () => {
-      stopPlayback(); render();
-    });
-    S.playing = true;
+    const at = clamp(sec, 0, takeDuration(t));
+    const lisait = S.playing;
+    if (lisait) stopPlayback();
+    S.playAt = at;
+    if (lisait) { startPlayback(at); return; }
+    const tl = $('#wave');
+    if (tl) drawTimeline(tl, t, timelineColors());
+    const pos = $('#ed-time');
+    if (pos) pos.textContent = `${fmtShort(at)} / ${fmtShort(takeDuration(t))}`;
+    // Se placer, c'est aussi choisir le morceau : les commandes suivent.
+    const avant = S.region;
+    S.region = regionAt(t, at);
+    if (avant !== S.region) render();
+  }
+
+  /** Morceau du montage sous un instant de lecture. */
+  function regionAt(t, sec) {
+    const regions = takeRegions(t);
+    let acc = 0;
+    for (const r of regions) {
+      acc += regionLength(r);
+      if (sec < acc - 1e-6) return r.id;
+    }
+    const last = regions[regions.length - 1];
+    return last ? last.id : null;
+  }
+
+  const regionIndex = (t) => takeRegions(t).findIndex((r) => r.id === S.region);
+
+  /** Début, en temps de montage, du morceau de rang `i`. */
+  function regionStart(t, i) {
+    const regions = takeRegions(t);
+    let acc = 0;
+    for (let k = 0; k < i && k < regions.length; k++) acc += regionLength(regions[k]);
+    return acc;
+  }
+
+  /* ------------------------------------------------------------ Le montage */
+
+  /** Coupe au niveau de la tête de lecture : un morceau devient deux. */
+  function editCut() {
+    const t = S.take;
+    if (!t) return;
+    const avant = takeRegions(t);
+    const apres = splitAt(avant, S.playAt);
+    if (apres === avant) { toast('Placez la tête de lecture à l’intérieur d’un morceau.'); return; }
+    editChanged(apres);
+    S.region = regionAt(t, S.playAt);
     render();
-    const loop = () => {
-      if (!player) return;
-      S.playProgress = clamp(player.elapsed() / t.duration, 0, 1);
-      const wave = $('#wave');
-      if (wave) drawWave(wave, t.buffer, S.playProgress, waveColors());
-      playRaf = requestAnimationFrame(loop);
-    };
-    playRaf = requestAnimationFrame(loop);
+  }
+
+  function editDelete() {
+    const t = S.take;
+    if (!t) return;
+    const regions = takeRegions(t);
+    if (regions.length <= 1) { toast('Il ne reste qu’un morceau : coupez-le d’abord.'); return; }
+    const i = regionIndex(t);
+    const apres = removeRegion(regions, S.region);
+    if (apres === regions) return;
+    editChanged(apres);
+    S.region = (apres[Math.min(i, apres.length - 1)] || apres[0]).id;
+    S.playAt = regionStart(t, Math.min(i, apres.length - 1));
+    render();
+  }
+
+  function editMove(delta) {
+    const t = S.take;
+    if (!t) return;
+    const regions = takeRegions(t);
+    const i = regionIndex(t);
+    const j = clamp(i + delta, 0, regions.length - 1);
+    if (i < 0 || i === j) return;
+    editChanged(moveRegion(regions, i, j));
+    S.playAt = regionStart(t, j);
+    render();
+  }
+
+  function editReset() {
+    const t = S.take;
+    if (!t) return;
+    editChanged([newRegion(0, t.duration)]);
+    S.region = t.regions[0].id;
+    S.playAt = 0;
+    S.silences = null;
+    render();
+  }
+
+  /** Plages sans voix, datées dans la source. Calculées une fois par prise. */
+  function silencesOf(t) {
+    if (t.silences) return t.silences;
+    const ch = t.buffer.getChannelData(0);
+    const bornes = trimEdges(ch, t.buffer.sampleRate);
+    const plages = detectSilence(ch, t.buffer.sampleRate, { minSilenceMs: 700 })
+      .filter((p) => p.end - p.start >= 0.7)
+      .map((p) => ({
+        start: p.start, end: p.end,
+        bord: p.start <= 0.03 || p.end >= t.duration - 0.03,
+      }));
+    t.silences = { plages, bornes };
+    return t.silences;
+  }
+
+  /** Rogne les blancs de début et de fin, sans toucher au reste du montage. */
+  function editTrim() {
+    const t = S.take;
+    if (!t) return;
+    const { start, end } = silencesOf(t).bornes;
+    if (start <= 0.03 && end >= t.duration - 0.03) { toast('La prise démarre et finit déjà sur la voix.'); return; }
+    const regions = takeRegions(t)
+      .map((r) => newRegion(clamp(r.start, start, end), clamp(r.end, start, end)))
+      .filter((r) => regionLength(r) > 0.05);
+    if (!regions.length) { toast('Rien à garder après rognage.'); return; }
+    editChanged(regions);
+    toast(`${(t.duration - (end - start)).toFixed(1)} s de silence retiré aux extrémités.`);
+  }
+
+  /** Retire un blanc repéré au milieu de la récitation. */
+  function editCutSilence(a, b) {
+    const t = S.take;
+    if (!t) return;
+    editChanged(cutSpan(takeRegions(t), a, b));
   }
 
   function setProgress(p) {
@@ -1917,11 +2262,13 @@
     const video = S.format === 'video';
     try {
       const blob = await renderMedia({
-        buffer: t.buffer,
+        buffer: editedBuffer(t),
         preset,
         opts: { wet: S.wet == null ? preset.wet : S.wet, presence: S.presence },
-        verses: t.verses,
-        cues: cuesFor(t),
+        segments: takeSegments(t),
+        // Le programme est reconstruit depuis les regions : couper ou
+        // deplacer un morceau deplace le texte avec lui, sans decalage.
+        schedule: playSchedule(takeRegions(t), cuesFor(t)),
         styleId: S.videoStyle,
         translationLang: S.tr,
         watermark: !S.premium,
@@ -1971,9 +2318,10 @@
     pick(el) { toggleSelection(+el.dataset.s, +el.dataset.a); render(); },
     recite(el) {
       S.selection = [{ s: +el.dataset.s, a: +el.dataset.a }];
+      computeSegments();
       go('studio', 'prompter');
     },
-    'to-prompter'() { go('studio', 'prompter'); },
+    'to-prompter'() { computeSegments(); go('studio', 'prompter'); },
     studio(el) {
       if (REC.state === 'recording') { toast('Arrêtez l’enregistrement d’abord.'); return; }
       stopPlayback();
@@ -1989,6 +2337,23 @@
     'rec-toggle'() { recToggle(); },
     'deck-next'() { advanceVerse(1); },
     'play-toggle'() { togglePlay(); },
+    'ed-home'() { seekTo(0); },
+    'ed-rew'() { seekTo((S.playAt || 0) - 5); },
+    'ed-fwd'() { seekTo((S.playAt || 0) + 5); },
+    'ed-cut'() { editCut(); },
+    'ed-del'() { editDelete(); },
+    'ed-left'() { editMove(-1); },
+    'ed-right'() { editMove(1); },
+    'ed-trim'() { editTrim(); },
+    'ed-reset'() { editReset(); },
+    'ed-pick'(el) {
+      const t = S.take;
+      if (!t) return;
+      S.region = +el.dataset.id;
+      seekTo(regionStart(t, regionIndex(t)));
+      render();
+    },
+    'ed-gap'(el) { editCutSilence(+el.dataset.a, +el.dataset.b); },
     preset(el) { S.preset = el.dataset.v; S.wet = null; S.rendered = null; if (S.playing) { stopPlayback(); } render(); },
     vstyle(el) { S.videoStyle = el.dataset.v; S.rendered = null; render(); },
     format(el) { S.format = el.dataset.v; S.rendered = null; render(); },
@@ -2000,6 +2365,8 @@
       if (!t) return;
       stopPlayback();
       S.take = t; S.rendered = null;
+      S.region = takeRegions(t)[0].id;
+      S.playAt = 0;
       go('studio', 'review');
     },
     'del-take'(el) {
@@ -2051,7 +2418,7 @@
     try {
       AudioEngine.ensureCtx();
       const buffer = await AudioEngine.decode(file);
-      makeTake(file, buffer, S.selection.slice());
+      makeTake(file, buffer, S.selection.slice(), null, computeSegments());
       go('studio', 'review');
       toast('Enregistrement importé.');
     } catch (err) {
@@ -2059,9 +2426,23 @@
     }
   });
 
+  /**
+   * L'écran change de taille : la barre de montage se redessine, et le
+   * découpage se refait — le nombre de lignes qui tient dans le cadre vient
+   * de changer, donc les coupes aussi. Jamais pendant une récitation : les
+   * repères déjà posés désigneraient d'autres segments.
+   */
+  let resizeTimer = 0;
   window.addEventListener('resize', () => {
     const wave = $('#wave');
-    if (wave && S.take) drawWave(wave, S.take.buffer, S.playProgress || 0, waveColors());
+    if (wave && S.take) drawTimeline(wave, S.take, timelineColors());
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      if (REC.state !== 'idle') return;
+      if (!(S.tab === 'studio' && S.screen === 'prompter')) return;
+      computeSegments();
+      render();
+    }, 220);
   });
 
   /* ======================================================================

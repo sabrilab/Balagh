@@ -23,10 +23,44 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => readFile(join(ROOT, p), 'utf8');
 const exists = (p) => stat(join(ROOT, p)).then(() => true, () => false);
 
-const [html, css, js, data, fontsInline, fontsLinked] = await Promise.all([
+const CORE = ['audio', 'segments', 'edit'];
+
+const [html, css, js, data, fontsInline, fontsLinked, ...coreSources] = await Promise.all([
   read('src/index.html'), read('src/styles.css'), read('src/app.js'),
   read('data/quran.data.json'), read('data/fonts.css'), read('data/fonts/fonts.css'),
+  ...CORE.map((n) => read(`core/${n}.mjs`)),
 ]);
+
+/**
+ * Le web n'embarque pas de chargeur de modules : chaque fichier de `core/`
+ * devient une fonction immédiate rangée sous `Core.<nom>`, ses exports remontés
+ * dans l'objet renvoyé. Le natif importe les MÊMES fichiers tels quels ; il n'y a
+ * donc qu'une seule implémentation à vérifier, jamais deux à tenir en phase.
+ *
+ * La transformation n'est valable que pour des exports nommés en tête de
+ * déclaration et sans import : toute autre forme fait échouer la compilation
+ * plutôt que de produire un paquet silencieusement amputé.
+ */
+function inlineCore(name, source) {
+  const refuse = (raison) => {
+    console.error(`core/${name}.mjs : ${raison}`);
+    process.exit(1);
+  };
+  if (/^\s*import[\s{*]/m.test(source)) refuse('les imports ne sont pas transposables — gardez les modules autonomes.');
+  if (/^\s*export\s+(default|\{|\*)/m.test(source)) refuse('seuls les exports nommés en tête de déclaration sont transposables.');
+
+  const noms = [...source.matchAll(/^export\s+(?:async\s+)?(?:function|const|let|var|class)\s+([A-Za-z_$][\w$]*)/gm)].map((m) => m[1]);
+  if (!noms.length) refuse('aucun export détecté.');
+
+  const corps = source.replace(/^export\s+/gm, '');
+  return `Core.${name} = (function () {\n'use strict';\n${corps}\nreturn { ${noms.join(', ')} };\n})();`;
+}
+
+const coreBundle = [
+  '/* Noyau partagé avec l’application native — voir core/*.mjs */',
+  'var Core = {};',
+  ...CORE.map((n, i) => inlineCore(n, coreSources[i])),
+].join('\n');
 
 const MARKERS = ['<!--%%HEAD%%-->', '<!--%%FONTS%%-->', '/*%%CSS%%*/', '<!--%%BODY%%-->', '<!--%%DATA%%-->', '/*%%JS%%*/'];
 for (const m of MARKERS) {
@@ -36,7 +70,7 @@ for (const m of MARKERS) {
 // `<` n'apparaît dans du JSON qu'à l'intérieur d'une chaîne : l'échapper est sûr
 // et empêche un `</script>` du contenu de fermer la balise prématurément.
 const safeData = data.replace(/</g, '\\u003c');
-const safeJs = js.replace(/<\/script/gi, '<\\/script');
+const safeJs = `${coreBundle}\n${js}`.replace(/<\/script/gi, '<\\/script');
 const hash = (s) => createHash('sha256').update(s).digest('hex').slice(0, 10);
 const size = (s) => `${(Buffer.byteLength(s, 'utf8') / 1024 / 1024).toFixed(2)} Mo`;
 

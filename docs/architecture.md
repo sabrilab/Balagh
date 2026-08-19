@@ -122,8 +122,20 @@ toute référence inconnue est écartée silencieusement.
 
 ## Audio
 
-Chaîne : coupe-bas 85 Hz → creux de chaleur → présence 3,2 kHz → compresseur
-doux → direct + convolution + écho optionnel.
+Chaîne : coupe-bas 85 Hz → creux de chaleur → présence 3,2 kHz → saturation
+douce → direct + convolution + écho optionnel.
+
+La chaîne vient de `core/audio.mjs`, le fichier qu'importe aussi l'application
+native. Le web l'obtient par le build, qui transpose chaque module de `core/`
+en fonction immédiate rangée sous `Core.<nom>` — il n'y a donc **qu'une seule
+implémentation** à corriger, jamais deux à tenir en phase.
+
+Deux conséquences de ce partage, toutes deux voulues. Le compresseur a cédé la
+place à une courbe de tangente hyperbolique : le natif n'expose pas de
+`DynamicsCompressorNode`, et une saturation douce appliquée des deux côtés vaut
+mieux qu'un traitement qui diffère selon l'appareil. Le générateur de bruit des
+réponses impulsionnelles est déterministe et non `Math.random` : deux appareils
+produisent alors exactement la même acoustique, et un export est reproductible.
 
 Les réponses impulsionnelles sont **générées** : bruit blanc passé au filtre
 d'un pôle, enveloppe exponentielle calée sur le RT60 demandé, quelques
@@ -153,6 +165,62 @@ n'a pas fait défiler jusqu'au dernier verset.
 La composition vidéo est entièrement exprimée en multiples de `k = largeur/1080`,
 de sorte que l'aperçu basse définition et l'export 1080×1920 donnent exactement
 la même image.
+
+L'unité affichée n'est plus le verset mais le **segment** : un verset long change
+de plan à chacun de ses waqf. La barre de progression porte les passages d'un
+segment au suivant, comme les chapitres d'une piste.
+
+L'image respire avec la voix. L'enveloppe est un **RMS** et non une crête : le
+RMS suit l'énergie perçue là où la crête suit les accidents, donc le texte
+respire au lieu de sursauter sur les claquements. L'effet est volontairement
+ténu — 8 % d'opacité et quelques pixels de filet. Une pulsation visible ferait
+du verset un effet, ce qu'il n'est pas.
+
+### Découpage aux signes de pause
+
+`core/segments.mjs` ne connaît ni le DOM ni React : il reçoit un prédicat
+« ce texte tient-il ». C'est ce qui lui permet de servir les deux plateformes,
+qui mesurent différemment — copie invisible de la carte sur le web,
+`onTextLayout` calibré une fois en natif.
+
+L'ordre de préférence des waqf est celui des maîtres de lecture : ۘ obligatoire,
+puis ۗ, puis ۚ, puis ۖ. À rang égal, la coupe la plus proche du milieu, pour ne
+pas produire un fragment d'un mot suivi d'un fragment de trois lignes. Le signe
+ۙ, qui interdit l'arrêt, n'est jamais retenu ; les deux points d'un mu'anaqah ۛ
+sont exclusifs — prendre les deux serait une faute de lecture.
+
+Faute de waqf, une coupe de confort tombe sur une frontière de mot et se
+**signale** à l'écran. Sur les 6 236 versets : 1 339 découpés en 8 291 segments,
+408 coupes de confort, zéro texte altéré, zéro coupe interdite.
+
+### Montage
+
+`core/edit.mjs` tient la liste des morceaux — des intervalles dans la prise,
+lus dans l'ordre du tableau. La prise n'est jamais réécrite ; « Rétablir » est
+donc gratuit, et un fondu de six millisecondes à chaque jointure évite le
+claquement d'une discontinuité de forme d'onde.
+
+Le piège est le calage. Les repères sont datés dans la **source** : dès qu'on
+coupe, ils ne correspondent plus. Une première version remappait chaque repère
+vers son instant de montage — et donnait des résultats absurdes dès qu'on
+déplaçait un morceau, tous les repères s'effondrant sur la même valeur. C'est
+que le remappage suppose un ordre inchangé, ce que le déplacement contredit par
+définition.
+
+`playSchedule` reconstruit donc le **programme** depuis les morceaux : pour
+chaque morceau lu, on sait d'où il vient dans la source, donc quel segment il
+porte ; un morceau qui enjambe deux repères est scindé d'autant, et deux
+morceaux voisins portant le même segment sont fondus. Le texte suit le son,
+quelle que soit la manipulation.
+
+### Silences
+
+Le seuil de détection est **relatif à la voix**, pas absolu : une récitation
+murmurée dans une pièce calme et une récitation portée n'ont pas le même
+plancher. On prend le 75ᵉ centile des fenêtres actives comme référence, et
+32 dB en dessous comme seuil. Les blancs des extrémités se rognent d'un geste ;
+ceux du milieu sont proposés un par un, jamais retirés d'office — une pause de
+récitation peut être voulue.
 
 ## Deux cibles, mêmes sources
 

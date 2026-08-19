@@ -4,6 +4,20 @@
 le moteur tajwid, la recherche, les accès au corpus et **la chaîne d'effets**
 viennent tous de `core/`, recopiés par `npm run sync`.
 
+## Mesurer sans DOM
+
+Le découpage a besoin de savoir si un fragment tient sur trois lignes. Sur le
+web, on mesure une copie invisible de la carte. En natif il n'y a rien à
+interroger — mais `onTextLayout` renvoie les lignes réellement composées.
+
+On calibre donc **une fois**, hors écran, avec Al-Baqarah 2:282 : le verset le
+plus long du Coran, assez long pour déborder largement, donc son rapport
+caractères / lignes donne la vraie capacité d'une ligne dans cette police, à
+cette taille, dans cette largeur. Le prédicat qui en découle est synchrone, et
+le découpage redevient un calcul pur. Tant que la calibration n'a pas eu lieu —
+sur le web de secours, par exemple, où `onTextLayout` n'existe pas — chaque
+verset reste entier : la dégradation est visible, pas silencieuse.
+
 ## Ce qui est partagé, et pourquoi c'est possible
 
 `react-native-audio-api` implémente la même interface que la Web Audio API du
@@ -23,9 +37,15 @@ Le natif gagne quelque chose au passage : `OfflineAudioContext` rend **plus vite
 que le temps réel**. Là où le navigateur devait rejouer la prise en entier pour
 l'exporter, le téléphone la calcule d'un coup.
 
+Le découpage aux signes de pause (`core/segments.mjs`) et le montage
+(`core/edit.mjs`) sont partagés de la même façon. Le premier a été écrit pour
+cela : il ne connaît ni DOM ni React, il reçoit un prédicat « ce texte
+tient-il », et chaque plateforme le fabrique à sa façon.
+
 Une vérification (`npm run verify:core`) compare le noyau extrait à
 l'implémentation web sur les 6 236 versets : zéro divergence de classement
-tajwid, zéro texte altéré, zéro divergence de recherche.
+tajwid, zéro texte altéré, zéro divergence de recherche. `npm run verify:edit`
+prouve l'algèbre du montage, `npm run verify:segments` le découpage.
 
 ## Ce que fait la v1 native
 
@@ -33,7 +53,9 @@ tajwid, zéro texte altéré, zéro divergence de recherche.
 |---|---|
 | Lecture, tajwid, traductions | fonctionnel, corpus complet embarqué |
 | Recherche par thème | fonctionnel, index local |
-| Télépromptage et captation micro | fonctionnel (`AudioRecorder`, M4A) |
+| Télépromptage à glissement, découpé aux waqf | fonctionnel (`ScrollView` paginé) |
+| Captation micro | fonctionnel (`AudioRecorder`, M4A) |
+| Montage : couper, supprimer, déplacer, rogner | fonctionnel, non destructif |
 | Effets de voix | fonctionnel, chaîne partagée avec le web |
 | Export audio et partage | fonctionnel (rendu hors temps réel → WAV → feuille de partage) |
 | **Export vidéo** | **absent — voir ci-dessous** |

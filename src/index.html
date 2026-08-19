@@ -133,7 +133,54 @@
       </section>
 
       <section class="note">
-        <h2><b>06</b> La voix, et rien d’autre</h2>
+        <h2><b>06</b> Couper là où le mushaf le permet</h2>
+        <p>
+          Un verset long tenait en entier sur une carte, donc en entier sur un plan de vidéo.
+          Il est maintenant découpé aux <strong>waqf</strong> — les signes d’arrêt imprimés dans
+          le texte — et jamais ailleurs si un waqf convient.
+        </p>
+        <table>
+          <tr><th>Signe</th><th>Ce qu’il dit</th></tr>
+          <tr><td>ۘ</td><td>arrêt obligatoire — coupe prioritaire</td></tr>
+          <tr><td>ۗ</td><td>s’arrêter vaut mieux</td></tr>
+          <tr><td>ۚ</td><td>arrêt permis</td></tr>
+          <tr><td>ۖ</td><td>continuer vaut mieux — coupe en dernier recours</td></tr>
+          <tr><td>ۙ</td><td>ne pas s’arrêter — <strong>jamais</strong> un point de coupe</td></tr>
+          <tr><td>ۛ</td><td>mu’anaqah — l’un ou l’autre, jamais les deux</td></tr>
+        </table>
+        <p style="margin-top:12px">
+          Le budget n’est pas un nombre de caractères mais une mesure du rendu : une copie
+          invisible de la carte donne la hauteur réelle du fragment. Faute de signe disponible,
+          une coupe de confort tombe sur une frontière de mot et <strong>le dit</strong> à l’écran.
+          Sur les 6 236 versets : 1 339 découpés, 8 291 segments, zéro texte altéré,
+          zéro coupe interdite.
+        </p>
+        <p>
+          La traduction, elle, appartient au verset entier. La découper reviendrait à inventer
+          un alignement entre l’arabe et le français : sur un fragment elle est repliée, jamais
+          scindée.
+        </p>
+      </section>
+
+      <section class="note">
+        <h2><b>07</b> Le montage, sans jamais toucher la prise</h2>
+        <p>
+          Une prise ne sort jamais parfaite. La barre de montage porte la tête de lecture, la
+          pause, le recul et l’avance de cinq secondes, la coupe, la suppression, le déplacement
+          d’un morceau, le rognage des bords et le retrait des blancs repérés au milieu.
+        </p>
+        <p>
+          Rien n’est destructif : le montage est une liste d’intervalles dans la prise d’origine,
+          lus dans l’ordre du tableau. Le point délicat est ailleurs — les repères de segments
+          sont datés dans la source, donc dès qu’on déplace un morceau ils ne désignent plus le
+          bon instant. Le programme de lecture est reconstruit depuis les morceaux : chacun sait
+          d’où il vient, donc quel texte il porte. Le texte suit le son, quelle que soit la
+          manipulation.
+        </p>
+      </section>
+
+      <section class="note">
+        <h2><b>08</b> La voix, et rien d’autre</h2>
         <p>
           Les acoustiques sont des réponses impulsionnelles synthétisées à la volée : bruit filtré,
           enveloppe calée sur le temps de réverbération, quelques réflexions précoces pour donner
@@ -147,15 +194,17 @@
       </section>
 
       <section class="note">
-        <h2><b>07</b> Ce qui tourne, ce qui reste à faire</h2>
+        <h2><b>09</b> Ce qui tourne, ce qui reste à faire</h2>
         <table>
           <tr><th>Brique</th><th>État</th></tr>
           <tr><td>Lecture, tajwid, traductions</td><td>fonctionnel, corpus complet</td></tr>
           <tr><td>Recherche par thème</td><td>fonctionnel, local</td></tr>
-          <tr><td>Télépromptage et captation</td><td>fonctionnel (micro réel)</td></tr>
+          <tr><td>Télépromptage à glissement</td><td>fonctionnel, découpé aux waqf</td></tr>
+          <tr><td>Captation</td><td>fonctionnel (micro réel)</td></tr>
+          <tr><td>Montage de la prise</td><td>fonctionnel, non destructif</td></tr>
           <tr><td>Effets de voix</td><td>fonctionnel (Web Audio)</td></tr>
           <tr><td>Export audio et vidéo</td><td>fonctionnel (rendu temps réel)</td></tr>
-          <tr><td>Calage verset par verset</td><td>réparti au prorata des signes — un alignement forcé reste à faire</td></tr>
+          <tr><td>Calage segment par segment</td><td>posé à la main pendant la récitation — un alignement forcé reste à faire</td></tr>
           <tr><td>Comptes, paiement, stockage</td><td>maquette : la bascule premium ne fait que montrer la différence</td></tr>
         </table>
       </section>

@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 import { Button, Empty, ListGroup, Notice, Row, Screen, useTheme } from '../../../src/components/ui';
 import { HIT, space, type } from '../../../src/theme';
-import { removeTake, setState, useStore } from '../../../src/store';
+import { editedDuration, removeTake, setState, useStore } from '../../../src/store';
 
 export default function Takes() {
   const t = useTheme();
@@ -33,7 +33,7 @@ export default function Takes() {
               </View>
             }
             title={tk.name}
-            subtitle={`${tk.label} · ${Math.floor(tk.duration / 60)}:${String(Math.floor(tk.duration % 60)).padStart(2, '0')}`}
+            subtitle={`${tk.label} · ${Math.floor(editedDuration(tk) / 60)}:${String(Math.floor(editedDuration(tk) % 60)).padStart(2, '0')}`}
             trailing={
               <Pressable
                 accessibilityRole="button"

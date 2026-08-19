@@ -894,6 +894,13 @@ input[type="range"] { flex: 1; accent-color: var(--tint); height: var(--hit); }
   margin: 0; text-align: center; text-wrap: pretty;
   font-size: var(--t-subhead); line-height: 1.5; color: var(--label-3);
 }
+/* Sur un fragment, la traduction porte le verset ENTIER : la découper
+   reviendrait à inventer un alignement entre l'arabe et le français. On la
+   replie donc — elle rappelle le sens, elle n'est pas ce qu'on récite. */
+.deck-tr[data-fragment="1"] {
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+  overflow: hidden;
+}
 
 .deck-hint {
   flex: none; margin: 0; padding: 0 var(--margin) var(--sp-3);
@@ -1033,3 +1040,82 @@ input[type="range"] { flex: 1; accent-color: var(--tint); height: var(--hit); }
 }
 .rec-orb[data-clip="1"]::before { border-color: var(--madder); opacity: .9; }
 @media (prefers-reduced-motion: reduce) { .rec-orb::before { transform: none; } }
+
+/* --------------------------------------------------------------------------
+   16. Découpage aux signes de pause
+   -------------------------------------------------------------------------- */
+
+/* La sonde de mesure : une carte invisible, dans le même conteneur que le deck,
+   pour savoir combien de lignes un fragment occupe RÉELLEMENT à l'écran. */
+.screen { position: relative; }
+.deck-probe {
+  position: absolute; left: 0; right: 0; top: 0;
+  padding: 0 var(--sp-6);
+  visibility: hidden; pointer-events: none;
+}
+
+/* Le signe de waqf sous le fragment : discret, mais nommé. Le récitant doit
+   savoir sur quel arrêt il s'appuie — c'est une donnée du mushaf, pas une
+   décoration. */
+.deck-waqf {
+  margin: 0; display: flex; align-items: center; justify-content: center; gap: var(--sp-2);
+  font-size: var(--t-footnote); line-height: var(--lh-footnote); color: var(--label-3);
+}
+.deck-waqf i {
+  font-family: var(--arabic); font-style: normal; font-size: 1.5em; line-height: 1;
+  color: var(--label-2);
+}
+.deck-waqf[data-tech="1"] i { font-family: var(--ui); font-size: 1em; letter-spacing: .1em; }
+
+/* --------------------------------------------------------------------------
+   17. Le montage
+   -------------------------------------------------------------------------- */
+.editor { display: flex; flex-direction: column; gap: var(--sp-3); }
+.editor-head { display: flex; align-items: center; gap: var(--sp-3); }
+.editor-time {
+  flex: none; margin-left: auto;
+  font-size: var(--t-footnote); line-height: var(--lh-footnote);
+  color: var(--label-2); font-variant-numeric: tabular-nums;
+}
+
+/* Plus haute que la forme d'onde qu'elle remplace : elle porte les coupes,
+   les passages de segment et la tête de lecture. */
+.editor .wave {
+  height: 108px; touch-action: none; cursor: pointer;
+  border-radius: var(--r-control);
+}
+.editor .wave:focus-visible { outline: 2px solid var(--tint); outline-offset: 2px; }
+
+/* Cinq cibles, toutes larges : on monte au doigt, souvent d'une seule main. */
+.transport {
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  align-items: center; justify-items: center;
+  gap: var(--sp-2);
+}
+.orb-play {
+  width: 64px; height: 64px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--label); color: var(--bg);
+  transition: transform .14s ease;
+}
+.orb-play svg { width: 26px; height: 26px; }
+.orb-play:active { transform: scale(.94); }
+
+.editor-acts { display: flex; gap: var(--sp-2); align-items: center; }
+.editor-acts .btn { white-space: nowrap; }
+.editor-acts .btn { flex: 1; min-width: 0; }
+.editor-acts .btn[aria-label] { flex: none; width: 64px; padding: 0; }
+
+.chip-sm { padding: 0 var(--sp-3); font-size: var(--t-footnote); font-variant-numeric: tabular-nums; }
+
+.editor-gaps {
+  display: flex; flex-direction: column; gap: var(--sp-2);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--separator);
+}
+.editor-gaps-title {
+  margin: 0; font-size: var(--t-subhead); font-weight: 600; color: var(--label);
+}
+.editor-gaps-note {
+  margin: 0; font-size: var(--t-footnote); line-height: var(--lh-footnote); color: var(--label-3);
+}

@@ -22,7 +22,9 @@ import {
 } from 'react-native-audio-api';
 import { Directory, File, Paths } from 'expo-file-system';
 
-import { buildChain, presetById, peaks as peaksOf } from '../core/audio.mjs';
+import { buildChain, presetById, peaks as peaksOf, detectSilence, trimEdges } from '../core/audio.mjs';
+import { renderRegions, totalDuration } from '../core/edit.mjs';
+import type { Region } from '../store';
 import { encodeWav } from './wav';
 
 export type Preset = {
@@ -85,10 +87,63 @@ export async function stopRecording(): Promise<string | null> {
 
 /* --- décodage et analyse -------------------------------------------------- */
 
+/**
+ * Prises décodées.
+ *
+ * Décoder relit et convertit tout le fichier : on ne le refait pas à chaque
+ * geste de montage. La carte est bornée à quelques prises — au-delà, la plus
+ * ancienne sort, la relire coûte moins cher que de saturer la mémoire.
+ */
+const decoded = new Map<string, any>();
+
 export async function decodeTake(uri: string) {
+  const connu = decoded.get(uri);
+  if (connu) return connu;
   const buffer = await decodeAudioData(uri);
+  decoded.set(uri, buffer);
+  if (decoded.size > 4) decoded.delete(decoded.keys().next().value as string);
   return buffer;
 }
+
+export const forgetTake = (uri: string) => { decoded.delete(uri); editedCache.delete(uri); };
+
+/* --- montage -------------------------------------------------------------- */
+
+const editedCache = new Map<string, { sig: string; buffer: any }>();
+const editSig = (regions: Region[]) => regions.map((r) => `${r.id}:${r.start.toFixed(4)}:${r.end.toFixed(4)}`).join('|');
+
+/**
+ * Tampon effectivement lu et exporté. La prise d'origine n'est jamais
+ * réécrite : on assemble les régions à la demande. Un montage intact ne coûte
+ * rien — on rend le tampon source tel quel.
+ */
+export async function editedTake(uri: string, regions: Region[], sourceDuration: number) {
+  const buffer = await decodeTake(uri);
+  const intact = regions.length === 1 && regions[0].start <= 0.001 && regions[0].end >= sourceDuration - 0.001;
+  if (intact) return buffer;
+  const sig = editSig(regions);
+  const connu = editedCache.get(uri);
+  if (connu && connu.sig === sig) return connu.buffer;
+  const monte = renderRegions(context(), buffer, regions);
+  editedCache.set(uri, { sig, buffer: monte });
+  return monte;
+}
+
+/** Plages sans voix, datées dans la source, et bornes utiles de la prise. */
+export function analyseSilence(buffer: any) {
+  const channel = buffer.getChannelData(0) as Float32Array;
+  const sr = buffer.sampleRate as number;
+  return {
+    plages: (detectSilence(channel, sr, { minSilenceMs: 700 }) as { start: number; end: number }[])
+      .filter((p) => p.end - p.start >= 0.7),
+    bornes: trimEdges(channel, sr) as { start: number; end: number },
+  };
+}
+
+/** Enveloppe de crête d'un montage, pour dessiner sa barre. */
+export const regionPeaks = (buffer: any, count = 120): number[] => Array.from(peaksOf(buffer.getChannelData(0), count));
+
+export const editedDurationOf = (regions: Region[]) => totalDuration(regions) as number;
 
 /** Enveloppe de crête réduite, suffisante pour dessiner une forme d'onde. */
 export function takePeaks(buffer: { getChannelData(c: number): Float32Array }, count = 160): number[] {
@@ -97,13 +152,15 @@ export function takePeaks(buffer: { getChannelData(c: number): Float32Array }, c
 
 /* --- écoute --------------------------------------------------------------- */
 
-let playing: { stop(): void } | null = null;
+let playing: { stop(): void; cancelled?: boolean; elapsed?: () => number } | null = null;
+
+export const playhead = () => (playing && playing.elapsed ? playing.elapsed() : 0);
 
 export function stopPlayback() {
   if (playing) { try { playing.stop(); } catch { /* déjà arrêté */ } playing = null; }
 }
 
-export function playWithEffects(buffer: any, presetId: string, opts: ChainOptions, onEnd?: () => void) {
+export function playWithEffects(buffer: any, presetId: string, opts: ChainOptions, onEnd?: () => void, offset = 0) {
   stopPlayback();
   const c = context();
   const preset = presetById(presetId) as Preset;
@@ -112,10 +169,19 @@ export function playWithEffects(buffer: any, presetId: string, opts: ChainOption
   const chain = buildChain(c, preset, opts);
   src.connect(chain.input);
   chain.output.connect(c.destination);
-  src.onEnded = () => { playing = null; onEnd?.(); };
-  src.start(c.currentTime);
-  playing = { stop: () => src.stop(c.currentTime) };
-  return playing;
+  const from = Math.max(0, Math.min(offset, Math.max(0, buffer.duration - 0.01)));
+  const startedAt = c.currentTime;
+  // `stop()` déclenche aussi `onEnded` : sans ce drapeau, une pause serait
+  // prise pour une fin de lecture et ramènerait la tête au début.
+  const handle = {
+    cancelled: false,
+    stop: () => { handle.cancelled = true; src.stop(c.currentTime); },
+    elapsed: () => from + (c.currentTime - startedAt),
+  };
+  src.onEnded = () => { playing = null; if (!handle.cancelled) onEnd?.(); };
+  src.start(c.currentTime, from);
+  playing = handle;
+  return handle;
 }
 
 /* --- rendu et export ------------------------------------------------------ */

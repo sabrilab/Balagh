@@ -156,3 +156,81 @@ export function peaks(channelData, count) {
   }
   return out;
 }
+
+/* ==========================================================================
+   Analyse du signal — silence, enveloppe
+   ========================================================================== */
+
+/**
+ * Enveloppe RMS, une valeur par fenêtre de `hopMs`.
+ *
+ * Le RMS suit l'énergie perçue là où la crête suit les accidents : pour
+ * décider « ça parle » ou « ça se tait », c'est le bon estimateur.
+ */
+export function rmsEnvelope(channel, sampleRate, hopMs = 20) {
+  const hop = Math.max(1, Math.round((sampleRate * hopMs) / 1000));
+  const n = Math.ceil(channel.length / hop);
+  const out = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    const start = i * hop;
+    const end = Math.min(channel.length, start + hop);
+    let sum = 0;
+    for (let j = start; j < end; j++) sum += channel[j] * channel[j];
+    out[i] = Math.sqrt(sum / Math.max(1, end - start));
+  }
+  return out;
+}
+
+const dbToLin = (db) => 10 ** (db / 20);
+
+/**
+ * Plages de silence.
+ *
+ * Le seuil est relatif au niveau de la voix, pas absolu : une récitation
+ * murmurée dans une pièce calme et une récitation portée n'ont pas le même
+ * plancher. On prend la médiane des fenêtres actives comme référence.
+ *
+ * @returns {{start:number,end:number}[]} en secondes
+ */
+export function detectSilence(channel, sampleRate, opts = {}) {
+  const hopMs = opts.hopMs || 20;
+  const minMs = opts.minSilenceMs || 350;
+  const chuteDb = opts.dropDb || -32;      // sous la voix, pas sous zéro
+
+  const env = rmsEnvelope(channel, sampleRate, hopMs);
+  const actifs = Array.from(env).filter((v) => v > 1e-4).sort((a, b) => a - b);
+  if (!actifs.length) return [{ start: 0, end: channel.length / sampleRate }];
+  const reference = actifs[Math.floor(actifs.length * 0.75)];   // haut du signal utile
+  const seuil = Math.max(reference * dbToLin(chuteDb), 1e-4);
+
+  const minFenetres = Math.max(1, Math.round(minMs / hopMs));
+  const plages = [];
+  let debut = -1;
+  for (let i = 0; i <= env.length; i++) {
+    const silencieux = i < env.length && env[i] < seuil;
+    if (silencieux && debut < 0) debut = i;
+    if (!silencieux && debut >= 0) {
+      if (i - debut >= minFenetres) {
+        plages.push({ start: (debut * hopMs) / 1000, end: (i * hopMs) / 1000 });
+      }
+      debut = -1;
+    }
+  }
+  return plages;
+}
+
+/**
+ * Bornes utiles d'une prise : on rogne le silence de début et de fin, en
+ * gardant une petite marge pour ne pas manger l'attaque du premier mot.
+ */
+export function trimEdges(channel, sampleRate, opts = {}) {
+  const marge = opts.paddingMs != null ? opts.paddingMs / 1000 : 0.12;
+  const duree = channel.length / sampleRate;
+  const plages = detectSilence(channel, sampleRate, opts);
+  let start = 0, end = duree;
+  if (plages.length && plages[0].start <= 0.02) start = Math.max(0, plages[0].end - marge);
+  const derniere = plages[plages.length - 1];
+  if (derniere && derniere.end >= duree - 0.02) end = Math.min(duree, derniere.start + marge);
+  if (end - start < 0.2) return { start: 0, end: duree };   // prise trop courte : on ne touche à rien
+  return { start, end };
+}

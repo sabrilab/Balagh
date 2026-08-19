@@ -53,7 +53,42 @@ await page.waitForFunction(() => window.TalawaStudio);
 await page.evaluate(() => document.fonts.ready);
 await page.waitForTimeout(600);
 
+// --- découpage : le verset du Trône (2:255) ne tient pas sur trois lignes
+await page.evaluate(() => { window.TalawaStudio.state.selection = [{ s: 2, a: 255 }]; });
+await page.click('[data-act="tab"][data-v="studio"]');
+await page.waitForTimeout(300);
+await page.click('[data-act="to-prompter"]');
+await page.waitForTimeout(600);
+const decoupe = await page.evaluate(() => {
+  const S = window.TalawaStudio.state;
+  const nu = (x) => x.replace(/[\u06D6-\u06DC\u06DE]/g, '').replace(/\s+/g, '');
+  const un = document.querySelector('.deck-card .deck-ar');
+  const ligne = un ? parseFloat(getComputedStyle(un).lineHeight) : 0;
+  return {
+    n: S.segments.length,
+    // Les signes de pause sont retirés des deux côtés : celui qui porte la
+    // coupe disparaît du texte, les autres restent dans leur fragment.
+    texteIntact: nu(S.segments.map((g) => g.text).join(' ')) === nu(window.TalawaStudio.data.ar[1].split('\n')[254]),
+    lignes: [...document.querySelectorAll('.deck-card .deck-ar')].map((p) => +(p.offsetHeight / ligne).toFixed(2)),
+    marques: S.segments.filter((g) => g.mark).length,
+    interdits: S.segments.filter((g) => g.mark === 'لا').length,
+  };
+});
+t('2:255 se découpe aux signes de pause', decoupe.n > 1, `${decoupe.n} segments, ${decoupe.marques} marqués`);
+t('le découpage ne réécrit pas le texte', decoupe.texteIntact);
+t('aucun segment ne dépasse le budget de lignes', decoupe.lignes.every((l) => l <= 3.4), decoupe.lignes.join(' / '));
+t('aucune coupe sur un signe « ne pas s’arrêter »', decoupe.interdits === 0);
+t('une carte par segment', (await page.locator('.deck-card').count()) === decoupe.n);
+await page.screenshot({ path: join(OUT, 'studio-decoupage.png') });
+
 // --- choisir un passage court (Al-Ikhlas, 4 versets)
+await page.evaluate(() => { window.TalawaStudio.state.selection = []; });
+// Le télépromptage est immersif : la barre d'onglets n'existe plus, on sort
+// par le bouton de la barre en verre.
+await page.click('.glass-bar [data-act="studio"][data-v="passage"]');
+await page.waitForTimeout(300);
+await page.click('[data-act="tab"][data-v="lire"]');
+await page.waitForTimeout(300);
 await page.click('[data-act="open-surah"][data-s="112"]');
 await page.waitForTimeout(400);
 for (const i of [0, 1]) await page.click(`.verse >> nth=${i} >> [data-act="pick"]`);
@@ -94,6 +129,50 @@ await page.click('[data-act="play-toggle"]');
 await page.waitForTimeout(1200);
 t('lecture en cours', await page.evaluate(() => window.TalawaStudio.state.playing === true));
 await page.click('[data-act="play-toggle"]');
+
+// --- montage : couper, déplacer, supprimer, rétablir
+const duree = await page.evaluate(() => window.TalawaStudio.state.take.duration);
+await page.evaluate((d) => { window.TalawaStudio.state.playAt = d / 2; }, duree);
+await page.click('[data-act="ed-cut"]');
+await page.waitForTimeout(300);
+const apresCoupe = await page.evaluate(() => window.TalawaStudio.state.take.regions.map((r) => [+r.start.toFixed(2), +r.end.toFixed(2)]));
+t('la coupe fait deux morceaux', apresCoupe.length === 2 && Math.abs(apresCoupe[0][1] - duree / 2) < 0.05,
+  JSON.stringify(apresCoupe));
+t('les deux morceaux sont proposés', (await page.locator('[data-act="ed-pick"]').count()) === 2);
+
+await page.click('[data-act="ed-pick"] >> nth=0');
+await page.waitForTimeout(200);
+await page.click('[data-act="ed-right"]');
+await page.waitForTimeout(300);
+const apresDeplacement = await page.evaluate(() => {
+  const S = window.TalawaStudio.state;
+  return { regions: S.take.regions.map((r) => +r.start.toFixed(2)), duree: S.take.regions.reduce((a, r) => a + (r.end - r.start), 0) };
+});
+t('déplacer inverse l’ordre sans perdre de son',
+  apresDeplacement.regions[0] > apresDeplacement.regions[1] && Math.abs(apresDeplacement.duree - duree) < 0.05,
+  JSON.stringify(apresDeplacement.regions));
+
+await page.click('[data-act="ed-del"]');
+await page.waitForTimeout(300);
+const apresSuppression = await page.evaluate(() => window.TalawaStudio.state.take.regions.length);
+t('supprimer retire un morceau', apresSuppression === 1, String(apresSuppression));
+
+// --- lecture décalée : la pause reste où elle est
+await page.click('[data-act="play-toggle"]');
+await page.waitForTimeout(900);
+await page.click('[data-act="play-toggle"]');
+await page.waitForTimeout(200);
+const pause = await page.evaluate(() => ({ playing: window.TalawaStudio.state.playing, at: window.TalawaStudio.state.playAt }));
+t('la pause garde la tête de lecture', pause.playing === false && pause.at > 0.3, `${pause.at.toFixed(2)} s`);
+await page.screenshot({ path: join(OUT, 'studio-montage.png') });
+
+await page.click('[data-act="ed-reset"]');
+await page.waitForTimeout(300);
+const retabli = await page.evaluate(() => {
+  const t2 = window.TalawaStudio.state.take;
+  return { n: t2.regions.length, couvre: Math.abs(t2.regions[0].end - t2.duration) < 0.01 };
+});
+t('rétablir rend la prise entière', retabli.n === 1 && retabli.couvre);
 
 // --- export vidéo
 await page.click('[data-act="studio"][data-v="export"]');
