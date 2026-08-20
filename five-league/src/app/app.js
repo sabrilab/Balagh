@@ -11,9 +11,9 @@ import { vueHub } from './vue-hub.js';
 import { vueModule, quitterModule } from './vue-module.js';
 import { vueRapport } from './vue-rapport.js';
 import { vueReglages, ouvrirAide } from './vue-reglages.js';
-import { abonner, ajouterLigne, appliquerTheme, contexteEphemere, definirSaison, definirTheme, demarrerBase, estDemo, exporterBase, laBase, lignes, reglagesActifs, reinitialiser, saisonActive, saisons, stockageDisponible, supprimerLigne, themeEnregistre } from './store.js';
+import { abonner, ajouterLigne, appliquerTheme, contexteEphemere, persistanceVerifiee, definirSaison, definirTheme, demarrerBase, estDemo, exporterBase, laBase, lignes, reglagesActifs, reinitialiser, saisonActive, saisons, stockageDisponible, supprimerLigne, themeEnregistre } from './store.js';
 import { synthese, alertes, fluxMensuels, repartitionCharges } from './stats.js';
-import { versXLSX, versCSV, tableModule, telecharger, nomHorodate } from './echange.js';
+import { versXLSX, versCSV, tableModule, livrerFichier, nomHorodate } from './echange.js';
 
 const MODULE_PAR_ROUTE = Object.fromEntries(MODULES.map((m) => [m.route, m]));
 
@@ -59,8 +59,8 @@ function enTete() {
         class: route.nom === 'module' && route.module.id === m.id ? 'nav-lien--actif' : '',
         style: { '--couleur-module': m.couleur },
       }, icone(m.icone, 17), h('span', { text: m.court })))),
+    selecteurSaison,
     h('div.entete-outils', {},
-      selecteurSaison,
       h('button.bouton-icone', { type: 'button', 'aria-label': 'Aide', title: 'Prise en main', onclick: ouvrirAide }, icone('M12 17h.01M9.5 9.2a2.6 2.6 0 1 1 3.3 2.5c-.6.2-.8.7-.8 1.3v.5M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z', 20)),
       boutonTheme,
       h('a.bouton-icone', { href: '#/reglages', 'aria-label': 'Réglages', title: 'Réglages et données' }, icone(TRACE_ICONES.reglages, 20))));
@@ -68,7 +68,7 @@ function enTete() {
 
 const boutonSauvegarde = () => h('button.bouton.bouton--petit', {
   type: 'button',
-  onclick: () => telecharger(nomHorodate('five-league-sauvegarde', 'json'), exporterBase(), 'application/json'),
+  onclick: () => livrerFichier(nomHorodate('five-league-sauvegarde', 'json'), exporterBase(), 'application/json'),
 }, icone(TRACE_ICONES.exporter, 16), h('span', { text: 'Sauvegarder maintenant' }));
 
 function bandeaux() {
@@ -78,10 +78,10 @@ function bandeaux() {
       h('span', {}, 'Ce navigateur refuse le stockage local : ', h('strong', { text: 'les saisies de cette session ne seront pas conservées' }),
         '. Enregistrez ce fichier sur votre ordinateur et ouvrez-le par un double-clic, ou exportez une sauvegarde avant de fermer l’onglet.'),
       boutonSauvegarde()));
-  } else if (contexteEphemere()) {
-    messages.push(h('div.bandeau.bandeau--alerte', {}, icone(TRACE_ICONES.alerte, 18),
-      h('span', {}, 'Cette page est affichée dans un aperçu intégré : ', h('strong', { text: 'vos saisies risquent de disparaître au prochain chargement' }),
-        '. Téléchargez le fichier et ouvrez-le directement depuis votre ordinateur pour que tout soit conservé.'),
+  } else if (contexteEphemere() && !persistanceVerifiee()) {
+    messages.push(h('div.bandeau', {}, icone(TRACE_ICONES.alerte, 18),
+      h('span', {}, 'Cette page est affichée dans un cadre : ', h('strong', { text: 'la conservation de vos saisies n’est pas encore vérifiée ici' }),
+        '. Rechargez la page une fois : si ce bandeau disparaît, tout est bien enregistré. S’il revient, enregistrez le fichier sur votre appareil ou gardez une sauvegarde.'),
       boutonSauvegarde()));
   }
   if (estDemo()) {

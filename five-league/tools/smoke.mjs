@@ -7,6 +7,8 @@
  * gestionnaire d'association.
  */
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs';
+import { readFile, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -279,6 +281,36 @@ t('le hub devient une grille sur téléphone', grille.nombre === 8 && grille.ali
 await pageMobile.goto(`${URL_}#/module/cotisations`);
 await pageMobile.waitForTimeout(400);
 t('les tableaux deviennent des fiches sur téléphone', await pageMobile.evaluate(() => getComputedStyle(document.querySelector('.tableau thead')).display === 'none'));
+
+/* ------------------------------------------------------- Version en ligne */
+
+/* Le fragment publié est enveloppé par la plateforme dans sa propre coquille.
+   On refait ici cet emballage : c'est le seul moyen de vérifier qu'il démarre
+   ailleurs que dans le fichier autonome. */
+const fragment = await readFile(join(RACINE, 'dist', 'five-league-artifact.html'), 'utf8');
+const enveloppe = join(tmpdir(), 'five-league-enveloppe.html');
+await writeFile(enveloppe, `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head><body>${fragment}</body></html>`);
+const contexteHote = await navigateur.newContext({ viewport: { width: 1280, height: 900 } });
+const pageHote = await contexteHote.newPage();
+const erreursHote = [];
+pageHote.on('pageerror', (e) => erreursHote.push(e.message));
+pageHote.on('console', (m) => { if (m.type() === 'error') erreursHote.push(m.text()); });
+await pageHote.goto(`file://${enveloppe}`, { waitUntil: 'load' });
+await pageHote.waitForFunction(() => window.FiveLeague, null, { timeout: 15000 });
+await pageHote.waitForTimeout(300);
+t('le fragment en ligne démarre sans erreur', erreursHote.length === 0, erreursHote.slice(0, 2).join(' | '));
+t('le fragment affiche le hub complet', await pageHote.locator('.hub-noeud').count() === 8);
+t('le fragment ne contient aucune balise de document', !/<(!doctype|html|head|body)\b/i.test(fragment));
+
+/* Le thème de l'hôte utilise « dark » / « light » là où l'application dit
+   « sombre » / « clair » : la palette doit répondre aux deux. */
+await pageHote.evaluate(() => document.documentElement.setAttribute('data-theme', 'dark'));
+await pageHote.waitForTimeout(180);
+const fondSombre = await pageHote.evaluate(() => getComputedStyle(document.body).backgroundColor);
+await pageHote.evaluate(() => document.documentElement.setAttribute('data-theme', 'light'));
+await pageHote.waitForTimeout(180);
+const fondClair = await pageHote.evaluate(() => getComputedStyle(document.body).backgroundColor);
+t('la page suit le thème de l’hôte', fondSombre !== fondClair, `${fondSombre} vs ${fondClair}`);
 
 t('aucune erreur console pendant le parcours', erreurs.length === 0, erreurs.slice(0, 3).join(' | '));
 

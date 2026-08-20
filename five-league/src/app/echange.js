@@ -11,6 +11,7 @@
  * fichiers qui pèsent quelques dizaines de kilo-octets.
  */
 
+import { toast } from './dom.js';
 import { CHAMPS_TOUS, champParId } from './schema.js';
 
 /* ------------------------------------------------------------------- CSV */
@@ -180,6 +181,52 @@ export function telecharger(nomFichier, contenu, type = 'text/plain;charset=utf-
   lien.click();
   lien.remove();
   setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+
+/**
+ * Certains hôtes affichent la page dans un cadre où un lien de
+ * téléchargement reste inerte, et proposent à la place une passerelle
+ * d'enregistrement. On la demande une fois ; absente, on retombe sur le
+ * téléchargement ordinaire.
+ */
+let passerelle;
+async function passerelleHote() {
+  if (passerelle !== undefined) return passerelle;
+  passerelle = null;
+  try {
+    if (window.claude && typeof window.claude.use === 'function') passerelle = await window.claude.use('downloads');
+  } catch (e) {
+    passerelle = null;
+  }
+  return passerelle;
+}
+
+const RAISONS = {
+  declined: 'Enregistrement annulé.',
+  rejected_extension: 'Ce format n’est pas accepté ici : passez par le CSV, ou copiez les données.',
+  extension_not_enabled: 'Ce format n’est pas accepté ici : passez par la sauvegarde JSON, ou copiez les données.',
+  too_large: 'Fichier trop volumineux pour être enregistré depuis cette page.',
+  rate_limited: 'Un enregistrement est déjà en cours : réessayez dans un instant.',
+};
+
+/** Livre un fichier par le meilleur chemin disponible, et dit ce qui s'est
+ *  passé — un export silencieux qui échoue est pire que pas d'export. */
+export async function livrerFichier(nomFichier, contenu, type = 'text/plain;charset=utf-8') {
+  const hote = await passerelleHote();
+  if (!hote) {
+    telecharger(nomFichier, contenu, type);
+    toast(`${nomFichier} téléchargé.`);
+    return { statut: 'lance' };
+  }
+  try {
+    await hote.save({ filename: nomFichier, data: contenu instanceof Blob ? contenu : String(contenu) });
+    toast(`${nomFichier} enregistré.`);
+    return { statut: 'enregistre' };
+  } catch (e) {
+    const code = (e && e.code) || 'unavailable';
+    toast(RAISONS[code] || 'Enregistrement impossible ici : copiez les données à la place.', code === 'declined' ? 'neutre' : 'erreur');
+    return { statut: 'refuse', code };
+  }
 }
 
 export async function copier(texte) {

@@ -10,7 +10,7 @@ import { MODULE_PAR_ID, CHAMPS_TOUS, champParId } from './schema.js';
 import { euros, nombre, heures, dateCourte, contient, comparer } from './format.js';
 import { carteKPI, pastille, carte, etatVide, bouton, champFichier, TRACE_ICONES } from './composants.js';
 import { barresHorizontales } from './graphes.js';
-import { versCSV, depuisCSV, versXLSX, tableModule, telecharger, copier, nomHorodate, correspondance, ligneImportee } from './echange.js';
+import { versCSV, depuisCSV, versXLSX, tableModule, livrerFichier, copier, nomHorodate, correspondance, ligneImportee } from './echange.js';
 import { ajouterLigne, ajouterLignes, lignes, modifierLigne, reglagesActifs, saisonActive, supprimerLigne } from './store.js';
 
 /** L'état de tri et de filtre survit à la navigation, le temps de la session. */
@@ -161,8 +161,8 @@ function menuExport(module, lignes, reglages) {
     corps: h('div.pile', {},
       h('p.texte-doux', { text: `${lignes.length} ${module.pluriel} sur la sélection en cours, ${table.entetes.length} colonnes.` }),
       h('div.choix-export', {},
-        bouton('Classeur Excel (.xlsx)', { variante: 'primaire', icone: TRACE_ICONES.exporter, onclick: () => telecharger(nomHorodate(nom, 'xlsx'), versXLSX([table])) }),
-        bouton('Tableur CSV (.csv)', { icone: TRACE_ICONES.exporter, onclick: () => telecharger(nomHorodate(nom, 'csv'), csv, 'text/csv;charset=utf-8') }),
+        bouton('Classeur Excel (.xlsx)', { variante: 'primaire', icone: TRACE_ICONES.exporter, onclick: () => livrerFichier(nomHorodate(nom, 'xlsx'), versXLSX([table])) }),
+        bouton('Tableur CSV (.csv)', { icone: TRACE_ICONES.exporter, onclick: () => livrerFichier(nomHorodate(nom, 'csv'), csv, 'text/csv;charset=utf-8') }),
         bouton('Imprimer ou enregistrer en PDF', { icone: TRACE_ICONES.imprimer, onclick: () => window.print() }),
         bouton('Copier au format CSV', { onclick: async () => toast(await copier(csv) ? 'Données copiées dans le presse-papiers.' : 'Copie impossible sur ce navigateur.', 'neutre') })),
       h('p.texte-doux.petit', { text: 'Le CSV est encodé en UTF-8 avec séparateur point-virgule : Excel et LibreOffice l’ouvrent sans réglage.' })),
@@ -268,7 +268,10 @@ function contenu(module) {
         titre: toutes.length ? 'Aucun résultat pour cette recherche' : `Aucune donnée pour la saison ${saisonActive()}`,
         detail: toutes.length ? 'Modifiez la recherche ou le filtre d’état.' : `Ajoutez ${module.pluriel} une à une, ou importez un fichier CSV existant.`,
         action: toutes.length ? null : bouton(`Ajouter ${module.singulier}`, { variante: 'primaire', icone: TRACE_ICONES.plus, onclick: () => ouvrirFormulaire(module) }),
-      }) }));
+      }) }),
+
+    h('button.fab', { type: 'button', 'aria-label': `Ajouter ${module.singulier}`, onclick: () => ouvrirFormulaire(module) },
+      icone(TRACE_ICONES.plus, 22), h('span', { text: 'Ajouter' })));
 }
 
 export function vueModule(moduleId) {

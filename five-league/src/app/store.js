@@ -16,9 +16,11 @@ import { baseDemo } from './demo.js';
 
 const CLE = 'five-league.base.v1';
 const CLE_THEME = 'five-league.theme';
+const CLE_TEMOIN = 'five-league.temoin';
 
 let etatBase = null;
 let stockageActif = true;
+let persistanceProuvee = false;
 const abonnes = new Set();
 
 const baseVide = () => ({
@@ -94,9 +96,28 @@ export function contexteEphemere() {
   return ['blob:', 'data:'].includes(window.location.protocol);
 }
 
+/**
+ * Le témoin prouve la persistance au lieu de la supposer. Il est écrit au
+ * premier démarrage ; le retrouver au démarrage suivant signifie qu'une
+ * session précédente a bien laissé une trace — la seule preuve possible,
+ * puisqu'aucun test intérieur à une session ne distingue un stockage
+ * durable d'un stockage qui sera vidé au prochain chargement.
+ */
+function verifierTemoin() {
+  try {
+    persistanceProuvee = Boolean(localStorage.getItem(CLE_TEMOIN));
+    if (!persistanceProuvee) localStorage.setItem(CLE_TEMOIN, new Date().toISOString());
+  } catch (e) {
+    persistanceProuvee = false;
+  }
+}
+
+export const persistanceVerifiee = () => persistanceProuvee;
+
 export function demarrerBase() {
   let brute = null;
   stockageActif = stockageUtilisable();
+  if (stockageActif) verifierTemoin();
   try {
     const texte = stockageActif ? localStorage.getItem(CLE) : null;
     brute = texte ? JSON.parse(texte) : null;
@@ -228,8 +249,17 @@ export function definirTheme(valeur) {
   appliquerTheme(valeur);
 }
 
+/**
+ * En mode automatique on ne retire que notre propre marque : la page peut
+ * être affichée par un hôte qui a déjà stampé `light` ou `dark` selon le
+ * réglage du visiteur, et l'effacer reviendrait à ignorer son choix.
+ */
 export function appliquerTheme(valeur) {
   const racine = document.documentElement;
-  if (valeur === 'auto') racine.removeAttribute('data-theme');
-  else racine.setAttribute('data-theme', valeur);
+  if (valeur === 'auto') {
+    const actuel = racine.getAttribute('data-theme');
+    if (actuel === 'sombre' || actuel === 'clair') racine.removeAttribute('data-theme');
+    return;
+  }
+  racine.setAttribute('data-theme', valeur);
 }

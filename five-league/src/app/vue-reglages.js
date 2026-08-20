@@ -9,7 +9,7 @@ import { h, modale, confirmer, toast } from './dom.js';
 import { MODULES, SAISONS } from './schema.js';
 import { euros, nombre } from './format.js';
 import { carte, bouton, champFichier, TRACE_ICONES } from './composants.js';
-import { versXLSX, tableModule, telecharger, nomHorodate } from './echange.js';
+import { versXLSX, tableModule, livrerFichier, nomHorodate } from './echange.js';
 import { definirSaison, definirTheme, estDemo, exporterBase, lignes, majReglages, reglagesActifs, reinitialiser, restaurer, saisonActive, saisons, stockageDisponible, themeEnregistre } from './store.js';
 
 const CHAMPS_REGLAGES = [
@@ -76,8 +76,8 @@ export function vueReglages() {
             h('dt', { text: 'Poids de la base' }), h('dd', { text: `${(poids / 1024).toFixed(0)} Ko` }),
             h('dt', { text: 'Jeu de données' }), h('dd', { text: estDemo() ? 'démonstration' : 'données de l’association' })),
           h('div.choix-export', {},
-            bouton('Classeur Excel complet', { variante: 'primaire', icone: TRACE_ICONES.exporter, onclick: () => telecharger(nomHorodate('five-league-base', 'xlsx'), classeurComplet()) }),
-            bouton('Sauvegarde JSON', { icone: TRACE_ICONES.exporter, onclick: () => telecharger(nomHorodate('five-league-sauvegarde', 'json'), exporterBase(), 'application/json') })),
+            bouton('Classeur Excel complet', { variante: 'primaire', icone: TRACE_ICONES.exporter, onclick: () => livrerFichier(nomHorodate('five-league-base', 'xlsx'), classeurComplet()) }),
+            bouton('Sauvegarde JSON', { icone: TRACE_ICONES.exporter, onclick: () => livrerFichier(nomHorodate('five-league-sauvegarde', 'json'), exporterBase(), 'application/json') })),
           h('p.champ-libelle', { text: 'Restaurer une sauvegarde' }),
           restaurationFichier,
           h('p.texte-doux.petit', { text: 'La restauration remplace intégralement la base actuelle.' })),
