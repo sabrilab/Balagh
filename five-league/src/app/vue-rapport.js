@@ -8,7 +8,7 @@
 
 import { h } from './dom.js';
 import { MODULES } from './schema.js';
-import { synthese, alertes, evolutionProduits, saisonPrecedente } from './stats.js';
+import { synthese, alertes, evolutionProduits, saisonPrecedente, repartitionCharges } from './stats.js';
 import { euros, nombre, pourcent, dateCourte, aujourdhui } from './format.js';
 import { logo, bouton, TRACE_ICONES } from './composants.js';
 import { anneau, legende } from './graphes.js';
@@ -53,6 +53,12 @@ export function vueRapport() {
         h('div.rapport-anneau', {},
           anneau(segments, { titre: 'Répartition des produits', centreValeur: euros(bilan.produits), centreLibelle: 'produits', taille: 200 }),
           legende(segments, bilan.produits))),
+
+      bilan.charges ? h('section.rapport-section.rapport-section--repartition', {},
+        h('h2', { text: 'Structure des charges' }),
+        h('div.rapport-anneau', {},
+          anneau(repartitionCharges(bilan.saison), { titre: 'Répartition des charges', centreValeur: euros(bilan.charges), centreLibelle: 'charges', taille: 200 }),
+          legende(repartitionCharges(bilan.saison), bilan.charges))) : null,
 
       h('section.rapport-section', {},
         h('h2', { text: 'Détail par domaine' }),

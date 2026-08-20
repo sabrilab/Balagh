@@ -33,6 +33,7 @@ export const TONS = {
   'Devis envoyé': 'gris', Confirmée: 'bleu', Facturée: 'ambre', Annulée: 'rouge',
   'En négociation': 'ambre', 'À renouveler': 'rouge', Terminé: 'gris',
   'En stock': 'vert', 'Stock faible': 'ambre', Rupture: 'rouge',
+  Prévue: 'gris', Engagée: 'ambre',
 };
 
 const somme = (lignes, champ) => lignes.reduce((t, l) => t + (Number(l[champ]) || 0), 0);
@@ -78,7 +79,7 @@ export const MODULES = [
       { id: 'nom', libelle: 'Nom et prénom', type: 'texte', requis: true },
       { id: 'role', libelle: 'Rôle', type: 'texte', aide: 'Président, arbitre, responsable buvette…' },
       { id: 'categorie', libelle: 'Pôle', type: 'liste', options: ['Bureau', 'Encadrement', 'Arbitrage', 'Logistique', 'Communication'], defaut: 'Logistique' },
-      { id: 'statut', libelle: 'Engagement', type: 'liste', options: ['Actif', 'Ponctuel', 'Inactif'], defaut: 'Actif' },
+      { id: 'statut', libelle: 'Engagement', type: 'liste', options: ['Actif', 'Ponctuel', 'Inactif'], defaut: 'Actif', pastille: true },
       { id: 'heures', libelle: 'Heures sur la saison', type: 'heures' },
       { id: 'courriel', libelle: 'Courriel', type: 'courriel' },
       { id: 'telephone', libelle: 'Téléphone', type: 'tel' },
@@ -171,7 +172,7 @@ export const MODULES = [
       { id: 'dispositif', libelle: 'Dispositif', type: 'texte', aide: "Fonds de développement de la vie associative, Pass'Sport…" },
       { id: 'demande', libelle: 'Montant demandé', type: 'montant', requis: true },
       { id: 'accorde', libelle: 'Montant accordé', type: 'montant' },
-      { id: 'statut', libelle: 'Statut du dossier', type: 'liste', options: ['À déposer', 'Déposé', 'En instruction', 'Accordée', 'Versée', 'Refusée'], defaut: 'À déposer' },
+      { id: 'statut', libelle: 'Statut du dossier', type: 'liste', options: ['À déposer', 'Déposé', 'En instruction', 'Accordée', 'Versée', 'Refusée'], defaut: 'À déposer', pastille: true },
       { id: 'echeance', libelle: 'Date limite de dépôt', type: 'date' },
       { id: 'dateDepot', libelle: 'Déposé le', type: 'date' },
       { id: 'dateVersement', libelle: 'Versé le', type: 'date' },
@@ -276,7 +277,7 @@ export const MODULES = [
       { id: 'participants', libelle: 'Participants', type: 'nombre' },
       { id: 'recettes', libelle: 'Recettes', type: 'montant', aide: 'Engagements, buvette, entrées.' },
       { id: 'depenses', libelle: 'Dépenses', type: 'montant', aide: 'Location de terrain, arbitrage, récompenses.' },
-      { id: 'statut', libelle: 'Statut', type: 'liste', options: ['Planifié', 'Confirmé', 'Réalisé', 'Annulé'], defaut: 'Planifié' },
+      { id: 'statut', libelle: 'Statut', type: 'liste', options: ['Planifié', 'Confirmé', 'Réalisé', 'Annulé'], defaut: 'Planifié', pastille: true },
       { id: 'responsable', libelle: 'Responsable', type: 'texte' },
       champSaison,
       { id: 'notes', libelle: 'Logistique', type: 'zone' },
@@ -322,7 +323,7 @@ export const MODULES = [
       { id: 'prestation', libelle: 'Prestation', type: 'liste', options: ["Animation d'entreprise", 'Formation encadrants', 'Coaching', 'Location de créneau', 'Arbitrage extérieur'], defaut: "Animation d'entreprise" },
       { id: 'date', libelle: 'Date', type: 'date' },
       { id: 'montant', libelle: 'Montant', type: 'montant', requis: true },
-      { id: 'statut', libelle: 'Statut', type: 'liste', options: ['Devis envoyé', 'Confirmée', 'Facturée', 'Payée', 'Annulée'], defaut: 'Devis envoyé' },
+      { id: 'statut', libelle: 'Statut', type: 'liste', options: ['Devis envoyé', 'Confirmée', 'Facturée', 'Payée', 'Annulée'], defaut: 'Devis envoyé', pastille: true },
       { id: 'echeance', libelle: 'Échéance de paiement', type: 'date' },
       { id: 'contact', libelle: 'Contact', type: 'texte' },
       { id: 'courriel', libelle: 'Courriel', type: 'courriel' },
@@ -367,7 +368,7 @@ export const MODULES = [
       { id: 'type', libelle: 'Type de partenariat', type: 'liste', options: ['Sponsor maillot', 'Panneau terrain', 'Dotation matériel', 'Mécénat', 'Visibilité digitale'], defaut: 'Panneau terrain' },
       { id: 'montant', libelle: 'Montant annuel', type: 'montant', requis: true },
       { id: 'encaisse', libelle: 'Déjà encaissé', type: 'montant' },
-      { id: 'statut', libelle: 'Statut', type: 'liste', options: ['En négociation', 'Actif', 'À renouveler', 'Terminé'], defaut: 'En négociation' },
+      { id: 'statut', libelle: 'Statut', type: 'liste', options: ['En négociation', 'Actif', 'À renouveler', 'Terminé'], defaut: 'En négociation', pastille: true },
       { id: 'debut', libelle: 'Début du contrat', type: 'date' },
       { id: 'fin', libelle: 'Fin du contrat', type: 'date' },
       { id: 'contact', libelle: 'Interlocuteur', type: 'texte' },
@@ -396,6 +397,61 @@ export const MODULES = [
     pastille: (lignes) => `${eurosCourt(somme(lignes, 'encaisse'))} de sponsoring`,
     economie: (lignes) => ({ produits: somme(lignes, 'encaisse'), charges: 0, attendu: somme(parmi(lignes, 'statut', 'Actif', 'À renouveler'), 'montant') - somme(parmi(lignes, 'statut', 'Actif', 'À renouveler'), 'encaisse'), valorisation: 0 }),
     flux: (l) => [{ date: l.debut, montant: Number(l.encaisse) || 0, sens: 'produit' }],
+  },
+  {
+    id: 'depenses',
+    route: 'depenses',
+    titre: 'Dépenses',
+    court: 'Dépenses',
+    resume: 'Charges de fonctionnement de l’association : salaires, créneaux, assurances, licences, matériel, communication. Les coûts propres à une journée de championnat restent, eux, dans l’événement concerné.',
+    couleur: '#5F7183',
+    icone: 'M6.5 3.2h11v17.6l-2.2-1.5-2.2 1.5-2.2-1.5-2.2 1.5zM9.6 8.4h4.8M9.6 12.4h4.8',
+    singulier: 'dépense',
+    pluriel: 'dépenses',
+    champCle: 'intitule',
+    champDate: 'date',
+    tri: 'date',
+    champs: [
+      { id: 'intitule', libelle: 'Intitulé', type: 'texte', requis: true, aide: 'Assurance responsabilité civile, location du créneau du mardi…' },
+      { id: 'categorie', libelle: 'Poste', type: 'liste', options: ['Salaires et charges', 'Location de créneaux', 'Équipement et matériel', 'Assurance', 'Licences et affiliations', 'Communication', 'Déplacements', 'Formation', 'Récompenses', 'Restauration', 'Frais de gestion', 'Autre'], defaut: 'Équipement et matériel' },
+      { id: 'montant', libelle: 'Montant', type: 'montant', requis: true },
+      { id: 'date', libelle: 'Date', type: 'date', requis: true },
+      { id: 'statut', libelle: 'Statut', type: 'liste', options: ['Prévue', 'Engagée', 'Payée'], defaut: 'Payée', pastille: true, aide: 'Engagée : commandée ou facturée, pas encore décaissée.' },
+      { id: 'fournisseur', libelle: 'Fournisseur', type: 'texte' },
+      { id: 'moyen', libelle: 'Moyen de paiement', type: 'liste', options: ['Virement', 'Prélèvement', 'Carte', 'Chèque', 'Espèces'], defaut: 'Virement' },
+      { id: 'recurrence', libelle: 'Périodicité', type: 'liste', options: ['Ponctuelle', 'Mensuelle', 'Trimestrielle', 'Annuelle'], defaut: 'Ponctuelle' },
+      { id: 'echeance', libelle: 'À régler avant le', type: 'date' },
+      { id: 'piece', libelle: 'Pièce justificative', type: 'texte', aide: 'Numéro de facture ou référence du justificatif.' },
+      champSaison,
+      { id: 'notes', libelle: 'Notes', type: 'zone' },
+    ],
+    colonnes: ['intitule', 'categorie', 'fournisseur', 'montant', 'date', 'statut'],
+    etat: (l) => l.statut,
+    groupe: { champ: 'categorie', titre: 'Dépenses par poste', mesure: (l) => (l.statut === 'Prévue' ? 0 : Number(l.montant) || 0), format: euros },
+    kpis: (lignes) => {
+      const payees = parmi(lignes, 'statut', 'Payée');
+      const aRegler = parmi(lignes, 'statut', 'Engagée', 'Prévue');
+      const postes = new Map();
+      for (const l of payees) postes.set(l.categorie, (postes.get(l.categorie) || 0) + (Number(l.montant) || 0));
+      const premier = [...postes.entries()].sort((a, b) => b[1] - a[1])[0];
+      const mois = new Set(payees.filter((l) => l.date).map((l) => l.date.slice(0, 7)));
+      const total = somme(payees, 'montant');
+      return [
+        { libelle: 'Charges payées', valeur: euros(total), detail: `${payees.length} écritures sur la saison` },
+        { libelle: 'À régler', valeur: euros(somme(aRegler, 'montant')), detail: `${aRegler.length} dépenses engagées ou prévues`, ton: aRegler.length ? 'alerte' : null },
+        { libelle: 'Premier poste', valeur: premier ? euros(premier[1]) : euros(0), detail: premier ? premier[0].toLowerCase() : 'aucune dépense saisie' },
+        { libelle: 'Moyenne mensuelle', valeur: euros(mois.size ? total / mois.size : 0), detail: `sur ${mois.size} mois mouvementés` },
+      ];
+    },
+    pastille: (lignes) => `${eurosCourt(somme(parmi(lignes, 'statut', 'Payée'), 'montant'))} de charges`,
+    economie: (lignes) => ({
+      produits: 0,
+      charges: somme(parmi(lignes, 'statut', 'Payée'), 'montant'),
+      attendu: 0,
+      engage: somme(parmi(lignes, 'statut', 'Engagée', 'Prévue'), 'montant'),
+      valorisation: 0,
+    }),
+    flux: (l) => (l.statut === 'Payée' ? [{ date: l.date, montant: Number(l.montant) || 0, sens: 'charge' }] : []),
   },
 ];
 

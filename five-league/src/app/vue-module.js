@@ -126,6 +126,7 @@ function tableau(module, lignes, etat, reglages) {
     ...colonnes.map((c) => {
       const cellule = h('td', { 'data-libelle': c.libelle, class: ['montant', 'nombre', 'heures'].includes(c.type) ? 'aligne-droite' : '' });
       if (c.type === 'etat') cellule.appendChild(pastille(c.calcul(ligne)));
+      else if (c.pastille) cellule.appendChild(pastille(ligne[c.id]));
       else if (c.id === module.champCle) cellule.appendChild(h('span.cellule-cle', { text: valeurAffichee(ligne, c, reglages) }));
       else cellule.textContent = valeurAffichee(ligne, c, reglages);
       return cellule;

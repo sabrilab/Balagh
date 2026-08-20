@@ -231,6 +231,9 @@ table { border-collapse: collapse; width: 100%; }
 }
 .bandeau .icone { color: var(--ambre); flex: none; }
 .bandeau a { text-decoration: underline; font-weight: 600; }
+.bandeau .bouton { margin-left: auto; flex: none; }
+.bouton--petit { min-height: 36px; padding: 0 12px; font-size: 12.5px; }
+@media (max-width: 760px) { .bandeau { flex-wrap: wrap; } .bandeau .bouton { margin-left: 0; } }
 .bandeau--alerte { background: color-mix(in srgb, var(--rouge) 12%, var(--fond-carte)); border-color: color-mix(in srgb, var(--rouge) 34%, transparent); }
 .bandeau--alerte .icone { color: var(--rouge); }
 
@@ -1074,6 +1077,7 @@ const TONS = {
   'Devis envoyé': 'gris', Confirmée: 'bleu', Facturée: 'ambre', Annulée: 'rouge',
   'En négociation': 'ambre', 'À renouveler': 'rouge', Terminé: 'gris',
   'En stock': 'vert', 'Stock faible': 'ambre', Rupture: 'rouge',
+  Prévue: 'gris', Engagée: 'ambre',
 };
 
 const somme = (lignes, champ) => lignes.reduce((t, l) => t + (Number(l[champ]) || 0), 0);
@@ -1119,7 +1123,7 @@ const MODULES = [
       { id: 'nom', libelle: 'Nom et prénom', type: 'texte', requis: true },
       { id: 'role', libelle: 'Rôle', type: 'texte', aide: 'Président, arbitre, responsable buvette…' },
       { id: 'categorie', libelle: 'Pôle', type: 'liste', options: ['Bureau', 'Encadrement', 'Arbitrage', 'Logistique', 'Communication'], defaut: 'Logistique' },
-      { id: 'statut', libelle: 'Engagement', type: 'liste', options: ['Actif', 'Ponctuel', 'Inactif'], defaut: 'Actif' },
+      { id: 'statut', libelle: 'Engagement', type: 'liste', options: ['Actif', 'Ponctuel', 'Inactif'], defaut: 'Actif', pastille: true },
       { id: 'heures', libelle: 'Heures sur la saison', type: 'heures' },
       { id: 'courriel', libelle: 'Courriel', type: 'courriel' },
       { id: 'telephone', libelle: 'Téléphone', type: 'tel' },
@@ -1212,7 +1216,7 @@ const MODULES = [
       { id: 'dispositif', libelle: 'Dispositif', type: 'texte', aide: "Fonds de développement de la vie associative, Pass'Sport…" },
       { id: 'demande', libelle: 'Montant demandé', type: 'montant', requis: true },
       { id: 'accorde', libelle: 'Montant accordé', type: 'montant' },
-      { id: 'statut', libelle: 'Statut du dossier', type: 'liste', options: ['À déposer', 'Déposé', 'En instruction', 'Accordée', 'Versée', 'Refusée'], defaut: 'À déposer' },
+      { id: 'statut', libelle: 'Statut du dossier', type: 'liste', options: ['À déposer', 'Déposé', 'En instruction', 'Accordée', 'Versée', 'Refusée'], defaut: 'À déposer', pastille: true },
       { id: 'echeance', libelle: 'Date limite de dépôt', type: 'date' },
       { id: 'dateDepot', libelle: 'Déposé le', type: 'date' },
       { id: 'dateVersement', libelle: 'Versé le', type: 'date' },
@@ -1317,7 +1321,7 @@ const MODULES = [
       { id: 'participants', libelle: 'Participants', type: 'nombre' },
       { id: 'recettes', libelle: 'Recettes', type: 'montant', aide: 'Engagements, buvette, entrées.' },
       { id: 'depenses', libelle: 'Dépenses', type: 'montant', aide: 'Location de terrain, arbitrage, récompenses.' },
-      { id: 'statut', libelle: 'Statut', type: 'liste', options: ['Planifié', 'Confirmé', 'Réalisé', 'Annulé'], defaut: 'Planifié' },
+      { id: 'statut', libelle: 'Statut', type: 'liste', options: ['Planifié', 'Confirmé', 'Réalisé', 'Annulé'], defaut: 'Planifié', pastille: true },
       { id: 'responsable', libelle: 'Responsable', type: 'texte' },
       champSaison,
       { id: 'notes', libelle: 'Logistique', type: 'zone' },
@@ -1363,7 +1367,7 @@ const MODULES = [
       { id: 'prestation', libelle: 'Prestation', type: 'liste', options: ["Animation d'entreprise", 'Formation encadrants', 'Coaching', 'Location de créneau', 'Arbitrage extérieur'], defaut: "Animation d'entreprise" },
       { id: 'date', libelle: 'Date', type: 'date' },
       { id: 'montant', libelle: 'Montant', type: 'montant', requis: true },
-      { id: 'statut', libelle: 'Statut', type: 'liste', options: ['Devis envoyé', 'Confirmée', 'Facturée', 'Payée', 'Annulée'], defaut: 'Devis envoyé' },
+      { id: 'statut', libelle: 'Statut', type: 'liste', options: ['Devis envoyé', 'Confirmée', 'Facturée', 'Payée', 'Annulée'], defaut: 'Devis envoyé', pastille: true },
       { id: 'echeance', libelle: 'Échéance de paiement', type: 'date' },
       { id: 'contact', libelle: 'Contact', type: 'texte' },
       { id: 'courriel', libelle: 'Courriel', type: 'courriel' },
@@ -1408,7 +1412,7 @@ const MODULES = [
       { id: 'type', libelle: 'Type de partenariat', type: 'liste', options: ['Sponsor maillot', 'Panneau terrain', 'Dotation matériel', 'Mécénat', 'Visibilité digitale'], defaut: 'Panneau terrain' },
       { id: 'montant', libelle: 'Montant annuel', type: 'montant', requis: true },
       { id: 'encaisse', libelle: 'Déjà encaissé', type: 'montant' },
-      { id: 'statut', libelle: 'Statut', type: 'liste', options: ['En négociation', 'Actif', 'À renouveler', 'Terminé'], defaut: 'En négociation' },
+      { id: 'statut', libelle: 'Statut', type: 'liste', options: ['En négociation', 'Actif', 'À renouveler', 'Terminé'], defaut: 'En négociation', pastille: true },
       { id: 'debut', libelle: 'Début du contrat', type: 'date' },
       { id: 'fin', libelle: 'Fin du contrat', type: 'date' },
       { id: 'contact', libelle: 'Interlocuteur', type: 'texte' },
@@ -1437,6 +1441,61 @@ const MODULES = [
     pastille: (lignes) => `${eurosCourt(somme(lignes, 'encaisse'))} de sponsoring`,
     economie: (lignes) => ({ produits: somme(lignes, 'encaisse'), charges: 0, attendu: somme(parmi(lignes, 'statut', 'Actif', 'À renouveler'), 'montant') - somme(parmi(lignes, 'statut', 'Actif', 'À renouveler'), 'encaisse'), valorisation: 0 }),
     flux: (l) => [{ date: l.debut, montant: Number(l.encaisse) || 0, sens: 'produit' }],
+  },
+  {
+    id: 'depenses',
+    route: 'depenses',
+    titre: 'Dépenses',
+    court: 'Dépenses',
+    resume: 'Charges de fonctionnement de l’association : salaires, créneaux, assurances, licences, matériel, communication. Les coûts propres à une journée de championnat restent, eux, dans l’événement concerné.',
+    couleur: '#5F7183',
+    icone: 'M6.5 3.2h11v17.6l-2.2-1.5-2.2 1.5-2.2-1.5-2.2 1.5zM9.6 8.4h4.8M9.6 12.4h4.8',
+    singulier: 'dépense',
+    pluriel: 'dépenses',
+    champCle: 'intitule',
+    champDate: 'date',
+    tri: 'date',
+    champs: [
+      { id: 'intitule', libelle: 'Intitulé', type: 'texte', requis: true, aide: 'Assurance responsabilité civile, location du créneau du mardi…' },
+      { id: 'categorie', libelle: 'Poste', type: 'liste', options: ['Salaires et charges', 'Location de créneaux', 'Équipement et matériel', 'Assurance', 'Licences et affiliations', 'Communication', 'Déplacements', 'Formation', 'Récompenses', 'Restauration', 'Frais de gestion', 'Autre'], defaut: 'Équipement et matériel' },
+      { id: 'montant', libelle: 'Montant', type: 'montant', requis: true },
+      { id: 'date', libelle: 'Date', type: 'date', requis: true },
+      { id: 'statut', libelle: 'Statut', type: 'liste', options: ['Prévue', 'Engagée', 'Payée'], defaut: 'Payée', pastille: true, aide: 'Engagée : commandée ou facturée, pas encore décaissée.' },
+      { id: 'fournisseur', libelle: 'Fournisseur', type: 'texte' },
+      { id: 'moyen', libelle: 'Moyen de paiement', type: 'liste', options: ['Virement', 'Prélèvement', 'Carte', 'Chèque', 'Espèces'], defaut: 'Virement' },
+      { id: 'recurrence', libelle: 'Périodicité', type: 'liste', options: ['Ponctuelle', 'Mensuelle', 'Trimestrielle', 'Annuelle'], defaut: 'Ponctuelle' },
+      { id: 'echeance', libelle: 'À régler avant le', type: 'date' },
+      { id: 'piece', libelle: 'Pièce justificative', type: 'texte', aide: 'Numéro de facture ou référence du justificatif.' },
+      champSaison,
+      { id: 'notes', libelle: 'Notes', type: 'zone' },
+    ],
+    colonnes: ['intitule', 'categorie', 'fournisseur', 'montant', 'date', 'statut'],
+    etat: (l) => l.statut,
+    groupe: { champ: 'categorie', titre: 'Dépenses par poste', mesure: (l) => (l.statut === 'Prévue' ? 0 : Number(l.montant) || 0), format: euros },
+    kpis: (lignes) => {
+      const payees = parmi(lignes, 'statut', 'Payée');
+      const aRegler = parmi(lignes, 'statut', 'Engagée', 'Prévue');
+      const postes = new Map();
+      for (const l of payees) postes.set(l.categorie, (postes.get(l.categorie) || 0) + (Number(l.montant) || 0));
+      const premier = [...postes.entries()].sort((a, b) => b[1] - a[1])[0];
+      const mois = new Set(payees.filter((l) => l.date).map((l) => l.date.slice(0, 7)));
+      const total = somme(payees, 'montant');
+      return [
+        { libelle: 'Charges payées', valeur: euros(total), detail: `${payees.length} écritures sur la saison` },
+        { libelle: 'À régler', valeur: euros(somme(aRegler, 'montant')), detail: `${aRegler.length} dépenses engagées ou prévues`, ton: aRegler.length ? 'alerte' : null },
+        { libelle: 'Premier poste', valeur: premier ? euros(premier[1]) : euros(0), detail: premier ? premier[0].toLowerCase() : 'aucune dépense saisie' },
+        { libelle: 'Moyenne mensuelle', valeur: euros(mois.size ? total / mois.size : 0), detail: `sur ${mois.size} mois mouvementés` },
+      ];
+    },
+    pastille: (lignes) => `${eurosCourt(somme(parmi(lignes, 'statut', 'Payée'), 'montant'))} de charges`,
+    economie: (lignes) => ({
+      produits: 0,
+      charges: somme(parmi(lignes, 'statut', 'Payée'), 'montant'),
+      attendu: 0,
+      engage: somme(parmi(lignes, 'statut', 'Engagée', 'Prévue'), 'montant'),
+      valorisation: 0,
+    }),
+    flux: (l) => (l.statut === 'Payée' ? [{ date: l.date, montant: Number(l.montant) || 0, sens: 'charge' }] : []),
   },
 ];
 
@@ -1473,6 +1532,8 @@ function alea(graine) {
 const PRENOMS = ['Karim', 'Julien', 'Sofiane', 'Mathieu', 'Anaïs', 'Lucas', 'Nadia', 'Thomas', 'Inès', 'Antoine', 'Camille', 'Youssef', 'Léa', 'Maxime', 'Sarah', 'Baptiste', 'Ilyes', 'Manon', 'Quentin', 'Fatima', 'Romain', 'Chloé', 'Adrien', 'Amine', 'Émilie', 'Nicolas', 'Jade', 'Farid', 'Clara', 'Damien', 'Océane', 'Hugo', 'Sabrina', 'Vincent', 'Élodie', 'Mehdi'];
 const NOMS = ['Delcroix', 'Vandamme', 'Lefebvre', 'Bouchard', 'Dubois', 'Carpentier', 'Leroy', 'Ben Ali', 'Descamps', 'Mercier', 'Dhaene', 'Fournier', 'Lemaire', 'Blondel', 'Verhaeghe', 'Caron', 'Delattre', 'Mahieu', 'Bonnet', 'Sadaoui', 'Duthoit', 'Renard', 'Wattiez', 'Lecomte', 'Bertin', 'Hamdi', 'Vasseur', 'Danjou', 'Pollet', 'Lammens'];
 const EQUIPES = ['Lille Futsal Club', 'Roubaix Five', 'Tourcoing Ballers', "Villeneuve United", 'Wattrelos FC5', 'Marcq Athletic', 'Armentières Five', 'Croix Sporting', 'Lambersart FC', 'Seclin Five', 'Hem Athletic', 'Wasquehal Five'];
+const MOIS_SAISON = ['septembre', 'octobre', 'novembre', 'décembre', 'janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août'];
+
 const SALLES = ['Halle Vauban, Roubaix', 'Complexe Léo-Lagrange, Tourcoing', 'Gymnase des Quatre-Vents, Lille', 'Salle Jean-Jaurès, Wattrelos', 'Palais des sports, Villeneuve-d’Ascq', 'Gymnase du Blanc-Seau, Tourcoing'];
 
 const ROLES = [
@@ -1532,6 +1593,40 @@ const PARTENAIRES = [
   ['Multitech Services', 'Visibilité digitale', 500, 'Bandeau site, écran de la halle'],
 ];
 
+/** Charges de fonctionnement récurrentes : [intitulé, poste, montant mensuel,
+ *  premier mois de la saison, dernier mois, fournisseur]. */
+const CHARGES_MENSUELLES = [
+  ['Rémunération de l’éducateur (apprentissage)', 'Salaires et charges', 800, 0, 11, 'Paie — apprenti'],
+  ['Charges sociales', 'Salaires et charges', 150, 0, 11, 'URSSAF'],
+  ['Location des créneaux d’entraînement', 'Location de créneaux', 560, 0, 9, 'Ville de Roubaix'],
+  ['Frais bancaires', 'Frais de gestion', 8, 0, 11, 'Banque de l’association'],
+];
+
+/** Charges ponctuelles : [intitulé, poste, montant, mois de la saison,
+ *  fournisseur, périodicité]. */
+const CHARGES_PONCTUELLES = [
+  ['Assurance responsabilité civile', 'Assurance', 620, 1, 'Assureur des associations', 'Annuelle'],
+  ['Affiliation et licences fédérales', 'Licences et affiliations', 3200, 1, 'Fédération de futsal', 'Annuelle'],
+  ['Cotisation à la ligue régionale', 'Licences et affiliations', 450, 2, 'Ligue Hauts-de-France', 'Annuelle'],
+  ['Renouvellement du parc de ballons', 'Équipement et matériel', 890, 0, 'Espace Sport Roubaix', 'Ponctuelle'],
+  ['Chasubles et plots d’entraînement', 'Équipement et matériel', 340, 3, 'Espace Sport Roubaix', 'Ponctuelle'],
+  ['Trousse de secours et défibrillateur', 'Équipement et matériel', 780, 2, 'Sécurité Nord', 'Ponctuelle'],
+  ['Tenues d’arbitrage', 'Équipement et matériel', 410, 4, 'Textile Pro Lille', 'Ponctuelle'],
+  ['Hébergement du site et nom de domaine', 'Communication', 180, 0, 'Hébergeur web', 'Annuelle'],
+  ['Affiches et flyers de la saison', 'Communication', 260, 0, 'Imprimerie du Nord', 'Ponctuelle'],
+  ['Banderole et kakémonos', 'Communication', 480, 5, 'Imprimerie du Nord', 'Ponctuelle'],
+  ['Formation d’éducateur — module fédéral', 'Formation', 700, 6, 'Ligue Hauts-de-France', 'Ponctuelle'],
+  ['Formation à l’arbitrage', 'Formation', 320, 7, 'Ligue Hauts-de-France', 'Ponctuelle'],
+  ['Déplacement à la finale régionale', 'Déplacements', 480, 8, 'Location de minibus', 'Ponctuelle'],
+  ['Péages et carburant', 'Déplacements', 300, 9, 'Frais réels', 'Ponctuelle'],
+  ['Trophées et médailles de fin de saison', 'Récompenses', 1100, 9, 'Objets Pub Nord', 'Ponctuelle'],
+  ['Repas des bénévoles', 'Restauration', 800, 9, 'Pizzeria Bella Nonna', 'Ponctuelle'],
+  ['Local de stockage du matériel', 'Location de créneaux', 1200, 0, 'Ville de Roubaix', 'Annuelle'],
+  ['Expert-comptable et logiciel de gestion', 'Frais de gestion', 600, 10, 'Cabinet comptable', 'Annuelle'],
+  ['Fournitures administratives', 'Frais de gestion', 180, 3, 'Papeterie centrale', 'Ponctuelle'],
+  ['Commissions de la plateforme de paiement', 'Frais de gestion', 240, 5, 'Plateforme de paiement', 'Ponctuelle'],
+];
+
 const CLIENTS = [
   ['Groupe Verlinde', "Animation d'entreprise", 900],
   ['CCAS de Wattrelos', 'Formation encadrants', 600],
@@ -1563,6 +1658,12 @@ function dimanches(saison) {
   return sorties;
 }
 
+/** Date du mois `index` de la saison ouverte en septembre de l'année `an`. */
+const moisSaison = (an, index, jour = 5) => {
+  const total = 8 + index;
+  return `${an + Math.floor(total / 12)}-${String((total % 12) + 1).padStart(2, '0')}-${String(jour).padStart(2, '0')}`;
+};
+
 const decalage = (iso, jours) => {
   const d = new Date(`${iso}T12:00:00Z`);
   d.setUTCDate(d.getUTCDate() + jours);
@@ -1579,7 +1680,8 @@ function baseDemo(jour = new Date().toISOString().slice(0, 10)) {
   const entier = (min, max) => min + Math.floor(r() * (max - min + 1));
   const choix = (liste) => liste[Math.floor(r() * liste.length)];
   const chance = (p) => r() < p;
-  const donnees = { rh: [], cotisations: [], subventions: [], boutique: [], evenements: [], prestations: [], partenariats: [] };
+  // Dérivé du schéma : un domaine ajouté n'a pas à être répété ici.
+  const donnees = Object.fromEntries(MODULES.map((m) => [m.id, []]));
   const ajoute = (cle, ligne) => donnees[cle].push({ id: identifiant(cle.slice(0, 3)), creeLe: jour, majLe: jour, ...ligne });
 
   const saisons = [
@@ -1745,6 +1847,36 @@ function baseDemo(jour = new Date().toISOString().slice(0, 10)) {
         notes: '',
       });
     }
+
+    /* -------- Dépenses de fonctionnement */
+    const arrondi = (v) => Math.round((v * part) / 10) * 10;
+    // Une facture reçue dans les trois dernières semaines n'est pas toujours
+    // déjà décaissée : c'est ce qui alimente le « à régler ».
+    const etatDepense = (date) => {
+      if (date > jour) return chance(0.55) ? 'Engagée' : 'Prévue';
+      return date > decalage(jour, -25) && chance(0.45) ? 'Engagée' : 'Payée';
+    };
+    for (const [intitule, poste, mensuel, premier, dernier, fournisseur] of CHARGES_MENSUELLES) {
+      for (let m = premier; m <= dernier; m++) {
+        const date = moisSaison(an, m, entier(3, 9));
+        ajoute('depenses', {
+          saison, intitule: `${intitule} — ${MOIS_SAISON[m]}`, categorie: poste,
+          montant: arrondi(mensuel), date, statut: etatDepense(date),
+          fournisseur, moyen: poste === 'Frais de gestion' ? 'Prélèvement' : 'Virement',
+          recurrence: 'Mensuelle', echeance: '', piece: '', notes: '',
+        });
+      }
+    }
+    for (const [intitule, poste, montant, mois, fournisseur, recurrence] of CHARGES_PONCTUELLES) {
+      const date = moisSaison(an, mois, entier(4, 26));
+      ajoute('depenses', {
+        saison, intitule, categorie: poste,
+        montant: arrondi(montant), date, statut: etatDepense(date),
+        fournisseur, moyen: choix(['Virement', 'Carte', 'Chèque', 'Prélèvement']),
+        recurrence, echeance: decalage(date, 30),
+        piece: `F-${an}-${String(entier(100, 999))}`, notes: '',
+      });
+    }
   }
 
   /* -------- Amorce de la saison suivante : ce qui se prépare dès l'été. */
@@ -1752,6 +1884,8 @@ function baseDemo(jour = new Date().toISOString().slice(0, 10)) {
   ajoute('subventions', { saison: suivante, financeur: 'Agence nationale du Sport', dispositif: 'Projet Sportif Fédéral 2026-2027', demande: 4800, accorde: 0, statut: 'Déposé', echeance: '2026-09-15', dateDepot: '2026-08-04', dateVersement: '', referent: 'Karim Delcroix', notes: 'Accusé de réception reçu.' });
   ajoute('subventions', { saison: suivante, financeur: 'Ville de Roubaix', dispositif: 'Subvention de fonctionnement 2027', demande: 2800, accorde: 0, statut: 'À déposer', echeance: '2026-10-31', dateDepot: '', dateVersement: '', referent: 'Nadia Bouchard', notes: 'Dossier à retirer en mairie début septembre.' });
   ajoute('partenariats', { saison: suivante, entreprise: 'Garage Delcroix', type: 'Sponsor maillot', montant: 2400, encaisse: 0, statut: 'En négociation', debut: '2026-09-01', fin: '2027-08-31', contact: 'Julien Delcroix', courriel: '', nature: 'Reconduction avec logo dos du maillot en plus', notes: 'Rendez-vous fixé fin août.' });
+  ajoute('depenses', { saison: suivante, intitule: 'Assurance responsabilité civile', categorie: 'Assurance', montant: 640, date: '2026-10-05', statut: 'Prévue', fournisseur: 'Assureur des associations', moyen: 'Virement', recurrence: 'Annuelle', echeance: '2026-10-15', piece: '', notes: 'Appel de cotisation reçu.' });
+  ajoute('depenses', { saison: suivante, intitule: 'Affiliation et licences fédérales', categorie: 'Licences et affiliations', montant: 3300, date: '2026-09-20', statut: 'Engagée', fournisseur: 'Fédération de futsal', moyen: 'Virement', recurrence: 'Annuelle', echeance: '2026-09-30', piece: '', notes: 'À régler avant la première journée.' });
   ajoute('evenements', { saison: suivante, intitule: 'Tournoi de rentrée', type: 'Tournoi', date: '2026-09-06', lieu: SALLES[0], equipes: 12, participants: 120, recettes: 620, depenses: 430, statut: 'Confirmé', responsable: 'Karim Delcroix', notes: 'Ouverture de la saison, inscriptions ouvertes.' });
 
   return { version: 1, saison: '', reglages: { ...REGLAGES_DEFAUT }, demo: true, donnees };
@@ -1819,10 +1953,45 @@ function saisonParDefaut(source = etatBase) {
   return [...peuplees].sort().pop();
 }
 
+/**
+ * Sonde d'écriture. Un stockage qui accepte `setItem` sans rien conserver est
+ * plus dangereux qu'un stockage absent : l'outil croirait enregistrer. On
+ * écrit, on relit, on efface.
+ */
+function stockageUtilisable() {
+  try {
+    const sonde = `${CLE}.sonde`;
+    localStorage.setItem(sonde, '1');
+    const relu = localStorage.getItem(sonde) === '1';
+    localStorage.removeItem(sonde);
+    return relu;
+  } catch (e) {
+    return false;
+  }
+}
+
+/**
+ * Contexte sans origine stable : page affichée dans un cadre, adresse en
+ * `blob:` ou `data:`, origine opaque. Le stockage y répond correctement mais
+ * repart vide au chargement suivant — aucune sonde ne peut le détecter dans
+ * la même session, alors on prévient avant que la saisie ne soit perdue.
+ */
+function contexteEphemere() {
+  try {
+    if (window.self !== window.top) return true;
+  } catch (e) {
+    return true;
+  }
+  // Un fichier ouvert localement a lui aussi une origine opaque, mais son
+  // stockage, lui, persiste : `file:` n'est donc pas un contexte éphémère.
+  return ['blob:', 'data:'].includes(window.location.protocol);
+}
+
 function demarrerBase() {
   let brute = null;
+  stockageActif = stockageUtilisable();
   try {
-    const texte = localStorage.getItem(CLE);
+    const texte = stockageActif ? localStorage.getItem(CLE) : null;
     brute = texte ? JSON.parse(texte) : null;
   } catch (e) {
     stockageActif = false;
@@ -1974,7 +2143,7 @@ function synthese(saison = saisonActive()) {
   const r = reglagesActifs();
   const parModule = MODULES.map((m) => {
     const donnees = lignes(m.id, { saison });
-    const eco = m.economie ? m.economie(donnees, r) : { produits: 0, charges: 0, attendu: 0, valorisation: 0 };
+    const eco = { produits: 0, charges: 0, attendu: 0, engage: 0, valorisation: 0, ...(m.economie ? m.economie(donnees, r) : {}) };
     return { module: m, lignes: donnees.length, ...eco };
   });
   const total = (cle) => parModule.reduce((t, p) => t + (p[cle] || 0), 0);
@@ -1987,8 +2156,10 @@ function synthese(saison = saisonActive()) {
     charges,
     resultat: produits - charges,
     attendu: total('attendu'),
+    engage: total('engage'),
     valorisation: total('valorisation'),
     sources: parModule.filter((p) => p.produits > 0).sort((a, b) => b.produits - a.produits),
+    postes: parModule.filter((p) => p.charges > 0).sort((a, b) => b.charges - a.charges),
   };
 }
 
@@ -2025,6 +2196,41 @@ function fluxMensuels(saison = saisonActive()) {
     }
   }
   return [...seaux.values()];
+}
+
+/** Dégradé d'ardoise pour les postes de charges : les dépenses de
+ *  fonctionnement forment une même famille, les deux domaines qui portent
+ *  aussi des charges gardent leur couleur propre. */
+const TONS_CHARGES = ['#4B5A69', '#5F7183', '#78889A', '#93A0AE', '#AEB8C3', '#C7CED6'];
+
+/**
+ * Structure des charges : les postes de dépenses de fonctionnement, plus les
+ * charges portées par les autres domaines (achats de la boutique, coûts
+ * d'organisation des événements). Les six premiers postes sont détaillés, le
+ * reste est regroupé — au-delà, l'anneau devient illisible.
+ */
+function repartitionCharges(saison = saisonActive()) {
+  const postes = new Map();
+  for (const l of lignes('depenses', { saison })) {
+    if (l.statut !== 'Payée') continue;
+    const cle = l.categorie || 'Autre';
+    postes.set(cle, (postes.get(cle) || 0) + (Number(l.montant) || 0));
+  }
+  const classes = [...postes.entries()].map(([libelle, valeur]) => ({ libelle, valeur })).sort((a, b) => b.valeur - a.valeur);
+  const detailles = classes.slice(0, 5).map((p, i) => ({ ...p, couleur: TONS_CHARGES[i] }));
+  const restant = classes.slice(5).reduce((t, p) => t + p.valeur, 0);
+  if (restant > 0) detailles.push({ libelle: `Autres postes (${classes.length - 5})`, valeur: restant, couleur: TONS_CHARGES[5] });
+
+  const bilan = synthese(saison);
+  for (const p of bilan.parModule) {
+    if (p.module.id === 'depenses' || !p.charges) continue;
+    detailles.push({
+      libelle: p.module.id === 'boutique' ? 'Achats de la boutique' : `Organisation d'événements`,
+      valeur: p.charges,
+      couleur: p.module.couleur,
+    });
+  }
+  return detailles.sort((a, b) => b.valeur - a.valeur);
 }
 
 /** Répartition d'un module par valeur d'un champ (camembert des modules). */
@@ -2100,6 +2306,36 @@ function alertes() {
   const aRenouveler = lignes('partenariats', { toutesSaisons: true }).filter((l) => (l.statut === 'Actif' || l.statut === 'À renouveler') && l.fin && joursRestants(l.fin) <= 90 && joursRestants(l.fin) >= -30);
   if (aRenouveler.length) {
     AJOUT(liste, { module: 'partenariats', gravite: 'moyenne', titre: `${nombre(aRenouveler.length)} partenariat${aRenouveler.length > 1 ? 's' : ''} arrive${aRenouveler.length > 1 ? 'nt' : ''} à échéance`, detail: `${euros(aRenouveler.reduce((t, l) => t + (Number(l.montant) || 0), 0))} de sponsoring à sécuriser avant le ${dateCourte(aRenouveler.map((l) => l.fin).sort()[0])}.` });
+  }
+
+  const aRegler = lignes('depenses', { toutesSaisons: true }).filter((l) => l.statut === 'Engagée' || l.statut === 'Prévue');
+  const enRetardDepenses = aRegler.filter((l) => l.echeance && joursRestants(l.echeance) < 0);
+  if (enRetardDepenses.length) {
+    AJOUT(liste, {
+      module: 'depenses',
+      gravite: 'haute',
+      titre: `${nombre(enRetardDepenses.length)} dépense${enRetardDepenses.length > 1 ? 's' : ''} à régler en retard`,
+      detail: `${euros(enRetardDepenses.reduce((t, l) => t + (Number(l.montant) || 0), 0))} dont l'échéance est passée : ${enRetardDepenses.map((l) => l.intitule).slice(0, 2).join(', ')}.`,
+    });
+  } else if (aRegler.length) {
+    AJOUT(liste, {
+      module: 'depenses',
+      gravite: 'moyenne',
+      titre: `${nombre(aRegler.length)} dépense${aRegler.length > 1 ? 's' : ''} engagée${aRegler.length > 1 ? 's' : ''} non réglée${aRegler.length > 1 ? 's' : ''}`,
+      detail: `${euros(aRegler.reduce((t, l) => t + (Number(l.montant) || 0), 0))} à décaisser prochainement.`,
+    });
+  }
+
+  /* Un résultat négatif est le signal le plus important du tableau de bord :
+     il passe avant les échéances de détail. */
+  const bilan = synthese();
+  if (bilan.charges > bilan.produits) {
+    liste.unshift({
+      module: 'depenses',
+      gravite: 'haute',
+      titre: `Résultat déficitaire de ${euros(bilan.charges - bilan.produits)}`,
+      detail: `${euros(bilan.charges)} de charges pour ${euros(bilan.produits)} de produits encaissés sur la saison.`,
+    });
   }
 
   const heuresSaisies = lignes('rh').reduce((t, l) => t + (Number(l.heures) || 0), 0);
@@ -2695,6 +2931,7 @@ function tableau(module, lignes, etat, reglages) {
     ...colonnes.map((c) => {
       const cellule = h('td', { 'data-libelle': c.libelle, class: ['montant', 'nombre', 'heures'].includes(c.type) ? 'aligne-droite' : '' });
       if (c.type === 'etat') cellule.appendChild(pastille(c.calcul(ligne)));
+      else if (c.pastille) cellule.appendChild(pastille(ligne[c.id]));
       else if (c.id === module.champCle) cellule.appendChild(h('span.cellule-cle', { text: valeurAffichee(ligne, c, reglages) }));
       else cellule.textContent = valeurAffichee(ligne, c, reglages);
       return cellule;
@@ -2954,10 +3191,11 @@ function vueHub() {
   const evolution = evolutionProduits();
   const flux = fluxMensuels();
   const segments = bilan.sources.map((s) => ({ libelle: s.module.court, valeur: s.produits, couleur: s.module.couleur }));
+  const charges = repartitionCharges();
 
   const indicateurs = [
     { libelle: 'Produits de la saison', valeur: euros(bilan.produits), detail: evolution ? `${evolution.ecart >= 0 ? '+' : ''}${evolution.ecart.toFixed(0).replace('-0', '0')} % par rapport à ${saisonPrecedente(bilan.saison)}` : 'première saison suivie', jauge: reglagesActifs().objectifProduits ? bilan.produits / reglagesActifs().objectifProduits : null },
-    { libelle: 'Charges directes', valeur: euros(bilan.charges), detail: 'achats boutique et organisation des événements' },
+    { libelle: 'Charges de la saison', valeur: euros(bilan.charges), detail: bilan.engage ? `dont ${euros(bilan.engage)} engagés, pas encore décaissés` : 'fonctionnement, événements et achats de la boutique' },
     { libelle: 'Résultat', valeur: euros(bilan.resultat), detail: bilan.resultat >= 0 ? 'excédent avant frais généraux' : 'déficit avant frais généraux', ton: bilan.resultat < 0 ? 'alerte' : null },
     { libelle: 'Reste à percevoir', valeur: euros(bilan.attendu), detail: 'subventions accordées, factures et cotisations en attente' },
     { libelle: 'Bénévolat valorisé', valeur: euros(bilan.valorisation), detail: `contribution volontaire, hors budget monétaire` },
@@ -2968,7 +3206,7 @@ function vueHub() {
       h('div', {},
         h('p.sur-titre', { text: `Saison ${bilan.saison} · ${reglagesActifs().territoire}` }),
         h('h1.page-titre', { text: 'Modèle socio-économique' }),
-        h('p.page-resume', { text: 'Sept domaines, une seule lecture : ce que la ligue produit, ce qu’elle dépense, et ce qui reste à sécuriser.' })),
+        h('p.page-resume', { text: 'Huit domaines, une seule lecture : ce que la ligue produit, ce qu’elle dépense, et ce qui reste à sécuriser.' })),
       h('div.hub-tete-actions', {},
         bouton('Rapport de saison', { icone: TRACE_ICONES.rapport, onclick: () => { window.location.hash = '#/rapport'; } }),
         bouton('Réglages et données', { icone: TRACE_ICONES.reglages, onclick: () => { window.location.hash = '#/reglages'; } }))),
@@ -3002,9 +3240,19 @@ function vueHub() {
           h('p.texte-doux.petit', { text: 'La boutique n’est pas datée à la vente : son chiffre d’affaires figure dans la répartition annuelle, pas dans ce graphique.' })),
       })),
 
-    h('div.grille-deux.grille-deux--inverse', {},
-      bandeauAlertes(),
-      carte({ titre: 'Synthèse par domaine', sousTitre: `saison ${bilan.saison}`, contenu: syntheseTableau(bilan), classe: 'carte--tableau' })));
+    h('div.grille-deux', {},
+      carte({
+        titre: 'Structure des charges',
+        sousTitre: charges.length ? `${charges.length} postes, ${euros(bilan.charges)} décaissés` : 'aucune dépense saisie',
+        contenu: charges.length
+          ? h('div.anneau-bloc', {},
+            anneau(charges, { titre: 'Répartition des charges par poste', centreValeur: eurosCourt(bilan.charges), centreLibelle: 'charges' }),
+            legende(charges, bilan.charges))
+          : h('p.texte-doux', { text: 'Les charges apparaîtront ici dès que des dépenses seront enregistrées.' }),
+      }),
+      bandeauAlertes()),
+
+    carte({ titre: 'Synthèse par domaine', sousTitre: `saison ${bilan.saison}`, contenu: syntheseTableau(bilan), classe: 'carte--tableau' }));
 }
 
 /* ================================================== vue-rapport.js */
@@ -3062,6 +3310,12 @@ function vueRapport() {
         h('div.rapport-anneau', {},
           anneau(segments, { titre: 'Répartition des produits', centreValeur: euros(bilan.produits), centreLibelle: 'produits', taille: 200 }),
           legende(segments, bilan.produits))),
+
+      bilan.charges ? h('section.rapport-section.rapport-section--repartition', {},
+        h('h2', { text: 'Structure des charges' }),
+        h('div.rapport-anneau', {},
+          anneau(repartitionCharges(bilan.saison), { titre: 'Répartition des charges', centreValeur: euros(bilan.charges), centreLibelle: 'charges', taille: 200 }),
+          legende(repartitionCharges(bilan.saison), bilan.charges))) : null,
 
       h('section.rapport-section', {},
         h('h2', { text: 'Détail par domaine' }),
@@ -3312,11 +3566,23 @@ function enTete() {
       h('a.bouton-icone', { href: '#/reglages', 'aria-label': 'Réglages', title: 'Réglages et données' }, icone(TRACE_ICONES.reglages, 20))));
 }
 
+const boutonSauvegarde = () => h('button.bouton.bouton--petit', {
+  type: 'button',
+  onclick: () => telecharger(nomHorodate('five-league-sauvegarde', 'json'), exporterBase(), 'application/json'),
+}, icone(TRACE_ICONES.exporter, 16), h('span', { text: 'Sauvegarder maintenant' }));
+
 function bandeaux() {
   const messages = [];
   if (!stockageDisponible()) {
     messages.push(h('div.bandeau.bandeau--alerte', {}, icone(TRACE_ICONES.alerte, 18),
-      h('span', { text: 'Ce navigateur refuse le stockage local : les saisies de cette session ne seront pas conservées. Exportez une sauvegarde avant de fermer l’onglet.' })));
+      h('span', {}, 'Ce navigateur refuse le stockage local : ', h('strong', { text: 'les saisies de cette session ne seront pas conservées' }),
+        '. Enregistrez ce fichier sur votre ordinateur et ouvrez-le par un double-clic, ou exportez une sauvegarde avant de fermer l’onglet.'),
+      boutonSauvegarde()));
+  } else if (contexteEphemere()) {
+    messages.push(h('div.bandeau.bandeau--alerte', {}, icone(TRACE_ICONES.alerte, 18),
+      h('span', {}, 'Cette page est affichée dans un aperçu intégré : ', h('strong', { text: 'vos saisies risquent de disparaître au prochain chargement' }),
+        '. Téléchargez le fichier et ouvrez-le directement depuis votre ordinateur pour que tout soit conservé.'),
+      boutonSauvegarde()));
   }
   if (estDemo()) {
     messages.push(h('div.bandeau', {}, icone(TRACE_ICONES.alerte, 18),
@@ -3368,7 +3634,7 @@ function demarrerApplication() {
     MODULES, rendre, route: routeCourante,
     laBase, lignes, ajouterLigne, supprimerLigne, reinitialiser, exporterBase,
     saisonActive, saisons, definirSaison, reglagesActifs, estDemo, stockageDisponible,
-    synthese, alertes, fluxMensuels, versXLSX, versCSV, tableModule,
+    synthese, alertes, fluxMensuels, repartitionCharges, versXLSX, versCSV, tableModule,
   };
 }
 

@@ -31,18 +31,20 @@ déclarent le même nom au premier niveau.
 
 ## Le schéma comme source unique
 
-[`src/app/schema.js`](../src/app/schema.js) décrit les sept domaines : champs
+[`src/app/schema.js`](../src/app/schema.js) décrit les huit domaines : champs
 et types, colonnes du tableau, colonnes calculées, indicateurs, états, graphe
 de répartition, contribution au modèle économique, flux datés.
 
 Tout en découle : une seule vue de module
-([`vue-module.js`](../src/app/vue-module.js)) sert les sept pages,
+([`vue-module.js`](../src/app/vue-module.js)) sert les huit pages,
 formulaires, tris, filtres, recherches et exports compris. Sept pages écrites
 à la main auraient signifié sept formulaires à corriger à chaque évolution.
 
-Ajouter un champ : une ligne dans `champs`. Ajouter un huitième domaine : un
-objet de plus dans `MODULES` — il apparaît dans le hub, la navigation, la
-synthèse, le rapport et les exports sans autre modification.
+Ajouter un champ : une ligne dans `champs`. Ajouter un domaine : un objet de
+plus dans `MODULES` — il apparaît dans le hub, la navigation, la synthèse, le
+rapport et les exports sans autre modification. C'est exactement ce qu'a
+demandé l'ajout du huitième domaine, les dépenses : un objet dans le schéma,
+un jeu de démonstration, et la structure des charges sur le tableau de bord.
 
 ## Le modèle économique
 
@@ -55,8 +57,24 @@ accordée mais non versée, une facture émise, une cotisation appelée figurent
 en « reste à percevoir », jamais dans les produits. C'est la lecture qui
 évite de bâtir un budget sur des promesses.
 
+Symétriquement, **seul le décaissé compte comme charge**. Une dépense
+« Engagée » — commandée ou facturée, pas encore payée — est annoncée à part,
+sous les charges du tableau de bord.
+
 Le bénévolat est valorisé à part, jamais mélangé aux produits monétaires : il
 pèse dans un dossier de subvention, pas dans une trésorerie.
+
+**La frontière entre les dépenses et les événements.** Les coûts propres à une
+journée — terrain, arbitrage, récompenses du jour — sont saisis dans
+l'événement, où ils servent à mesurer son équilibre propre. Le module Dépenses
+porte les charges de fonctionnement de l'association : salaires, créneaux
+d'entraînement, assurance, licences, matériel, communication, frais de
+gestion. Sans cette frontière, les mêmes sommes seraient comptées deux fois.
+Le tableau de bord additionne les trois sources de charges — dépenses de
+fonctionnement, organisation des événements, achats de la boutique — et
+l'anneau « structure des charges » les présente ensemble, les postes de
+fonctionnement en dégradé d'ardoise, les deux autres domaines dans leur
+couleur propre.
 
 **Limite connue.** Le module boutique décrit un catalogue avec un stock, pas
 un journal de ventes daté. Son chiffre d'affaires est donc annuel et
@@ -70,9 +88,24 @@ Toute la base tient dans une clé de `localStorage`. Quelques milliers de
 lignes restent très en deçà des 5 Mo du quota : la démonstration, deux saisons
 complètes, pèse 145 Ko.
 
-Si le stockage est refusé (navigation privée, certains navigateurs sur
-`file://`), l'application continue en mémoire et l'annonce par un bandeau
-plutôt que de laisser croire que les saisies sont conservées.
+Deux échecs sont possibles, et l'un est sournois.
+
+**Le stockage refusé** (navigation privée, réglage de sécurité) lève une
+exception : facile à voir. Mais un stockage peut aussi accepter `setItem` sans
+rien conserver. Le démarrage écrit donc une sonde, la relit et l'efface :
+c'est le seul moyen de distinguer un stockage qui fonctionne d'un stockage qui
+fait semblant. En cas d'échec, l'application continue en mémoire et l'annonce
+par un bandeau plutôt que de laisser croire que les saisies sont conservées.
+
+**Le contexte éphémère** est le cas le plus trompeur : une page affichée dans
+un cadre — aperçu d'une messagerie, prévisualisation d'un service en ligne —
+écrit et relit parfaitement pendant toute la session, puis repart vide au
+chargement suivant, parce qu'elle n'a pas d'origine stable. Aucune sonde ne
+peut le détecter à l'intérieur d'une session : la seule réponse honnête est
+de reconnaître le contexte (`window.self !== window.top`, adresse en `blob:`
+ou `data:`) et de prévenir avant que la saisie ne soit perdue, avec un bouton
+qui télécharge une sauvegarde sur-le-champ. `file:` n'en fait pas partie : son
+origine est opaque, mais son stockage persiste.
 
 La lecture d'une base enregistrée par une version antérieure passe par
 `normaliser()` : un module ou un réglage ajouté depuis est complété, jamais

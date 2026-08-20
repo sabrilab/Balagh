@@ -11,9 +11,9 @@ import { vueHub } from './vue-hub.js';
 import { vueModule, quitterModule } from './vue-module.js';
 import { vueRapport } from './vue-rapport.js';
 import { vueReglages, ouvrirAide } from './vue-reglages.js';
-import { abonner, ajouterLigne, appliquerTheme, definirSaison, definirTheme, demarrerBase, estDemo, exporterBase, laBase, lignes, reglagesActifs, reinitialiser, saisonActive, saisons, stockageDisponible, supprimerLigne, themeEnregistre } from './store.js';
-import { synthese, alertes, fluxMensuels } from './stats.js';
-import { versXLSX, versCSV, tableModule } from './echange.js';
+import { abonner, ajouterLigne, appliquerTheme, contexteEphemere, definirSaison, definirTheme, demarrerBase, estDemo, exporterBase, laBase, lignes, reglagesActifs, reinitialiser, saisonActive, saisons, stockageDisponible, supprimerLigne, themeEnregistre } from './store.js';
+import { synthese, alertes, fluxMensuels, repartitionCharges } from './stats.js';
+import { versXLSX, versCSV, tableModule, telecharger, nomHorodate } from './echange.js';
 
 const MODULE_PAR_ROUTE = Object.fromEntries(MODULES.map((m) => [m.route, m]));
 
@@ -66,11 +66,23 @@ function enTete() {
       h('a.bouton-icone', { href: '#/reglages', 'aria-label': 'Réglages', title: 'Réglages et données' }, icone(TRACE_ICONES.reglages, 20))));
 }
 
+const boutonSauvegarde = () => h('button.bouton.bouton--petit', {
+  type: 'button',
+  onclick: () => telecharger(nomHorodate('five-league-sauvegarde', 'json'), exporterBase(), 'application/json'),
+}, icone(TRACE_ICONES.exporter, 16), h('span', { text: 'Sauvegarder maintenant' }));
+
 function bandeaux() {
   const messages = [];
   if (!stockageDisponible()) {
     messages.push(h('div.bandeau.bandeau--alerte', {}, icone(TRACE_ICONES.alerte, 18),
-      h('span', { text: 'Ce navigateur refuse le stockage local : les saisies de cette session ne seront pas conservées. Exportez une sauvegarde avant de fermer l’onglet.' })));
+      h('span', {}, 'Ce navigateur refuse le stockage local : ', h('strong', { text: 'les saisies de cette session ne seront pas conservées' }),
+        '. Enregistrez ce fichier sur votre ordinateur et ouvrez-le par un double-clic, ou exportez une sauvegarde avant de fermer l’onglet.'),
+      boutonSauvegarde()));
+  } else if (contexteEphemere()) {
+    messages.push(h('div.bandeau.bandeau--alerte', {}, icone(TRACE_ICONES.alerte, 18),
+      h('span', {}, 'Cette page est affichée dans un aperçu intégré : ', h('strong', { text: 'vos saisies risquent de disparaître au prochain chargement' }),
+        '. Téléchargez le fichier et ouvrez-le directement depuis votre ordinateur pour que tout soit conservé.'),
+      boutonSauvegarde()));
   }
   if (estDemo()) {
     messages.push(h('div.bandeau', {}, icone(TRACE_ICONES.alerte, 18),
@@ -122,6 +134,6 @@ export function demarrerApplication() {
     MODULES, rendre, route: routeCourante,
     laBase, lignes, ajouterLigne, supprimerLigne, reinitialiser, exporterBase,
     saisonActive, saisons, definirSaison, reglagesActifs, estDemo, stockageDisponible,
-    synthese, alertes, fluxMensuels, versXLSX, versCSV, tableModule,
+    synthese, alertes, fluxMensuels, repartitionCharges, versXLSX, versCSV, tableModule,
   };
 }

@@ -28,12 +28,24 @@ fonction `logo()`.
 la palette, le champ `couleur` de chaque module dans
 [`src/app/schema.js`](../src/app/schema.js) pour les couleurs de domaine.
 
+**Un huitième domaine.** Le cahier des charges en listait sept, tous du côté
+des ressources. Les dépenses de fonctionnement ont été ajoutées ensuite, à la
+demande : sans elles, le tableau de bord affichait des produits sans contre-
+partie, et le « résultat » ne valait rien. Le domaine reprend la même
+mécanique que les sept autres.
+
 ## 2. Données et volumes
 
 **Retenu :** une association d'environ 130 adhérents, 26 bénévoles, 12 équipes
-engagées, 11 partenaires, pour un budget annuel de l'ordre de 52 000 € de
-produits — le haut de la fourchette annoncée (5 000 à 50 000 €), cohérent avec
-une ligue qui organise 26 journées par saison.
+engagées, 11 partenaires, pour un budget annuel de l'ordre de 48 000 € de
+produits et 41 000 € de charges — la fourchette annoncée (5 000 à 50 000 €),
+cohérente avec une ligue qui organise 26 journées par saison.
+
+Le poste de dépenses le plus lourd de la démonstration est un éducateur en
+apprentissage (11 250 € chargés sur la saison). Si l'association n'emploie
+personne, supprimer ces écritures ramène le résultat à un excédent d'environ
+18 000 € — c'est le premier réglage à faire en saisissant les données
+réelles.
 
 Ces volumes ne sont que ceux de la démonstration : l'outil n'impose aucune
 limite. Les objectifs de saison (produits attendus, nombre d'adhérents visé)

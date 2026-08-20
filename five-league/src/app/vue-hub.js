@@ -9,7 +9,7 @@
 
 import { h, icone } from './dom.js';
 import { MODULES } from './schema.js';
-import { synthese, fluxMensuels, alertes, evolutionProduits, saisonPrecedente } from './stats.js';
+import { synthese, fluxMensuels, alertes, evolutionProduits, saisonPrecedente, repartitionCharges } from './stats.js';
 import { euros, eurosCourt, pourcent, moisEtiquette } from './format.js';
 import { carteKPI, carte, logo, bouton, TRACE_ICONES } from './composants.js';
 import { anneau, legende, histogramme } from './graphes.js';
@@ -100,10 +100,11 @@ export function vueHub() {
   const evolution = evolutionProduits();
   const flux = fluxMensuels();
   const segments = bilan.sources.map((s) => ({ libelle: s.module.court, valeur: s.produits, couleur: s.module.couleur }));
+  const charges = repartitionCharges();
 
   const indicateurs = [
     { libelle: 'Produits de la saison', valeur: euros(bilan.produits), detail: evolution ? `${evolution.ecart >= 0 ? '+' : ''}${evolution.ecart.toFixed(0).replace('-0', '0')} % par rapport à ${saisonPrecedente(bilan.saison)}` : 'première saison suivie', jauge: reglagesActifs().objectifProduits ? bilan.produits / reglagesActifs().objectifProduits : null },
-    { libelle: 'Charges directes', valeur: euros(bilan.charges), detail: 'achats boutique et organisation des événements' },
+    { libelle: 'Charges de la saison', valeur: euros(bilan.charges), detail: bilan.engage ? `dont ${euros(bilan.engage)} engagés, pas encore décaissés` : 'fonctionnement, événements et achats de la boutique' },
     { libelle: 'Résultat', valeur: euros(bilan.resultat), detail: bilan.resultat >= 0 ? 'excédent avant frais généraux' : 'déficit avant frais généraux', ton: bilan.resultat < 0 ? 'alerte' : null },
     { libelle: 'Reste à percevoir', valeur: euros(bilan.attendu), detail: 'subventions accordées, factures et cotisations en attente' },
     { libelle: 'Bénévolat valorisé', valeur: euros(bilan.valorisation), detail: `contribution volontaire, hors budget monétaire` },
@@ -114,7 +115,7 @@ export function vueHub() {
       h('div', {},
         h('p.sur-titre', { text: `Saison ${bilan.saison} · ${reglagesActifs().territoire}` }),
         h('h1.page-titre', { text: 'Modèle socio-économique' }),
-        h('p.page-resume', { text: 'Sept domaines, une seule lecture : ce que la ligue produit, ce qu’elle dépense, et ce qui reste à sécuriser.' })),
+        h('p.page-resume', { text: 'Huit domaines, une seule lecture : ce que la ligue produit, ce qu’elle dépense, et ce qui reste à sécuriser.' })),
       h('div.hub-tete-actions', {},
         bouton('Rapport de saison', { icone: TRACE_ICONES.rapport, onclick: () => { window.location.hash = '#/rapport'; } }),
         bouton('Réglages et données', { icone: TRACE_ICONES.reglages, onclick: () => { window.location.hash = '#/reglages'; } }))),
@@ -148,7 +149,17 @@ export function vueHub() {
           h('p.texte-doux.petit', { text: 'La boutique n’est pas datée à la vente : son chiffre d’affaires figure dans la répartition annuelle, pas dans ce graphique.' })),
       })),
 
-    h('div.grille-deux.grille-deux--inverse', {},
-      bandeauAlertes(),
-      carte({ titre: 'Synthèse par domaine', sousTitre: `saison ${bilan.saison}`, contenu: syntheseTableau(bilan), classe: 'carte--tableau' })));
+    h('div.grille-deux', {},
+      carte({
+        titre: 'Structure des charges',
+        sousTitre: charges.length ? `${charges.length} postes, ${euros(bilan.charges)} décaissés` : 'aucune dépense saisie',
+        contenu: charges.length
+          ? h('div.anneau-bloc', {},
+            anneau(charges, { titre: 'Répartition des charges par poste', centreValeur: eurosCourt(bilan.charges), centreLibelle: 'charges' }),
+            legende(charges, bilan.charges))
+          : h('p.texte-doux', { text: 'Les charges apparaîtront ici dès que des dépenses seront enregistrées.' }),
+      }),
+      bandeauAlertes()),
+
+    carte({ titre: 'Synthèse par domaine', sousTitre: `saison ${bilan.saison}`, contenu: syntheseTableau(bilan), classe: 'carte--tableau' }));
 }

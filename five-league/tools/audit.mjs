@@ -22,7 +22,7 @@ const ECRANS = [
   { nom: 'tablette', largeur: 900, hauteur: 1100, tactile: false },
   { nom: 'téléphone', largeur: 390, hauteur: 844, tactile: true },
 ];
-const VUES = ['', '#/module/cotisations', '#/module/evenements', '#/rapport', '#/reglages'];
+const VUES = ['', '#/module/cotisations', '#/module/evenements', '#/module/depenses', '#/rapport', '#/reglages'];
 const THEMES = ['clair', 'sombre'];
 
 const MESURE = ({ cibleMini }) => {

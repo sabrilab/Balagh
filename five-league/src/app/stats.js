@@ -14,7 +14,7 @@ export function synthese(saison = saisonActive()) {
   const r = reglagesActifs();
   const parModule = MODULES.map((m) => {
     const donnees = lignes(m.id, { saison });
-    const eco = m.economie ? m.economie(donnees, r) : { produits: 0, charges: 0, attendu: 0, valorisation: 0 };
+    const eco = { produits: 0, charges: 0, attendu: 0, engage: 0, valorisation: 0, ...(m.economie ? m.economie(donnees, r) : {}) };
     return { module: m, lignes: donnees.length, ...eco };
   });
   const total = (cle) => parModule.reduce((t, p) => t + (p[cle] || 0), 0);
@@ -27,8 +27,10 @@ export function synthese(saison = saisonActive()) {
     charges,
     resultat: produits - charges,
     attendu: total('attendu'),
+    engage: total('engage'),
     valorisation: total('valorisation'),
     sources: parModule.filter((p) => p.produits > 0).sort((a, b) => b.produits - a.produits),
+    postes: parModule.filter((p) => p.charges > 0).sort((a, b) => b.charges - a.charges),
   };
 }
 
@@ -65,6 +67,41 @@ export function fluxMensuels(saison = saisonActive()) {
     }
   }
   return [...seaux.values()];
+}
+
+/** Dégradé d'ardoise pour les postes de charges : les dépenses de
+ *  fonctionnement forment une même famille, les deux domaines qui portent
+ *  aussi des charges gardent leur couleur propre. */
+const TONS_CHARGES = ['#4B5A69', '#5F7183', '#78889A', '#93A0AE', '#AEB8C3', '#C7CED6'];
+
+/**
+ * Structure des charges : les postes de dépenses de fonctionnement, plus les
+ * charges portées par les autres domaines (achats de la boutique, coûts
+ * d'organisation des événements). Les six premiers postes sont détaillés, le
+ * reste est regroupé — au-delà, l'anneau devient illisible.
+ */
+export function repartitionCharges(saison = saisonActive()) {
+  const postes = new Map();
+  for (const l of lignes('depenses', { saison })) {
+    if (l.statut !== 'Payée') continue;
+    const cle = l.categorie || 'Autre';
+    postes.set(cle, (postes.get(cle) || 0) + (Number(l.montant) || 0));
+  }
+  const classes = [...postes.entries()].map(([libelle, valeur]) => ({ libelle, valeur })).sort((a, b) => b.valeur - a.valeur);
+  const detailles = classes.slice(0, 5).map((p, i) => ({ ...p, couleur: TONS_CHARGES[i] }));
+  const restant = classes.slice(5).reduce((t, p) => t + p.valeur, 0);
+  if (restant > 0) detailles.push({ libelle: `Autres postes (${classes.length - 5})`, valeur: restant, couleur: TONS_CHARGES[5] });
+
+  const bilan = synthese(saison);
+  for (const p of bilan.parModule) {
+    if (p.module.id === 'depenses' || !p.charges) continue;
+    detailles.push({
+      libelle: p.module.id === 'boutique' ? 'Achats de la boutique' : `Organisation d'événements`,
+      valeur: p.charges,
+      couleur: p.module.couleur,
+    });
+  }
+  return detailles.sort((a, b) => b.valeur - a.valeur);
 }
 
 /** Répartition d'un module par valeur d'un champ (camembert des modules). */
@@ -140,6 +177,36 @@ export function alertes() {
   const aRenouveler = lignes('partenariats', { toutesSaisons: true }).filter((l) => (l.statut === 'Actif' || l.statut === 'À renouveler') && l.fin && joursRestants(l.fin) <= 90 && joursRestants(l.fin) >= -30);
   if (aRenouveler.length) {
     AJOUT(liste, { module: 'partenariats', gravite: 'moyenne', titre: `${nombre(aRenouveler.length)} partenariat${aRenouveler.length > 1 ? 's' : ''} arrive${aRenouveler.length > 1 ? 'nt' : ''} à échéance`, detail: `${euros(aRenouveler.reduce((t, l) => t + (Number(l.montant) || 0), 0))} de sponsoring à sécuriser avant le ${dateCourte(aRenouveler.map((l) => l.fin).sort()[0])}.` });
+  }
+
+  const aRegler = lignes('depenses', { toutesSaisons: true }).filter((l) => l.statut === 'Engagée' || l.statut === 'Prévue');
+  const enRetardDepenses = aRegler.filter((l) => l.echeance && joursRestants(l.echeance) < 0);
+  if (enRetardDepenses.length) {
+    AJOUT(liste, {
+      module: 'depenses',
+      gravite: 'haute',
+      titre: `${nombre(enRetardDepenses.length)} dépense${enRetardDepenses.length > 1 ? 's' : ''} à régler en retard`,
+      detail: `${euros(enRetardDepenses.reduce((t, l) => t + (Number(l.montant) || 0), 0))} dont l'échéance est passée : ${enRetardDepenses.map((l) => l.intitule).slice(0, 2).join(', ')}.`,
+    });
+  } else if (aRegler.length) {
+    AJOUT(liste, {
+      module: 'depenses',
+      gravite: 'moyenne',
+      titre: `${nombre(aRegler.length)} dépense${aRegler.length > 1 ? 's' : ''} engagée${aRegler.length > 1 ? 's' : ''} non réglée${aRegler.length > 1 ? 's' : ''}`,
+      detail: `${euros(aRegler.reduce((t, l) => t + (Number(l.montant) || 0), 0))} à décaisser prochainement.`,
+    });
+  }
+
+  /* Un résultat négatif est le signal le plus important du tableau de bord :
+     il passe avant les échéances de détail. */
+  const bilan = synthese();
+  if (bilan.charges > bilan.produits) {
+    liste.unshift({
+      module: 'depenses',
+      gravite: 'haute',
+      titre: `Résultat déficitaire de ${euros(bilan.charges - bilan.produits)}`,
+      detail: `${euros(bilan.charges)} de charges pour ${euros(bilan.produits)} de produits encaissés sur la saison.`,
+    });
   }
 
   const heuresSaisies = lignes('rh').reduce((t, l) => t + (Number(l.heures) || 0), 0);

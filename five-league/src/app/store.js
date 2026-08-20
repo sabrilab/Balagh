@@ -60,10 +60,45 @@ function saisonParDefaut(source = etatBase) {
   return [...peuplees].sort().pop();
 }
 
+/**
+ * Sonde d'écriture. Un stockage qui accepte `setItem` sans rien conserver est
+ * plus dangereux qu'un stockage absent : l'outil croirait enregistrer. On
+ * écrit, on relit, on efface.
+ */
+function stockageUtilisable() {
+  try {
+    const sonde = `${CLE}.sonde`;
+    localStorage.setItem(sonde, '1');
+    const relu = localStorage.getItem(sonde) === '1';
+    localStorage.removeItem(sonde);
+    return relu;
+  } catch (e) {
+    return false;
+  }
+}
+
+/**
+ * Contexte sans origine stable : page affichée dans un cadre, adresse en
+ * `blob:` ou `data:`, origine opaque. Le stockage y répond correctement mais
+ * repart vide au chargement suivant — aucune sonde ne peut le détecter dans
+ * la même session, alors on prévient avant que la saisie ne soit perdue.
+ */
+export function contexteEphemere() {
+  try {
+    if (window.self !== window.top) return true;
+  } catch (e) {
+    return true;
+  }
+  // Un fichier ouvert localement a lui aussi une origine opaque, mais son
+  // stockage, lui, persiste : `file:` n'est donc pas un contexte éphémère.
+  return ['blob:', 'data:'].includes(window.location.protocol);
+}
+
 export function demarrerBase() {
   let brute = null;
+  stockageActif = stockageUtilisable();
   try {
-    const texte = localStorage.getItem(CLE);
+    const texte = stockageActif ? localStorage.getItem(CLE) : null;
     brute = texte ? JSON.parse(texte) : null;
   } catch (e) {
     stockageActif = false;

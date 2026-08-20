@@ -12,7 +12,7 @@
  */
 
 import { identifiant, bornesSaison } from './format.js';
-import { REGLAGES_DEFAUT } from './schema.js';
+import { MODULES, REGLAGES_DEFAUT } from './schema.js';
 
 function alea(graine) {
   let a = graine >>> 0;
@@ -27,6 +27,8 @@ function alea(graine) {
 const PRENOMS = ['Karim', 'Julien', 'Sofiane', 'Mathieu', 'Anaïs', 'Lucas', 'Nadia', 'Thomas', 'Inès', 'Antoine', 'Camille', 'Youssef', 'Léa', 'Maxime', 'Sarah', 'Baptiste', 'Ilyes', 'Manon', 'Quentin', 'Fatima', 'Romain', 'Chloé', 'Adrien', 'Amine', 'Émilie', 'Nicolas', 'Jade', 'Farid', 'Clara', 'Damien', 'Océane', 'Hugo', 'Sabrina', 'Vincent', 'Élodie', 'Mehdi'];
 const NOMS = ['Delcroix', 'Vandamme', 'Lefebvre', 'Bouchard', 'Dubois', 'Carpentier', 'Leroy', 'Ben Ali', 'Descamps', 'Mercier', 'Dhaene', 'Fournier', 'Lemaire', 'Blondel', 'Verhaeghe', 'Caron', 'Delattre', 'Mahieu', 'Bonnet', 'Sadaoui', 'Duthoit', 'Renard', 'Wattiez', 'Lecomte', 'Bertin', 'Hamdi', 'Vasseur', 'Danjou', 'Pollet', 'Lammens'];
 const EQUIPES = ['Lille Futsal Club', 'Roubaix Five', 'Tourcoing Ballers', "Villeneuve United", 'Wattrelos FC5', 'Marcq Athletic', 'Armentières Five', 'Croix Sporting', 'Lambersart FC', 'Seclin Five', 'Hem Athletic', 'Wasquehal Five'];
+const MOIS_SAISON = ['septembre', 'octobre', 'novembre', 'décembre', 'janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août'];
+
 const SALLES = ['Halle Vauban, Roubaix', 'Complexe Léo-Lagrange, Tourcoing', 'Gymnase des Quatre-Vents, Lille', 'Salle Jean-Jaurès, Wattrelos', 'Palais des sports, Villeneuve-d’Ascq', 'Gymnase du Blanc-Seau, Tourcoing'];
 
 const ROLES = [
@@ -86,6 +88,40 @@ const PARTENAIRES = [
   ['Multitech Services', 'Visibilité digitale', 500, 'Bandeau site, écran de la halle'],
 ];
 
+/** Charges de fonctionnement récurrentes : [intitulé, poste, montant mensuel,
+ *  premier mois de la saison, dernier mois, fournisseur]. */
+const CHARGES_MENSUELLES = [
+  ['Rémunération de l’éducateur (apprentissage)', 'Salaires et charges', 800, 0, 11, 'Paie — apprenti'],
+  ['Charges sociales', 'Salaires et charges', 150, 0, 11, 'URSSAF'],
+  ['Location des créneaux d’entraînement', 'Location de créneaux', 560, 0, 9, 'Ville de Roubaix'],
+  ['Frais bancaires', 'Frais de gestion', 8, 0, 11, 'Banque de l’association'],
+];
+
+/** Charges ponctuelles : [intitulé, poste, montant, mois de la saison,
+ *  fournisseur, périodicité]. */
+const CHARGES_PONCTUELLES = [
+  ['Assurance responsabilité civile', 'Assurance', 620, 1, 'Assureur des associations', 'Annuelle'],
+  ['Affiliation et licences fédérales', 'Licences et affiliations', 3200, 1, 'Fédération de futsal', 'Annuelle'],
+  ['Cotisation à la ligue régionale', 'Licences et affiliations', 450, 2, 'Ligue Hauts-de-France', 'Annuelle'],
+  ['Renouvellement du parc de ballons', 'Équipement et matériel', 890, 0, 'Espace Sport Roubaix', 'Ponctuelle'],
+  ['Chasubles et plots d’entraînement', 'Équipement et matériel', 340, 3, 'Espace Sport Roubaix', 'Ponctuelle'],
+  ['Trousse de secours et défibrillateur', 'Équipement et matériel', 780, 2, 'Sécurité Nord', 'Ponctuelle'],
+  ['Tenues d’arbitrage', 'Équipement et matériel', 410, 4, 'Textile Pro Lille', 'Ponctuelle'],
+  ['Hébergement du site et nom de domaine', 'Communication', 180, 0, 'Hébergeur web', 'Annuelle'],
+  ['Affiches et flyers de la saison', 'Communication', 260, 0, 'Imprimerie du Nord', 'Ponctuelle'],
+  ['Banderole et kakémonos', 'Communication', 480, 5, 'Imprimerie du Nord', 'Ponctuelle'],
+  ['Formation d’éducateur — module fédéral', 'Formation', 700, 6, 'Ligue Hauts-de-France', 'Ponctuelle'],
+  ['Formation à l’arbitrage', 'Formation', 320, 7, 'Ligue Hauts-de-France', 'Ponctuelle'],
+  ['Déplacement à la finale régionale', 'Déplacements', 480, 8, 'Location de minibus', 'Ponctuelle'],
+  ['Péages et carburant', 'Déplacements', 300, 9, 'Frais réels', 'Ponctuelle'],
+  ['Trophées et médailles de fin de saison', 'Récompenses', 1100, 9, 'Objets Pub Nord', 'Ponctuelle'],
+  ['Repas des bénévoles', 'Restauration', 800, 9, 'Pizzeria Bella Nonna', 'Ponctuelle'],
+  ['Local de stockage du matériel', 'Location de créneaux', 1200, 0, 'Ville de Roubaix', 'Annuelle'],
+  ['Expert-comptable et logiciel de gestion', 'Frais de gestion', 600, 10, 'Cabinet comptable', 'Annuelle'],
+  ['Fournitures administratives', 'Frais de gestion', 180, 3, 'Papeterie centrale', 'Ponctuelle'],
+  ['Commissions de la plateforme de paiement', 'Frais de gestion', 240, 5, 'Plateforme de paiement', 'Ponctuelle'],
+];
+
 const CLIENTS = [
   ['Groupe Verlinde', "Animation d'entreprise", 900],
   ['CCAS de Wattrelos', 'Formation encadrants', 600],
@@ -117,6 +153,12 @@ function dimanches(saison) {
   return sorties;
 }
 
+/** Date du mois `index` de la saison ouverte en septembre de l'année `an`. */
+const moisSaison = (an, index, jour = 5) => {
+  const total = 8 + index;
+  return `${an + Math.floor(total / 12)}-${String((total % 12) + 1).padStart(2, '0')}-${String(jour).padStart(2, '0')}`;
+};
+
 const decalage = (iso, jours) => {
   const d = new Date(`${iso}T12:00:00Z`);
   d.setUTCDate(d.getUTCDate() + jours);
@@ -133,7 +175,8 @@ export function baseDemo(jour = new Date().toISOString().slice(0, 10)) {
   const entier = (min, max) => min + Math.floor(r() * (max - min + 1));
   const choix = (liste) => liste[Math.floor(r() * liste.length)];
   const chance = (p) => r() < p;
-  const donnees = { rh: [], cotisations: [], subventions: [], boutique: [], evenements: [], prestations: [], partenariats: [] };
+  // Dérivé du schéma : un domaine ajouté n'a pas à être répété ici.
+  const donnees = Object.fromEntries(MODULES.map((m) => [m.id, []]));
   const ajoute = (cle, ligne) => donnees[cle].push({ id: identifiant(cle.slice(0, 3)), creeLe: jour, majLe: jour, ...ligne });
 
   const saisons = [
@@ -299,6 +342,36 @@ export function baseDemo(jour = new Date().toISOString().slice(0, 10)) {
         notes: '',
       });
     }
+
+    /* -------- Dépenses de fonctionnement */
+    const arrondi = (v) => Math.round((v * part) / 10) * 10;
+    // Une facture reçue dans les trois dernières semaines n'est pas toujours
+    // déjà décaissée : c'est ce qui alimente le « à régler ».
+    const etatDepense = (date) => {
+      if (date > jour) return chance(0.55) ? 'Engagée' : 'Prévue';
+      return date > decalage(jour, -25) && chance(0.45) ? 'Engagée' : 'Payée';
+    };
+    for (const [intitule, poste, mensuel, premier, dernier, fournisseur] of CHARGES_MENSUELLES) {
+      for (let m = premier; m <= dernier; m++) {
+        const date = moisSaison(an, m, entier(3, 9));
+        ajoute('depenses', {
+          saison, intitule: `${intitule} — ${MOIS_SAISON[m]}`, categorie: poste,
+          montant: arrondi(mensuel), date, statut: etatDepense(date),
+          fournisseur, moyen: poste === 'Frais de gestion' ? 'Prélèvement' : 'Virement',
+          recurrence: 'Mensuelle', echeance: '', piece: '', notes: '',
+        });
+      }
+    }
+    for (const [intitule, poste, montant, mois, fournisseur, recurrence] of CHARGES_PONCTUELLES) {
+      const date = moisSaison(an, mois, entier(4, 26));
+      ajoute('depenses', {
+        saison, intitule, categorie: poste,
+        montant: arrondi(montant), date, statut: etatDepense(date),
+        fournisseur, moyen: choix(['Virement', 'Carte', 'Chèque', 'Prélèvement']),
+        recurrence, echeance: decalage(date, 30),
+        piece: `F-${an}-${String(entier(100, 999))}`, notes: '',
+      });
+    }
   }
 
   /* -------- Amorce de la saison suivante : ce qui se prépare dès l'été. */
@@ -306,6 +379,8 @@ export function baseDemo(jour = new Date().toISOString().slice(0, 10)) {
   ajoute('subventions', { saison: suivante, financeur: 'Agence nationale du Sport', dispositif: 'Projet Sportif Fédéral 2026-2027', demande: 4800, accorde: 0, statut: 'Déposé', echeance: '2026-09-15', dateDepot: '2026-08-04', dateVersement: '', referent: 'Karim Delcroix', notes: 'Accusé de réception reçu.' });
   ajoute('subventions', { saison: suivante, financeur: 'Ville de Roubaix', dispositif: 'Subvention de fonctionnement 2027', demande: 2800, accorde: 0, statut: 'À déposer', echeance: '2026-10-31', dateDepot: '', dateVersement: '', referent: 'Nadia Bouchard', notes: 'Dossier à retirer en mairie début septembre.' });
   ajoute('partenariats', { saison: suivante, entreprise: 'Garage Delcroix', type: 'Sponsor maillot', montant: 2400, encaisse: 0, statut: 'En négociation', debut: '2026-09-01', fin: '2027-08-31', contact: 'Julien Delcroix', courriel: '', nature: 'Reconduction avec logo dos du maillot en plus', notes: 'Rendez-vous fixé fin août.' });
+  ajoute('depenses', { saison: suivante, intitule: 'Assurance responsabilité civile', categorie: 'Assurance', montant: 640, date: '2026-10-05', statut: 'Prévue', fournisseur: 'Assureur des associations', moyen: 'Virement', recurrence: 'Annuelle', echeance: '2026-10-15', piece: '', notes: 'Appel de cotisation reçu.' });
+  ajoute('depenses', { saison: suivante, intitule: 'Affiliation et licences fédérales', categorie: 'Licences et affiliations', montant: 3300, date: '2026-09-20', statut: 'Engagée', fournisseur: 'Fédération de futsal', moyen: 'Virement', recurrence: 'Annuelle', echeance: '2026-09-30', piece: '', notes: 'À régler avant la première journée.' });
   ajoute('evenements', { saison: suivante, intitule: 'Tournoi de rentrée', type: 'Tournoi', date: '2026-09-06', lieu: SALLES[0], equipes: 12, participants: 120, recettes: 620, depenses: 430, statut: 'Confirmé', responsable: 'Karim Delcroix', notes: 'Ouverture de la saison, inscriptions ouvertes.' });
 
   return { version: 1, saison: '', reglages: { ...REGLAGES_DEFAUT }, demo: true, donnees };

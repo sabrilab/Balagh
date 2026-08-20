@@ -39,24 +39,33 @@ t('le stockage local est disponible', await page.evaluate(() => window.FiveLeagu
 t('la base de démonstration est chargée', await page.evaluate(() => window.FiveLeague.estDemo()));
 
 const modules = await page.evaluate(() => window.FiveLeague.MODULES.map((m) => ({ id: m.id, route: m.route, titre: m.titre, colonnes: m.colonnes.length })));
-t('sept domaines sont décrits', modules.length === 7, `${modules.length} modules`);
+t('huit domaines sont décrits', modules.length === 8, `${modules.length} modules`);
 
 const bilan = await page.evaluate(() => {
   const s = window.FiveLeague.synthese();
   return { saison: s.saison, produits: s.produits, charges: s.charges, valorisation: s.valorisation, sources: s.sources.length, parModule: s.parModule.length };
 });
-t('la synthèse couvre les sept domaines', bilan.parModule === 7);
+t('la synthèse couvre les huit domaines', bilan.parModule === 8);
 t('les produits de la saison sont cohérents', bilan.produits > 20000 && bilan.produits < 200000, `${Math.round(bilan.produits)} €`);
 t('le bénévolat est valorisé', bilan.valorisation > 0, `${Math.round(bilan.valorisation)} €`);
 
 /* ------------------------------------------------------------------- Hub */
 
-t('le hub affiche sept portes d’entrée', await page.locator('.hub-noeud').count() === 7);
+t('le hub affiche huit portes d’entrée', await page.locator('.hub-noeud').count() === 8);
 t('le médaillon central annonce les produits', (await page.locator('.hub-centre-valeur').textContent()).includes('€'));
 t('les indicateurs d’ensemble sont présents', await page.locator('.kpi').count() === 5);
 t('la répartition des produits est dessinée', await page.locator('.graphe-anneau .anneau-part').count() >= 5);
 t('l’histogramme mensuel est dessiné', await page.locator('.graphe-barres .barre').count() > 10);
 t('les points d’attention remontent', await page.locator('.alerte').count() > 0);
+t('la structure des charges est dessinée', await page.locator('.graphe-anneau').count() === 2);
+const charges = await page.evaluate(() => {
+  const s = window.FiveLeague.synthese();
+  const postes = window.FiveLeague.repartitionCharges();
+  return { charges: s.charges, resultat: s.resultat, postes: postes.length, sommePostes: postes.reduce((t, p) => t + p.valeur, 0) };
+});
+t('les charges de la saison sont chiffrées', charges.charges > 0, `${Math.round(charges.charges)} €`);
+t('la répartition des charges couvre le total', Math.abs(charges.sommePostes - charges.charges) < 1, `${Math.round(charges.sommePostes)} vs ${Math.round(charges.charges)}`);
+t('le résultat est la différence produits – charges', Math.abs((bilan.produits - charges.charges) - charges.resultat) < 1);
 
 const lienAvantClic = await page.locator('.hub-noeud').first().getAttribute('href');
 await page.locator('.hub-noeud').first().click();
@@ -171,7 +180,7 @@ const classeur = Buffer.from(octets);
 t('le classeur est une archive ZIP', classeur.subarray(0, 4).toString('hex') === '504b0304');
 const annuaire = classeur.lastIndexOf(Buffer.from('504b0506', 'hex'));
 const nbEntrees = annuaire > 0 ? classeur.readUInt16LE(annuaire + 10) : 0;
-t('le classeur contient une feuille par domaine', nbEntrees === 11, `${nbEntrees} fichiers dans l'archive`);
+t('le classeur contient une feuille par domaine', nbEntrees === 12, `${nbEntrees} fichiers dans l'archive`);
 t('le classeur déclare les sept feuilles', classeur.includes('Ressources humaines') && classeur.includes('Partenariats privés'));
 
 /* CRC de chaque entrée : une archive acceptée par Excel n'a pas le droit de
@@ -250,7 +259,7 @@ t('la démonstration se recharge', await page.evaluate(() => window.FiveLeague.l
 
 await aller('#/rapport');
 t('le rapport de saison se compose', await page.locator('.rapport-section').count() >= 5);
-t('le rapport détaille les sept domaines', await page.locator('.rapport-bloc').count() === 7);
+t('le rapport détaille les huit domaines', await page.locator('.rapport-bloc').count() === 8);
 t('le rapport chiffre l’équilibre', (await page.locator('.rapport-chiffre-valeur').first().textContent()).includes('€'));
 
 /* --------------------------------------------------------------- Mobile */
@@ -266,7 +275,7 @@ const grille = await pageMobile.evaluate(() => {
   const noeuds = [...document.querySelectorAll('.hub-noeud')].map((n) => n.getBoundingClientRect());
   return { nombre: noeuds.length, alignes: new Set(noeuds.map((r) => Math.round(r.top))).size < noeuds.length };
 });
-t('le hub devient une grille sur téléphone', grille.nombre === 7 && grille.alignes);
+t('le hub devient une grille sur téléphone', grille.nombre === 8 && grille.alignes);
 await pageMobile.goto(`${URL_}#/module/cotisations`);
 await pageMobile.waitForTimeout(400);
 t('les tableaux deviennent des fiches sur téléphone', await pageMobile.evaluate(() => getComputedStyle(document.querySelector('.tableau thead')).display === 'none'));
