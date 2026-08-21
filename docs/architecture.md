@@ -182,6 +182,26 @@ respire au lieu de sursauter sur les claquements. L'effet est volontairement
 ténu — 8 % d'opacité et quelques pixels de filet. Une pulsation visible ferait
 du verset un effet, ce qu'il n'est pas.
 
+### Les divisions du mushaf
+
+Sourate, juz, hizb, rub' al-hizb, page : ces découpes ne sont pas des
+conventions d'application, ce sont celles du Coran imprimé. Les métadonnées
+par verset de l'édition Tanzil les portent déjà ; le build en extrait les
+débuts — 30 juz, 240 rub', 604 pages — et les range dans le corpus. Un hizb
+fait quatre rub' parce que c'est sa définition, jamais un partage du nombre de
+versets.
+
+La vérification est ce qui rend ces tables dignes de confiance : le signe ۞ est
+dans le **texte**, les divisions sont dans les **métadonnées**, et les
+confronter vérifie l'une par l'autre. Chacun des 199 signes doit tomber sur un
+début de rub'. 198 le font. Le dernier, en 15:49, précède d'un verset la borne
+tabulée du rub' 106 ; l'écart est tracé dans `meta.upstreamAnomalies`, la
+division tabulée est retenue, et le build refuse d'écrire si un second écart
+apparaît — ce serait la source qui a changé.
+
+Les 42 débuts de rub' sans signe ne sont pas une anomalie : ils tombent au
+premier verset d'une sourate, où le titre tient ce rôle.
+
 ### Découpage aux signes de pause
 
 `core/segments.mjs` ne connaît ni le DOM ni React : il reçoit un prédicat

@@ -23,7 +23,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => readFile(join(ROOT, p), 'utf8');
 const exists = (p) => stat(join(ROOT, p)).then(() => true, () => false);
 
-const CORE = ['audio', 'segments', 'edit'];
+const CORE = ['audio', 'segments', 'edit', 'divisions'];
 
 const [html, css, js, data, fontsInline, fontsLinked, ...coreSources] = await Promise.all([
   read('src/index.html'), read('src/styles.css'), read('src/app.js'),

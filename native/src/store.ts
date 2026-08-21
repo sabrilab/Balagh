@@ -48,6 +48,10 @@ export type State = {
   presence: number;
   premium: boolean;
   prompterSpeed: number;
+  /** Longueur visée par le tirage au sort, et famille de portions ouverte. */
+  randomSize: string;
+  kind: string;
+  rangeFrom: VerseRef | null;
   /** Découpage courant de la sélection, recalculé à l'entrée du télépromptage. */
   segments: Segment[] | null;
   maxLines: number;
@@ -68,6 +72,9 @@ let state: State = {
   presence: 2.5,
   premium: false,
   prompterSpeed: 26,
+  randomSize: 'moyen',
+  kind: 'juz',
+  rangeFrom: null,
   segments: null,
   maxLines: 3,
   charsPerLine: 0,
@@ -101,7 +108,18 @@ export function toggleSelection(s: number, a: number) {
   const next = state.selection.slice();
   if (i >= 0) next.splice(i, 1);
   else { next.push({ s, a }); next.sort((x, y) => x.s - y.s || x.a - y.a); }
-  setState({ selection: next, segments: null });
+  setState({ selection: next, segments: null, rangeFrom: null });
+}
+
+/**
+ * Remplace la sélection d'un bloc.
+ *
+ * Toute entrée par lot passe par là — portion, plage, tirage au sort — pour que
+ * le découpage soit invalidé au même endroit : il dépend de la sélection, et le
+ * garder afficherait les cartes du passage précédent.
+ */
+export function setSelection(list: VerseRef[]) {
+  setState({ selection: list.slice(), segments: null, rangeFrom: null });
 }
 
 export const currentTake = () => state.takes.find((t) => t.id === state.currentTakeId) || null;

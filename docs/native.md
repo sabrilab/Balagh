@@ -53,6 +53,7 @@ prouve l'algèbre du montage, `npm run verify:segments` le découpage.
 |---|---|
 | Lecture, tajwid, traductions | fonctionnel, corpus complet embarqué |
 | Recherche par thème | fonctionnel, index local |
+| Passage au hasard, portions du mushaf | fonctionnel (feuille modale, liste virtualisée) |
 | Télépromptage à glissement, découpé aux waqf | fonctionnel (`ScrollView` paginé) |
 | Captation micro | fonctionnel (`AudioRecorder`, M4A) |
 | Montage : couper, supprimer, déplacer, rogner | fonctionnel, non destructif |

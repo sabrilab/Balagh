@@ -103,6 +103,9 @@ const frTexts = [];
 const enTexts = [];
 const sajdas = [];
 const juzStarts = new Map();
+const hizbStarts = new Map();     // rub' al-hizb : 240 quarts
+const pageStarts = new Map();     // pages du mushaf de Madinah : 604
+const rubMarks = [];              // versets portant le signe ۞ dans le texte
 let total = 0;
 let detached = 0;
 
@@ -162,6 +165,9 @@ for (let i = 0; i < 114; i++) {
     const a = sa.ayahs[k];
     if (a.sajda) sajdas.push([num, k + 1]);
     if (!juzStarts.has(a.juz)) juzStarts.set(a.juz, [a.juz, num, k + 1]);
+    if (!hizbStarts.has(a.hizbQuarter)) hizbStarts.set(a.hizbQuarter, [a.hizbQuarter, num, k + 1]);
+    if (!pageStarts.has(a.page)) pageStarts.set(a.page, [a.page, num, k + 1]);
+    if (ar[k].includes('\u06DE')) rubMarks.push([num, k + 1, a.hizbQuarter]);
   }
   total += n;
 
@@ -187,6 +193,30 @@ check(total === 6236, `total : ${total} versets au lieu de 6236`);
 check(detached === 112, `basmala detachee sur ${detached} sourates au lieu de 112`);
 check(sajdas.length === 15, `${sajdas.length} versets de prosternation au lieu de 15`);
 check(juzStarts.size === 30, `${juzStarts.size} juz au lieu de 30`);
+check(hizbStarts.size === 240, `${hizbStarts.size} quarts de hizb au lieu de 240`);
+check(pageStarts.size === 604, `${pageStarts.size} pages au lieu de 604`);
+
+// Les divisions viennent des metadonnees ; le signe ۞ vient du TEXTE. Les
+// confronter verifie l'une par l'autre : chaque signe doit tomber sur un debut
+// de rub'. Les debuts sans signe sont normaux — au premier verset d'une
+// sourate, le titre tient ce role.
+const rubHorsDebut = rubMarks.filter(([s2, a2, q]) => {
+  const start = hizbStarts.get(q);
+  return !(start && start[1] === s2 && start[2] === a2);
+});
+if (rubHorsDebut.length) {
+  for (const [s2, a2, q] of rubHorsDebut) {
+    const start = hizbStarts.get(q);
+    anomalies.push(
+      `${s2}:${a2} porte le signe ۞ mais le rub' ${q + 1} est tabule a ` +
+        `${hizbStarts.get(q + 1) ? hizbStarts.get(q + 1)[1] + ':' + hizbStarts.get(q + 1)[2] : '?'} ` +
+        `(rub' ${q} commence a ${start ? start[1] + ':' + start[2] : '?'}) — division tabulee retenue`,
+    );
+  }
+}
+// Un ecart isole est connu et trace ; au-dela, c'est la source qui a change.
+check(rubHorsDebut.length <= 1, `${rubHorsDebut.length} signes ۞ hors d'un debut de rub'`);
+check(rubMarks.length === 199, `${rubMarks.length} signes ۞ dans le texte au lieu de 199`);
 check(surahs[0].n === 7 && surahs[1].n === 286 && surahs[113].n === 6, 'temoins 1/2/114 : nombre de versets inattendu');
 
 // Inventaire des points de code arabes : détecte toute contamination latine.
@@ -232,6 +262,8 @@ const out = {
   en: enTexts,
   sajda: sajdas,
   juz: [...juzStarts.values()].sort((a, b) => a[0] - b[0]),
+  hizb: [...hizbStarts.values()].sort((a, b) => a[0] - b[0]),
+  page: [...pageStarts.values()].sort((a, b) => a[0] - b[0]),
 };
 
 const target = join(ROOT, 'data', 'quran.data.json');

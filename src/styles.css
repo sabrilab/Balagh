@@ -31,6 +31,7 @@
   --fill-3: rgba(0, 0, 0, .11);
   --separator: rgba(0, 0, 0, .09);
   --separator-opaque: #E4E4E4;
+  --scrim: rgba(0, 0, 0, .32);
 
   /* Pas de couleur d'accent : le contraste et le poids font l'affordance.
      La seule couleur de l'application est celle des règles de tajwid. */
@@ -117,6 +118,7 @@
     --fill-3: rgba(255, 255, 255, .16);
     --separator: rgba(255, 255, 255, .11);
     --separator-opaque: #262626;
+    --scrim: rgba(0, 0, 0, .58);
 
     --tint: #FFFFFF;
     --tint-bg: rgba(255, 255, 255, .1);
@@ -159,6 +161,7 @@
   --fill-3: rgba(255, 255, 255, .16);
   --separator: rgba(255, 255, 255, .11);
   --separator-opaque: #262626;
+  --scrim: rgba(0, 0, 0, .58);
   --tint: #FFFFFF;
   --tint-bg: rgba(255, 255, 255, .1);
   --myrtle: #6FD79B;
@@ -1118,4 +1121,77 @@ input[type="range"] { flex: 1; accent-color: var(--tint); height: var(--hit); }
 }
 .editor-gaps-note {
   margin: 0; font-size: var(--t-footnote); line-height: var(--lh-footnote); color: var(--label-3);
+}
+
+/* --------------------------------------------------------------------------
+   18. Entrer dans une récitation : au hasard, ou par portion
+   -------------------------------------------------------------------------- */
+.entry-row { display: flex; gap: var(--sp-2); }
+/* `min-width: 0` est ce qui autorise la contraction : sans lui, un élément
+   flex ne descend pas sous la largeur de son contenu et déborde du cadre. */
+.entry-row .btn { flex: 1 1 0; min-width: 0; padding: 0 var(--sp-3); overflow: hidden; }
+
+.notice-range { align-items: center; }
+.notice-range .btn-plain { flex: none; }
+.entry-note {
+  margin: 0; font-size: var(--t-footnote); line-height: var(--lh-footnote); color: var(--label-3);
+}
+
+/* La feuille : elle monte du bas, comme une feuille modale iOS. */
+#overlay[data-open="1"] { pointer-events: auto; }
+.sheet-scrim {
+  position: absolute; inset: 0; pointer-events: auto;
+  background: var(--scrim);
+  animation: scrim-in .22s ease both;
+}
+@keyframes scrim-in { from { opacity: 0; } to { opacity: 1; } }
+
+.sheet {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  max-height: 88%;
+  display: flex; flex-direction: column; gap: var(--sp-3);
+  padding: var(--sp-2) var(--margin) calc(var(--sp-4) + env(safe-area-inset-bottom, 0px));
+  border-radius: var(--r-sheet) var(--r-sheet) 0 0;
+  background: var(--bg-raised);
+  box-shadow: 0 -1px 0 var(--separator), 0 -18px 50px var(--glass-shadow);
+  pointer-events: auto;
+  animation: sheet-in .34s cubic-bezier(.32, .72, 0, 1) both;
+}
+@keyframes sheet-in { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) {
+  .sheet, .sheet-scrim { animation: none; }
+}
+.sheet-grip {
+  width: 36px; height: 5px; border-radius: 3px; margin: 0 auto;
+  background: var(--fill-3);
+}
+.sheet-head { display: flex; align-items: center; gap: var(--sp-3); }
+.sheet-head h2 {
+  flex: 1; margin: 0;
+  font-size: var(--t-title3); line-height: var(--lh-title3);
+  font-weight: 600; letter-spacing: -.02em; color: var(--label);
+}
+.sheet-body {
+  flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  display: flex; flex-direction: column; gap: 1px;
+  border-radius: var(--r-control); background: var(--separator-opaque);
+}
+
+/* Une portion par ligne : son nom, ses bornes, son nombre de versets. */
+.portion {
+  display: grid; grid-template-columns: 1fr auto; gap: 0 var(--sp-3);
+  align-items: center;
+  min-height: var(--hit); padding: var(--sp-2) var(--sp-4);
+  text-align: left; background: var(--bg-raised); color: var(--label);
+}
+.portion:first-child { border-radius: var(--r-control) var(--r-control) 0 0; }
+.portion:last-child { border-radius: 0 0 var(--r-control) var(--r-control); }
+.portion[aria-pressed="true"] { background: var(--fill); }
+.portion-n { font-size: var(--t-body); font-weight: 600; letter-spacing: -.01em; }
+.portion-sub {
+  grid-column: 1; font-size: var(--t-footnote); line-height: var(--lh-footnote); color: var(--label-3);
+}
+.portion-count {
+  grid-row: 1 / span 2; grid-column: 2;
+  font-size: var(--t-footnote); color: var(--label-3); font-variant-numeric: tabular-nums;
 }

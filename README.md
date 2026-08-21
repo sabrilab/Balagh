@@ -5,9 +5,10 @@ verset, le récite au télépromptage, sa voix est captée puis placée dans
 l'acoustique d'un lieu, et repart en audio ou en vidéo verticale.
 
 Ce dépôt contient un **prototype fonctionnel** : lecture du Coran avec tajwid
-et traductions, recherche par thème, télépromptage découpé aux signes de pause,
-captation micro, montage non destructif, effets de voix, export audio et vidéo.
-Tout tourne réellement — ce n'est pas une maquette cliquable.
+et traductions, recherche par thème, choix du passage au hasard ou par portion du
+mushaf, télépromptage découpé aux signes de pause, captation micro, montage non
+destructif, effets de voix, export audio et vidéo. Tout tourne réellement — ce
+n'est pas une maquette cliquable.
 
 - Livrable : [`dist/talawa-studio.html`](dist/talawa-studio.html), page autonome
   de 3,5 Mo, sans dépendance réseau (corpus et polices embarqués).
@@ -30,6 +31,38 @@ L export vidéo n y est pas : aucun encodeur maintenu n existe côté Expo. Il
 reste sur la version web. Voir [`docs/native.md`](docs/native.md) pour les
 détails et les chemins d installation — dont la contrainte du compte
 développeur Apple pour iOS.
+
+## Entrer dans une récitation
+
+Cocher les versets un par un reste possible ; ce n'est plus le seul chemin.
+
+**Au hasard.** Un bouton tire une suite de versets — court, moyen ou long — et
+l'ouvre au télépromptage. Le tirage est **uniforme sur les 6 236 versets** :
+aucune sourate n'est favorisée, aucun jugement n'est porté sur ce qu'il
+faudrait réciter. La suite reste dans une seule sourate, parce qu'on ne récite
+pas à cheval sur deux.
+
+**Une portion.** Sourate, juz, hizb, rub' al-hizb, page : les découpes du
+mushaf, pas des lots inventés. Elles viennent des métadonnées de l'édition
+Tanzil, et sont vérifiées à la compilation **contre le texte lui-même** —
+chacun des 199 signes ۞ doit tomber sur un début de rub'. Un seul écart existe,
+en 15:49, et il est tracé dans les métadonnées du corpus plutôt que corrigé en
+douce.
+
+Un juz entre d'un geste : 564 versets pour le juz 30, 571 cartes de
+télépromptage, découpées en 500 ms. `npm run verify:divisions` prouve que les
+cinq familles pavent les 6 236 versets sans trou, qu'un hizb couvre exactement
+ses quatre rub', et que le tirage au sort ne sort jamais d'une sourate.
+
+**Depuis la lecture.** « Toute la sourate » en un bouton, et une plage en deux
+touches : la première pose le départ, la seconde l'arrivée, dans l'ordre qu'on
+veut.
+
+Une prise longue est signalée pour ce qu'elle est : l'enregistrement décodé
+reste en mémoire, à peu près 11 Mo par minute. Le chiffre est calculé sur la
+fréquence d'échantillonnage réelle de l'appareil, pas estimé — et l'application
+suggère d'enregistrer hizb par hizb plutôt que d'annoncer une durée maximale
+qu'elle ne peut pas connaître.
 
 ## Découpage aux signes de pause
 
@@ -72,8 +105,8 @@ depuis les morceaux : chacun sait d'où il vient, donc quel texte il porte.
 
 ## Conformité Apple
 
-`npm run audit` mesure dans le navigateur, sur sept écrans — dont le
-télépromptage et le montage —, les quatre règles des Human Interface Guidelines
+`npm run audit` mesure dans le navigateur, sur dix écrans — dont la feuille des
+portions, le télépromptage et le montage —, les quatre règles des Human Interface Guidelines
 qui se vérifient mécaniquement : cibles tactiles de 44 pt, plancher de texte à
 11 pt, contraste 4,5:1, et absence de débordement hors cadre. Le premier jet en
 comptait 39 en écart ; il en reste **zéro**. L'audit échoue aussi si un écran
@@ -100,7 +133,7 @@ HTML, les actifs étant immuables.
 
 ```sh
 npm run all      # télécharge, vérifie, assemble les deux cibles
-npm test         # 64 vérifications + audit HIG sur 7 écrans + équivalence du noyau
+npm test         # 109 vérifications + audit HIG sur 10 écrans + équivalence du noyau
 ```
 
 Pour le site : `npx http-server public -p 8080` puis `http://localhost:8080`.
@@ -196,6 +229,7 @@ arabes reviendrait à inventer une correspondance.
 |---|---|
 | Lecture, tajwid, traductions FR/EN | fonctionnel, corpus complet |
 | Recherche par thème | fonctionnel, local |
+| Passage au hasard, portions du mushaf | fonctionnel (sourate, juz, hizb, rub', page) |
 | Télépromptage à glissement, découpé aux waqf | fonctionnel |
 | Montage : couper, supprimer, déplacer, rogner | fonctionnel, non destructif |
 | Effets de voix | fonctionnel (Web Audio) |

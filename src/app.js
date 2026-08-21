@@ -108,6 +108,16 @@
   }
   const toIndex = (s, a) => OFFSETS[s - 1] + a - 1;
 
+  /**
+   * Les découpes du mushaf — sourate, juz, hizb, rub', page — viennent du
+   * corpus vérifié, pas d'un partage calculé ici. Elles servent à choisir une
+   * portion d'un geste plutôt que de cocher deux cents versets.
+   */
+  const DIV = Core.divisions.makeDivisions({
+    data: D, SURAHS, TOTAL, OFFSETS, fromIndex, toIndex, surahMeta,
+  });
+  const { KINDS, KIND_LABEL, SIZES, sizeById } = Core.divisions;
+
   /* ======================================================================
      3. Moteur tajwid
      --------------------------------------------------------------------
@@ -1000,6 +1010,10 @@
     fwd: SVG('M11.8 6.6V3.4l4.8 3.2-4.8 3.2V6.6a5.6 5.6 0 1 0 5.6 5.6'),
     cut: SVG('M7.7 16.3L18 6M16.3 16.3L6 6', '<circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="18" r="2.5"/>'),
     undo: SVG('M4.5 9.5h9a5.5 5.5 0 0 1 0 11H8M4.5 9.5L8.5 5.5M4.5 9.5l4 4'),
+    dice: SVG('', '<rect x="3.5" y="3.5" width="17" height="17" rx="4"/><circle cx="8.6" cy="8.6" r="1.5" fill="currentColor" stroke="none"/><circle cx="15.4" cy="15.4" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/>'),
+    layers: SVG('M12 3.5l8.5 4.4-8.5 4.4L3.5 7.9zM3.5 12.4l8.5 4.4 8.5-4.4M3.5 16.6l8.5 4.4 8.5-4.4'),
+    rangeStart: SVG('M6 4.5v15M10.5 12h9m0 0l-3.4-3.4M19.5 12l-3.4 3.4'),
+    rangeEnd: SVG('M18 4.5v15M13.5 12h-9m0 0l3.4-3.4M4.5 12l3.4 3.4'),
     chevronDown: SVG('M5.5 9.5L12 16l6.5-6.5'),
   };
 
@@ -1021,6 +1035,9 @@
     // long en fait plusieurs, coupées aux signes de pause du mushaf.
     segments: null,
     maxLignes: 3,
+    randomSize: 'moyen',
+    rangeFrom: null,        // premier verset d'une plage en cours de choix
+    kind: 'juz',            // famille de portions ouverte dans la feuille
     take: null,
     takes: [],
     preset: 'quartier',
@@ -1043,8 +1060,22 @@
   const scrollMem = {};
 
   const inSelection = (s, a) => S.selection.some((v) => v.s === s && v.a === a);
+
+  /**
+   * Remplace la sélection d'un bloc.
+   *
+   * Toute entrée par lot passe par là — portion, plage, tirage au sort — pour
+   * que le découpage soit invalidé au même endroit : il dépend de la sélection,
+   * et le garder serait afficher les cartes du passage précédent.
+   */
+  function setSelection(list) {
+    S.selection = list.slice();
+    S.segments = null;
+    S.rangeFrom = null;
+  }
   function toggleSelection(s, a) {
     S.segments = null;
+    S.rangeFrom = null;
     const i = S.selection.findIndex((v) => v.s === s && v.a === a);
     if (i >= 0) S.selection.splice(i, 1);
     else {
@@ -1091,12 +1122,23 @@
           <div class="verse-actions">
             <button class="icon-btn" data-act="pick" data-s="${s}" data-a="${a}" aria-pressed="${picked}"
               aria-label="${picked ? 'Retirer le verset de la sélection' : 'Ajouter le verset à la sélection'}">${picked ? ICONS.check : ICONS.plus}</button>
+            <button class="icon-btn" data-act="range" data-s="${s}" data-a="${a}"
+              aria-label="${S.rangeFrom ? 'Terminer la plage ici' : 'Commencer une plage ici'}">${S.rangeFrom ? ICONS.rangeEnd : ICONS.rangeStart}</button>
             <button class="icon-btn" data-act="recite" data-s="${s}" data-a="${a}" aria-label="Réciter ce verset">${ICONS.mic}</button>
           </div>
         </div>
         <p class="ayah-ar ${S.mode === 'plain' ? 'plain' : ''}">${body}<span class="ayah-mark">﴿${arNum(a)}﴾</span></p>
         ${tr}
       </article>`;
+  }
+
+  /** « Juz 3 · Hizb 5 · page 42 » — où se trouve le passage dans le mushaf. */
+  function situation(list) {
+    if (!list.length) return '';
+    const a = DIV.locate(list[0].s, list[0].a);
+    const b = DIV.locate(list[list.length - 1].s, list[list.length - 1].a);
+    const plage = (x, y, nom) => (x === y ? `${nom} ${x}` : `${nom} ${x}–${y}`);
+    return `${plage(a.juz, b.juz, 'Juz')} · ${plage(a.page, b.page, 'page')}`;
   }
 
   const selectionCard = () => {
@@ -1165,7 +1207,26 @@
         </div>
         ${S.mode === 'tajwid' ? `<div class="tajwid-legend">${TAJWID_LEGEND.map(([c, l]) => `<span><i style="background:var(--${c})"></i>${esc(l)}</span>`).join('')}</div>` : ''}
       </div>`;
+    const tousPris = S.selection.length >= m.n && Array.from({ length: m.n }, (_, i) => i + 1).every((a) => inSelection(S.surah, a));
+    out += `
+      <div class="entry-row">
+        <button class="btn btn-block" data-act="${tousPris ? 'clear-selection' : 'whole-surah'}" data-s="${S.surah}">
+          ${tousPris ? ICONS.close : ICONS.check}${tousPris ? 'Tout retirer' : 'Toute la sourate'}
+        </button>
+        <button class="btn btn-block" data-act="sheet" data-v="page">${ICONS.layers}Une portion</button>
+      </div>`;
     out += selectionCard();
+    if (S.rangeFrom) {
+      out += `
+        <div class="notice notice-range">
+          ${ICONS.rangeStart}
+          <div>
+            <strong>Plage ouverte à ${esc(refLabel(S.rangeFrom.s, S.rangeFrom.a))}.</strong>
+            Touchez la même icône sur le verset d’arrivée.
+          </div>
+          <button class="btn btn-plain" data-act="range-cancel">Annuler</button>
+        </div>`;
+    }
     out += '<div class="card card-flush">';
     if (m.pre) out += `<div class="basmala">${esc(D.basmala.ar)}</div>`;
     for (let a = 1; a <= m.n; a++) out += ayahHTML(S.surah, a);
@@ -1342,14 +1403,91 @@
     if (hint) hint.style.opacity = REC.index === 0 && REC.state === 'recording' ? '1' : '0';
   }
 
+  /**
+   * Deux façons d'entrer dans une récitation sans cocher des versets un par un.
+   *
+   * Le tirage au sort répond à « je veux réciter, peu importe quoi » : il sort
+   * une suite de versets d'une seule sourate, uniformément sur les 6 236 — pas
+   * de sourate favorisée, aucun jugement sur ce qu'il faudrait réciter.
+   *
+   * Les portions répondent à « je récite une soirée » : ce sont les découpes du
+   * mushaf, pas des lots inventés.
+   */
+  function entryHTML() {
+    const taille = sizeById(S.randomSize);
+    return `
+      <div class="card" style="display:flex;flex-direction:column;gap:var(--sp-3)">
+        <div class="entry-row">
+          <button class="btn btn-filled btn-block" data-act="random">${ICONS.dice}Au hasard</button>
+          <button class="btn btn-block" data-act="sheet" data-v="${S.kind}">${ICONS.layers}Une portion</button>
+        </div>
+        <div class="segmented" role="group" aria-label="Longueur du passage tiré au sort">
+          ${SIZES.map((t) => `<button data-act="rsize" data-v="${t.id}" aria-pressed="${S.randomSize === t.id}">${esc(t.nom)}</button>`).join('')}
+        </div>
+        <p class="entry-note">${taille.versets} versets environ, dans une seule sourate. Une portion prend une sourate, un juz, un hizb, un rub’ ou une page entière.</p>
+      </div>`;
+  }
+
+  /** Feuille de choix d'une portion : les découpes du mushaf, numérotées. */
+  function sheetHTML() {
+    if (!S.sheet) return '';
+    const kind = S.sheet.kind;
+    const total = DIV.count(kind);
+    const ici = S.selection.length ? DIV.locate(S.selection[0].s, S.selection[0].a) : null;
+    let chips = '';
+    for (let i = 1; i <= total; i++) {
+      const d = DIV.describe(kind, i);
+      chips += `<button class="portion" data-act="portion" data-k="${kind}" data-n="${i}" aria-pressed="${ici && ici[kind] === i}">
+        <span class="portion-n">${esc(d.title)}</span>
+        <span class="portion-sub">${esc(d.sub)}</span>
+        <span class="portion-count">${d.verses}</span>
+      </button>`;
+    }
+    return `
+      <div class="sheet-scrim" data-act="sheet-close"></div>
+      <section class="sheet" role="dialog" aria-modal="true" aria-label="Choisir une portion">
+        <div class="sheet-grip" aria-hidden="true"></div>
+        <div class="sheet-head">
+          <h2>Une portion</h2>
+          <button class="icon-btn" data-act="sheet-close" aria-label="Fermer">${ICONS.close}</button>
+        </div>
+        <div class="segmented" role="group" aria-label="Famille de portions">
+          ${KINDS.map((k) => `<button data-act="sheet" data-v="${k}" aria-pressed="${k === kind}">${esc(KIND_LABEL[k])}</button>`).join('')}
+        </div>
+        <div class="sheet-body" id="sheet-body">${chips}</div>
+      </section>`;
+  }
+
+  /**
+   * Coût mémoire d'une minute de prise décodée, en Mo.
+   *
+   * Ce n'est pas une estimation : c'est la taille exacte du tampon que le
+   * navigateur garde ouvert, à la fréquence d'échantillonnage de l'appareil.
+   * On la donne telle quelle plutôt qu'une durée maximale inventée — la limite
+   * dépend du téléphone, pas de nous.
+   */
+  const memoirParMinute = () => {
+    const sr = (AudioEngine.ctx && AudioEngine.ctx.sampleRate) || 48000;
+    return Math.round((sr * 60 * 4) / 1024 / 1024);
+  };
+
   function screenPassage() {
     const has = S.selection.length > 0;
     const micBlocked = AudioEngine.micError === 'denied' || AudioEngine.micError === 'unsupported';
     return `
       ${largeTitle('Studio', 'Étape 1 sur 4 · le passage')}
       <div class="screen-pad">
+        ${entryHTML()}
         ${has ? `
-          <div class="card card-flush">
+          ${S.selection.length > 12 ? `
+            <div class="card" style="display:flex;align-items:center;gap:var(--sp-3)">
+              <div style="flex:1;min-width:0">
+                <div class="row-title">${esc(passageLabel(S.selection))}</div>
+                <div class="row-sub">${S.selection.length} versets · ${esc(situation(S.selection))}</div>
+              </div>
+              <button class="icon-btn" data-act="clear-selection" aria-label="Vider la sélection">${ICONS.close}</button>
+            </div>`
+          : `<div class="card card-flush">
             ${S.selection.map((v) => `
               <div class="list-row flush">
                 <span class="row-body">
@@ -1358,7 +1496,7 @@
                 </span>
                 <button class="icon-btn" data-act="pick" data-s="${v.s}" data-a="${v.a}" aria-label="Retirer ce verset">${ICONS.close}</button>
               </div>`).join('')}
-          </div>
+          </div>`}
           <button class="btn btn-filled btn-block" data-act="to-prompter">${ICONS.mic}Passer au télépromptage</button>
           ${S.take ? `<button class="btn btn-block" data-act="studio" data-v="review">${ICONS.play}Reprendre « ${esc(S.take.name)} »</button>` : ''}
         ` : `
@@ -1371,6 +1509,15 @@
             <button class="btn btn-block" data-act="tab" data-v="chercher">${ICONS.search}Chercher</button>
           </div>
         `}
+
+        ${S.selection.length > 60 ? `
+          <div class="notice">
+            ${ICONS.info}
+            <div><strong>Longue prise.</strong> Le navigateur garde l’enregistrement décodé en
+            mémoire — environ ${memoirParMinute()} Mo par minute. Pour une soirée entière,
+            enregistrez hizb par hizb ou rub’ par rub’ : chaque prise reste légère, et les prises
+            s’enchaînent dans l’onglet Prises.</div>
+          </div>` : ''}
 
         ${micBlocked ? `
           <div class="notice notice-madder">
@@ -1780,7 +1927,8 @@
     // Sans titre large — écran plein cadre — le titre compact reste visible.
     nav.dataset.compact = isPrompter || !scr.querySelector('.large-title') ? '1' : '0';
 
-    $('#overlay').innerHTML = S.toast ? `<div class="toast">${esc(S.toast)}</div>` : '';
+    $('#overlay').innerHTML = sheetHTML() + (S.toast ? `<div class="toast">${esc(S.toast)}</div>` : '');
+    $('#overlay').dataset.open = S.sheet ? '1' : '0';
 
     const key = screenKey();
     if (key === lastKey && scrollMem[key] != null) scr.scrollTop = scrollMem[key];
@@ -1896,6 +2044,7 @@
   }
 
   document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && S.sheet) { e.preventDefault(); S.sheet = null; render(); return; }
     if (!(S.tab === 'studio' && S.screen === 'prompter')) return;
     if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); advanceVerse(1); }
     if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { e.preventDefault(); advanceVerse(-1); }
@@ -1990,7 +2139,12 @@
       render();
     } catch (err) {
       render();
-      toast('Impossible de relire l’enregistrement.');
+      // Au-delà de quelques minutes, l'échec vient presque toujours de la
+      // mémoire : le dire évite de chercher une panne ailleurs.
+      const minutes = (performance.now() - REC.startedAt) / 60000;
+      toast(minutes > 5
+        ? `Prise de ${Math.round(minutes)} min trop lourde à relire ici. Enregistrez par portions plus courtes.`
+        : 'Impossible de relire l’enregistrement.');
     }
   }
 
@@ -2330,6 +2484,61 @@
       go('studio', 'prompter');
     },
     'to-prompter'() { computeSegments(); go('studio', 'prompter'); },
+
+    /** Tirage au sort. `Math.random` convient : rien ici n'a besoin d'être rejouable. */
+    random() {
+      setSelection(DIV.randomPassage(Math.random, sizeById(S.randomSize).versets));
+      S.sheet = null;
+      go('studio', 'passage');
+      toast(`${passageLabel(S.selection)} — ${situation(S.selection)}`);
+    },
+    rsize(el) { S.randomSize = el.dataset.v; render(); },
+
+    sheet(el) {
+      S.kind = el.dataset.v;
+      S.sheet = { kind: S.kind };
+      S.toast = null;              // la feuille recouvrirait le message
+      clearTimeout(toastTimer);
+      render();
+      const body = $('#sheet-body');
+      const on = body && body.querySelector('[aria-pressed="true"]');
+      if (on) on.scrollIntoView({ block: 'center' });
+    },
+    'sheet-close'() { S.sheet = null; render(); },
+
+    portion(el) {
+      const kind = el.dataset.k;
+      const num = +el.dataset.n;
+      setSelection(DIV.verses(kind, num));
+      S.sheet = null;
+      const d = DIV.describe(kind, num);
+      go('studio', 'passage');
+      toast(`${d.title} · ${d.verses} versets`);
+    },
+
+    'whole-surah'(el) {
+      const su = +el.dataset.s;
+      setSelection(Array.from({ length: surahMeta(su).n }, (_, i) => ({ s: su, a: i + 1 })));
+      render();
+    },
+    'clear-selection'() { setSelection([]); render(); },
+
+    /**
+     * Plage en deux touches : la première pose le départ, la seconde
+     * l'arrivée. Deux gestes simples valent mieux qu'un appui long, qui ne se
+     * découvre pas et n'existe pas au clavier.
+     */
+    range(el) {
+      const v = { s: +el.dataset.s, a: +el.dataset.a };
+      if (!S.rangeFrom) { S.rangeFrom = v; render(); return; }
+      const from = S.rangeFrom;
+      if (from.s !== v.s) { toast('Une plage reste dans une seule sourate.'); S.rangeFrom = null; render(); return; }
+      const [a1, a2] = from.a <= v.a ? [from.a, v.a] : [v.a, from.a];
+      setSelection(Array.from({ length: a2 - a1 + 1 }, (_, i) => ({ s: v.s, a: a1 + i })));
+      render();
+      toast(`${passageLabel(S.selection)} — ${S.selection.length} versets`);
+    },
+    'range-cancel'() { S.rangeFrom = null; render(); },
     studio(el) {
       if (REC.state === 'recording') { toast('Arrêtez l’enregistrement d’abord.'); return; }
       stopPlayback();

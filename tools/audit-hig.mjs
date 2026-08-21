@@ -154,8 +154,29 @@ const screens = [
   ['Recherche', '.chip-row .chip', async () => { await page.click('[data-act="tab"][data-v="chercher"]'); await page.click('.chip-row .chip >> nth=0'); }],
   ['Studio — passage', '[data-input="import"]', async () => { await page.click('[data-act="tab"][data-v="studio"]'); }],
   ['Compte', '[data-act="premium"]', async () => { await page.click('[data-act="tab"][data-v="compte"]'); }],
+  ['Feuille des portions', '.portion', async () => {
+    await page.click('[data-act="tab"][data-v="studio"]');
+    await page.waitForTimeout(300);
+    await page.click('[data-act="sheet"][data-v="juz"]');
+  }],
+  ['Studio — passage tiré au sort', '[data-act="random"]', async () => {
+    await page.click('.sheet [data-act="sheet-close"]');
+    await page.waitForTimeout(300);
+    await page.click('[data-act="random"]');
+  }],
+  ['Lecture — plage en cours', '[data-act="range-cancel"]', async () => {
+    await page.click('[data-act="tab"][data-v="lire"]');
+    await page.waitForTimeout(300);
+    await page.click('[data-act="open-surah"][data-s="36"]');
+    await page.waitForTimeout(400);
+    await page.click('[data-act="range"][data-s="36"][data-a="1"]');
+  }],
   ['Studio — télépromptage', '.deck-card', async () => {
-    await page.evaluate(() => { window.TalawaStudio.state.selection = [{ s: 2, a: 255 }]; });
+    await page.evaluate(() => {
+      window.TalawaStudio.state.selection = [{ s: 2, a: 255 }];
+      window.TalawaStudio.state.segments = null;
+      window.TalawaStudio.state.rangeFrom = null;
+    });
     await page.click('[data-act="tab"][data-v="studio"]');
     await page.waitForTimeout(300);
     await page.click('[data-act="to-prompter"]');

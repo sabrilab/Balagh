@@ -53,8 +53,80 @@ await page.waitForFunction(() => window.TalawaStudio);
 await page.evaluate(() => document.fonts.ready);
 await page.waitForTimeout(600);
 
+// --- entrer dans une récitation sans cocher de versets
+await page.click('[data-act="tab"][data-v="studio"]');
+await page.waitForTimeout(400);
+
+const tirages = [];
+for (let i = 0; i < 5; i++) {
+  await page.click('[data-act="random"]');
+  await page.waitForTimeout(200);
+  tirages.push(await page.evaluate(() => {
+    const S = window.TalawaStudio.state;
+    return {
+      n: S.selection.length,
+      unique: new Set(S.selection.map((v) => v.s)).size,
+      suite: S.selection.every((v, i2) => v.a === S.selection[0].a + i2),
+      ref: `${S.selection[0].s}:${S.selection[0].a}`,
+    };
+  }));
+}
+t('le tirage au sort donne une suite dans une seule sourate',
+  tirages.every((x) => x.n === 7 && x.unique === 1 && x.suite),
+  tirages.map((x) => x.ref).join(' '));
+t('deux tirages ne tombent pas au même endroit', new Set(tirages.map((x) => x.ref)).size > 1);
+
+await page.click('[data-act="rsize"][data-v="long"]');
+await page.click('[data-act="random"]');
+await page.waitForTimeout(250);
+t('la longueur demandée est respectée',
+  (await page.evaluate(() => window.TalawaStudio.state.selection.length)) === 15);
+await page.click('[data-act="rsize"][data-v="moyen"]');
+
+// --- une portion du mushaf, en deux touches
+await page.click('[data-act="sheet"][data-v="juz"]');
+await page.waitForTimeout(500);
+t('la feuille propose les 30 juz', (await page.locator('[data-act="portion"][data-k="juz"]').count()) === 30);
+await page.click('.sheet [data-act="sheet"][data-v="hizb"]');
+await page.waitForTimeout(300);
+t('la feuille propose les 60 hizb', (await page.locator('[data-act="portion"][data-k="hizb"]').count()) === 60);
+await page.screenshot({ path: join(OUT, 'studio-portions.png') });
+await page.click('.sheet [data-act="sheet"][data-v="juz"]');
+await page.waitForTimeout(300);
+await page.click('[data-act="portion"][data-k="juz"][data-n="30"]');
+await page.waitForTimeout(600);
+const juz30 = await page.evaluate(() => {
+  const S = window.TalawaStudio.state;
+  return { n: S.selection.length, a: `${S.selection[0].s}:${S.selection[0].a}`, b: `${S.selection.at(-1).s}:${S.selection.at(-1).a}` };
+});
+t('le juz 30 entre d’un geste', juz30.n === 564 && juz30.a === '78:1' && juz30.b === '114:6',
+  `${juz30.n} versets, ${juz30.a} → ${juz30.b}`);
+t('un passage long est résumé, pas déroulé', (await page.locator('[data-act="clear-selection"]').count()) === 1);
+t('une longue prise est signalée', (await page.locator('.notice').filter({ hasText: 'Longue prise' }).count()) === 1);
+await page.screenshot({ path: join(OUT, 'studio-juz30.png') });
+
+// --- toute une sourate, et une plage, depuis la lecture
+await page.click('[data-act="tab"][data-v="lire"]');
+await page.waitForTimeout(300);
+await page.click('[data-act="open-surah"][data-s="36"]');
+await page.waitForTimeout(500);
+await page.click('[data-act="whole-surah"][data-s="36"]');
+await page.waitForTimeout(400);
+t('« Toute la sourate » prend les 83 versets de Ya-Sin',
+  (await page.evaluate(() => window.TalawaStudio.state.selection.length)) === 83);
+await page.click('[data-act="range"][data-s="36"][data-a="20"]');
+await page.waitForTimeout(250);
+await page.click('[data-act="range"][data-s="36"][data-a="12"]');
+await page.waitForTimeout(300);
+const plage = await page.evaluate(() => {
+  const S = window.TalawaStudio.state;
+  return { n: S.selection.length, a: S.selection[0].a, b: S.selection.at(-1).a };
+});
+t('une plage se pose en deux touches, dans les deux sens',
+  plage.n === 9 && plage.a === 12 && plage.b === 20, `${plage.n} versets, 36:${plage.a}-${plage.b}`);
+
 // --- découpage : le verset du Trône (2:255) ne tient pas sur trois lignes
-await page.evaluate(() => { window.TalawaStudio.state.selection = [{ s: 2, a: 255 }]; });
+await page.evaluate(() => { window.TalawaStudio.state.selection = [{ s: 2, a: 255 }]; window.TalawaStudio.state.segments = null; });
 await page.click('[data-act="tab"][data-v="studio"]');
 await page.waitForTimeout(300);
 await page.click('[data-act="to-prompter"]');
